@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIMENSIONNEMENT MOUSSE TACTIQUE</title>
     
-    <!-- Configuration iOS / Android -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Calcul Mousse">
@@ -40,6 +39,8 @@
         .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
         .form-group input[type="number"] { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 8px; border-radius: 6px; font-size: 1rem; font-weight: bold; }
         
+        .form-inline-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+
         /* Sliders / Curseurs */
         .slider-container { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 8px; }
         .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
@@ -51,12 +52,13 @@
         .res-box { background: #0f172a; border-left: 4px solid var(--accent-blue); padding: 8px; border-radius: 4px; }
         .res-box.green { border-left-color: var(--accent-green); }
         .res-box.orange { border-left-color: #fb923c; }
+        .res-box.red { border-left-color: var(--accent-red); }
         .res-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
         .res-val { font-size: 1.1rem; font-weight: 800; margin-top: 2px; color: #ffffff; }
 
         /* Liste tactique d'engins */
         .tactique-list { margin: 5px 0 0 0; padding: 0; list-style: none; font-size: 0.85rem; }
-        .tactique-list li { padding: 6px 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
+        .tactique-list li { padding: 6px 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .tactique-list li:last-child { border-bottom: none; }
         .badge-qty { background: #fb923c; color: #0f172a; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
         .badge-lif { background: #a855f7; color: white; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
@@ -68,32 +70,28 @@
 
 <header>
     <h1>MOUSSE TACTIQUE — DIMENSIONNEMENT</h1>
-    <p>Calculateur de Débits et Stocks Émulseur GOC / Sites Industriels</p>
+    <p>Calculateur de Débits, Moyens LIF & Suivi Logistique</p>
 </header>
 
-<!-- CONFIGURATION DU TYPE DE SINISTRE -->
 <div class="card">
     <h2>1. Configuration du Sinistre</h2>
-    <label style="font-size: 0.8rem; color: var(--text-muted); display:block; margin-bottom:4px;">Configuration Géométrique :</label>
     <div class="toggle-group">
         <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">🛢️ Cuvette / Rétention</button>
-        <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">🌊 Nappe libre / Épandage</button>
+        <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">🌊 Nappe / Épandage</button>
     </div>
 
-    <label style="font-size: 0.8rem; color: var(--text-muted); display:block; margin-bottom:4px;">Nature du Produit :</label>
     <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure (Non-Polaire)</button>
-        <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant / Alcool (Polaire)</button>
+        <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure</button>
+        <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant / Alcool</button>
     </div>
 
-    <label style="font-size: 0.8rem; color: var(--text-muted); display:block; margin-bottom:4px;">Mode de saisie de la zone enflammée :</label>
     <div class="toggle-group">
         <button class="toggle-btn active" id="btn-mode-surf" onclick="setModeSaisie('surface')">📐 Surface (m²)</button>
         <button class="toggle-btn" id="btn-mode-diam" onclick="setModeSaisie('diametre')">⭕ Diamètre du Bac (m)</button>
     </div>
 
     <div class="form-group" id="group-surface">
-        <label for="inp-surface">Surface estimée ou mesurée du sinistre (m²) :</label>
+        <label for="inp-surface">Surface totale du sinistre (m²) :</label>
         <input type="number" id="inp-surface" value="100" oninput="calculerMousse()" onclick="this.select();">
     </div>
 
@@ -103,9 +101,26 @@
     </div>
 </div>
 
-<!-- AJUSTEMENTS AVANCÉS (TAUX & CONCENTRATION) -->
 <div class="card">
-    <h2>2. Paramètres d'Application (Ajustables)</h2>
+    <h2>2. Moyens Entreprise & Historique de l'Attaque</h2>
+    <div class="form-inline-3">
+        <div class="form-group">
+            <label style="font-size:0.7rem;" for="inp-q-deja">Débit en place (L/min)</label>
+            <input type="number" id="inp-q-deja" value="0" oninput="calculerMousse()" onclick="this.select();">
+        </div>
+        <div class="form-group">
+            <label style="font-size:0.7rem;" for="inp-t-deja">Tps écoulé (min)</label>
+            <input type="number" id="inp-t-deja" value="0" oninput="calculerMousse()" onclick="this.select();">
+        </div>
+        <div class="form-group">
+            <label style="font-size:0.7rem;" for="inp-stock-ent">Stock Émulseur (L)</label>
+            <input type="number" id="inp-stock-ent" value="0" oninput="calculerMousse()" onclick="this.select();">
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h2>3. Objectifs d'Application</h2>
     
     <div class="slider-container">
         <div class="slider-header">
@@ -125,51 +140,53 @@
 
     <div class="slider-container">
         <div class="slider-header">
-            <span>Durée minimale d'extinction (Autonomie) :</span>
+            <span>Durée d'autonomie visée (Attaque) :</span>
             <span class="slider-val" id="val-duree">30 min</span>
         </div>
         <input type="range" id="slip-duree" min="15" max="60" step="5" value="30" oninput="updateSlider('duree', this.value)">
     </div>
 </div>
 
-<!-- BILAN DES BESOINS CHIFBRÉS -->
 <div class="card">
-    <h2>3. Bilan Quantitatif des Besoins</h2>
+    <h2>4. Bilan Quantitatif Global (Théorique)</h2>
     <div class="res-grid">
         <div class="res-box">
-            <div class="res-lbl">Solution Moussante</div>
+            <div class="res-lbl">Sol. Moussante Totale</div>
             <div class="res-val" id="res-qsm">500 L/min</div>
         </div>
         <div class="res-box orange">
-            <div class="res-lbl">Stock Émulseur requis</div>
+            <div class="res-lbl">Stock Émulseur Total</div>
             <div class="res-val" id="res-vol-emu">450 L</div>
         </div>
         <div class="res-box">
-            <div class="res-lbl">Besoins en Eau</div>
+            <div class="res-lbl">Eau (Débit total)</div>
             <div class="res-val" id="res-qeau">485 L/min</div>
         </div>
         <div class="res-box green">
-            <div class="res-lbl">Débit Émulseur pur</div>
+            <div class="res-lbl">Débit Émulseur Pur</div>
             <div class="res-val" id="res-qemu">15 L/min</div>
         </div>
     </div>
 </div>
 
-<!-- PROPOSITION DE DISPOSITIF ET ENGREMENT TACTIQUE -->
 <div class="card">
-    <h2>4. Réponse Opérationnelle & Moyens (Doctrine)</h2>
+    <h2>5. Réponse Opérationnelle & Renforts SP</h2>
     <ul class="tactique-list">
         <li>
-            <span>**Groupe(s) LIF** requis <small style="color:var(--text-muted);">(4000L/min - CEEM 6000L)</small> :</span>
+            <span>**Groupe(s) LIF** à demander :</span>
             <span class="badge-lif" id="tact-glif">0</span>
         </li>
         <li>
-            <span>Moyens hydrauliques complémentaires nécessaires :</span>
-            <span id="tact-canons" style="font-weight:bold; color:#fb923c;">Aucun</span>
+            <span>Moyens hydrauliques compléments :</span>
+            <span id="tact-canons" style="font-weight:bold; color:#fb923c; text-align:right;">Aucun</span>
         </li>
         <li>
-            <span>Logistique Émulseur complémentaire requise :</span>
-            <span id="tact-log-emu" style="font-weight:bold; color:#fb923c;">Aucune</span>
+            <span>Émulseur restant Entreprise :</span>
+            <span id="tact-solde-entreprise" style="font-weight:bold; color:#16a34a;">0 L</span>
+        </li>
+        <li>
+            <span>**Volume Émulseur à amener par les SP** :</span>
+            <span id="tact-apport-sp" style="font-weight:bold; color:#dc2626;">0 L</span>
         </li>
     </ul>
     
@@ -179,7 +196,6 @@
 </div>
 
 <script>
-// Variables d'état globales
 let configSinistre = 'cuvette'; 
 let typeProduit = 'hydro'; 
 let modeSaisie = 'surface';
@@ -200,13 +216,10 @@ function setModeSaisie(mode) {
     }
 }
 
-function calcularParDiametre() {
+function calculerParDiametre() {
     const diametre = parseFloat(document.getElementById('inp-diametre').value) || 0;
-    // Formule de l'aire du cercle : Pi * R²
     const rayon = diametre / 2;
     const surfaceCalculee = Math.PI * Math.pow(rayon, 2);
-    
-    // Injecte furtivement la valeur calculée dans la variable de surface
     document.getElementById('inp-surface').value = Math.round(surfaceCalculee);
     calculerMousse();
 }
@@ -220,7 +233,7 @@ function setConfiguration(type) {
     const infoBox = document.getElementById('info-sup');
     
     if (type === 'nappe') {
-        infoBox.innerHTML = "⚠️ Nappe libre : Risque d'étalement. Le stock d'émulseur requis intègre automatiquement une marge de sécurité de +50% pour compenser les pertes et l'extension géométrique (Calibré sur " + dureeChoisie + " min).";
+        infoBox.innerHTML = "⚠️ Nappe libre : Risque d'étalement. Marge de sécurité de +50% intégrée sur le volume d'émulseur théorique (Calcul sur " + dureeChoisie + " min).";
         infoBox.style.color = "#fdba74";
         infoBox.style.background = "#7c2d1233";
         infoBox.style.borderColor = "#7c2d12";
@@ -252,7 +265,6 @@ function updateSlider(param, value) {
     if (param === 'ta') document.getElementById('val-ta').innerText = parseFloat(value).toFixed(1) + " L/min/m²";
     if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
     if (param === 'duree') document.getElementById('val-duree').innerText = value + " min";
-    
     setConfiguration(configSinistre);
 }
 
@@ -262,85 +274,104 @@ function calculerMousse() {
     const conc = parseFloat(document.getElementById('slip-conc').value);
     const duree = parseInt(document.getElementById('slip-duree').value);
     
-    // 1. Débits Bruts
-    const qsm = surface * ta;
-    const qemu = qsm * (conc / 100);
-    const qeau = qsm - qemu;
+    // Récupération des données entreprise / historique
+    const qDejaProjete = parseFloat(document.getElementById('inp-q-deja').value) || 0;
+    const tDejaEcoule = parseFloat(document.getElementById('inp-t-deja').value) || 0;
+    const stockInitialEntreprise = parseFloat(document.getElementById('inp-stock-ent').value) || 0;
     
-    // 2. Volumes Émulseur (marge +50% si nappe libre)
-    let volEmu = qemu * duree;
-    if (configSinistre === 'nappe') { volEmu = volEmu * 1.5; }
+    // 1. CALCULS THÉORIQUES TOTAUX
+    const qsmTotal = surface * ta;
+    const qemuTotal = qsmTotal * (conc / 100);
+    const qeauTotal = qsmTotal - qemuTotal;
     
-    // Affichage des résultats quantitatifs
-    document.getElementById('res-qsm').innerText = Math.round(qsm) + " L/min";
-    document.getElementById('res-qeau').innerText = Math.round(qeau) + " L/min";
-    document.getElementById('res-qemu').innerText = qemu.toFixed(1) + " L/min";
-    document.getElementById('res-vol-emu').innerText = Math.round(volEmu) + " L";
+    let volEmuTheorique = qemuTotal * duree;
+    if (configSinistre === 'nappe') { volEmuTheorique *= 1.5; }
     
-    // ==========================================
-    // TRADUCTION TACTIQUE (GROUPE LIF & COMPLÉMENTS)
-    // ==========================================
+    // Affichage Section 4
+    document.getElementById('res-qsm').innerText = Math.round(qsmTotal) + " L/min";
+    document.getElementById('res-qeau').innerText = Math.round(qeauTotal) + " L/min";
+    document.getElementById('res-qemu').innerText = qemuTotal.toFixed(1) + " L/min";
+    document.getElementById('res-vol-emu').innerText = Math.round(volEmuTheorique) + " L";
     
-    // Un groupe LIF = Capacité max de 4000 L/min de solution moussante
-    // Et embarque une CEEM de 6000 L d'émulseur
-    let groupesLIF_Hydraulique = Math.floor(qsm / 4000);
-    let groupesLIF_Logistique = Math.floor(volEmu / 6000);
+    // 2. ANALYSE DU RESTE À FAIRE EN DEBIT (MANQUANT)
+    let qsmManquant = qsmTotal - qDejaProjete;
+    if (qsmManquant < 0) qsmManquant = 0;
     
-    // On prend le max des deux besoins pour dimensionner le nombre de groupes LIF requis
-    let nbrGLIF = Math.max(groupesLIF_Hydraulique, groupesLIF_Logistique);
-    
-    // Si un débit minimal est requis mais inférieur à 4000, on peut avoir besoin de 0 groupe LIF (moyens de secteur suffisants)
-    // Mais si le besoin dépasse les moyens du bord, on calcule le reste
+    // Sizing des Groupes LIF basés sur le débit MANQUANT
+    let nbrGLIF = Math.floor(qsmManquant / 4000);
     document.getElementById('tact-glif').innerText = nbrGLIF;
     
-    // Calcul du reliquat hydraulique non couvert par les groupes LIF engagés
-    let qsmRestant = qsm - (nbrGLIF * 4000);
+    let qsmRestantApresLIF = qsmManquant - (nbrGLIF * 4000);
     let txtCanons = "";
     
-    if (qsmRestant <= 0) {
-        txtCanons = "Couvert par le(s) groupe(s) LIF";
+    if (qsmManquant <= 0) {
+        txtCanons = "Débit actuel en place suffisant";
     } else {
-        // Proposition d'engins en complément selon le débit restant
-        let nbrC2000 = Math.floor(qsmRestant / 2000);
-        qsmRestant %= 2000;
-        let nbrC1000 = Math.floor(qsmRestant / 1000);
-        qsmRestant %= 1000;
-        let nbrL400 = Math.ceil(qsmRestant / 400);
+        let nbrC2000 = Math.floor(qsmRestantApresLIF / 2000);
+        let resteQ = qsmRestantApresLIF % 2000;
+        let nbrC1000 = Math.floor(resteQ / 1000);
+        let nbrL400 = Math.ceil((resteQ % 1000) / 400);
         
         let arrMoyens = [];
         if (nbrC2000 > 0) arrMoyens.push(`${nbrC2000} Canon(s) 2000`);
         if (nbrC1000 > 0) arrMoyens.push(`${nbrC1000} Canon(s) 1000`);
-        if (nbrL400 > 0) arrMoyens.push(`${nbrL400} Lance(s) 400 L/min`);
-        
-        txtCanons = arrMoyens.join(" + ");
+        if (nbrL400 > 0) arrMoyens.push(`${nbrL400} Lance(s) 400`);
+        txtCanons = arrMoyens.length > 0 ? arrMoyens.join(" + ") : "Couvert par LIF";
     }
     document.getElementById('tact-canons').innerText = txtCanons;
     
-    // Calcul du reliquat logistique d'émulseur non couvert par les CEEM de 6000L des groupes LIF engagés
-    let volEmuRestant = volEmu - (nbrGLIF * 6000);
-    let txtLogEmu = "";
+    // 3. ANALYSE LOGISTIQUE (STOCK & CONSOMMATION)
+    // Émulseur déjà consommé par les moyens de l'entreprise
+    const emuConsomme = qDejaProjete * (conc / 100) * tDejaEcoule;
     
-    if (volEmuRestant <= 0) {
-        txtLogEmu = "Stock suffisant dans les CEEM du Groupe LIF";
+    // Solde actuel de l'entreprise
+    let soldeEntreprise = stockInitialEntreprise - emuConsomme;
+    if (soldeEntreprise < 0) soldeEntreprise = 0;
+    
+    // Ce que les moyens en place vont encore consommer pour la suite de la durée visée
+    const emuFuturMoyensEnPlace = qDejaProjete * (conc / 100) * duree;
+    
+    // Ce que les nouveaux moyens (LIF / renforts) vont consommer sur cette durée
+    let emuFuturNouveauxMoyens = qsmManquant * (conc / 100) * duree;
+    if (configSinistre === 'nappe') { emuFuturNouveauxMoyens *= 1.5; } // Marge sur la part renforts nappe
+    
+    // Besoin total en émulseur pour la suite de l'intervention
+    const totalBesoinFutur = emuFuturMoyensEnPlace + emuFuturNouveauxMoyens;
+    
+    // Calcul de l'apport requis par les Sapeurs-Pompiers
+    let apportSPRequis = totalBesoinFutur - soldeEntreprise;
+    if (apportSPRequis < 0) apportSPRequis = 0;
+    
+    // Affichage des bilans de stocks
+    document.getElementById('tact-solde-entreprise').innerText = Math.round(soldeEntreprise) + " L (Dispo)";
+    if (soldeEntreprise === 0 && stockInitialEntreprise > 0 && emuConsomme >= stockInitialEntreprise) {
+        document.getElementById('tact-solde-entreprise').innerText = "RUPTURE STOCK SITE";
+        document.getElementById('tact-solde-entreprise').style.color = "var(--accent-red)";
     } else {
-        let nbrCDRM = Math.floor(volEmuRestant / 2000);
-        let resteLitres = volEmuRestant % 2000;
-        let nbrBidons20 = Math.ceil(resteLitres / 20);
+        document.getElementById('tact-solde-entreprise').style.color = "var(--accent-green)";
+    }
+    
+    // Traduction de l'apport SP en vecteurs logistiques (IBC ou CDRM)
+    let txtApportSP = Math.round(apportSPRequis) + " L";
+    if (apportSPRequis > 0) {
+        let nbrCDRM = Math.floor(apportSPRequis / 2000);
+        let resteL = apportSPRequis % 2000;
+        let nbrBidons = Math.ceil(resteL / 20);
         
         let arrLog = [];
-        if (nbrCDRM > 0) arrLog.push(`${nbrCDRM} CDRM / Réserve (2000L)`);
-        if (nbrBidons20 > 0) arrLog.push(`${nbrBidons20} Bidon(s) de 20L (~${Math.round(nbrBidons20*20)}L)`);
-        
-        txtLogEmu = arrLog.join(" + ");
+        if (nbrCDRM > 0) arrLog.push(`${nbrCDRM} CDRM (2000L)`);
+        if (nbrBidons > 0) arrLog.push(`${nbrBidons} bidon(s) 20L`);
+        txtApportSP += ` (Prévoir : ${arrLog.join(" + ")})`;
+    } else {
+        txtApportSP = "0 L — Stock usine suffisant";
     }
-    document.getElementById('tact-log-emu').innerText = txtLogEmu;
+    document.getElementById('tact-apport-sp').innerText = txtApportSP;
 }
 
-// Premier calcul au chargement automatique
 window.onload = function() {
     setConfiguration('cuvette');
 };
 </script>
 
-</body >
+</body>
 </html>
