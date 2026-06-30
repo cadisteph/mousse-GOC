@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIMENSIONNEMENT MOUSSE TACTIQUE</title>
     
+    <!-- Configuration iOS / Android -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="Calcul Mousse">
@@ -33,7 +34,6 @@
         .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
         .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
         .toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
-        .toggle-btn.active.red { background: var(--accent-red); border-color: #ef4444; }
 
         /* Formulaire */
         .form-group { margin-bottom: 10px; }
@@ -54,6 +54,13 @@
         .res-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
         .res-val { font-size: 1.1rem; font-weight: 800; margin-top: 2px; color: #ffffff; }
 
+        /* Liste tactique d'engins */
+        .tactique-list { margin: 5px 0 0 0; padding: 0; list-style: none; font-size: 0.85rem; }
+        .tactique-list li { padding: 6px 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; }
+        .tactique-list li:last-child { border-bottom: none; }
+        .badge-qty { background: #fb923c; color: #0f172a; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
+        .badge-lif { background: #a855f7; color: white; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
+
         .info-bloc { font-size: 0.75rem; color: #fca5a5; background: #7f1d1d33; padding: 6px; border-radius: 4px; border: 1px solid #7f1d1d; margin-top: 8px; text-align: center; font-style: italic; line-height: 1.3; }
     </style>
 </head>
@@ -64,6 +71,7 @@
     <p>Calculateur de Débits et Stocks Émulseur GOC / Sites Industriels</p>
 </header>
 
+<!-- CONFIGURATION DU TYPE DE SINISTRE -->
 <div class="card">
     <h2>1. Configuration du Sinistre</h2>
     <label style="font-size: 0.8rem; color: var(--text-muted); display:block; margin-bottom:4px;">Configuration Géométrique :</label>
@@ -78,12 +86,24 @@
         <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant / Alcool (Polaire)</button>
     </div>
 
-    <div class="form-group">
-        <label id="lbl-surface" for="inp-surface">Surface estimée ou mesurée du sinistre (m²) :</label>
+    <label style="font-size: 0.8rem; color: var(--text-muted); display:block; margin-bottom:4px;">Mode de saisie de la zone enflammée :</label>
+    <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-mode-surf" onclick="setModeSaisie('surface')">📐 Surface (m²)</button>
+        <button class="toggle-btn" id="btn-mode-diam" onclick="setModeSaisie('diametre')">⭕ Diamètre du Bac (m)</button>
+    </div>
+
+    <div class="form-group" id="group-surface">
+        <label for="inp-surface">Surface estimée ou mesurée du sinistre (m²) :</label>
         <input type="number" id="inp-surface" value="100" oninput="calculerMousse()" onclick="this.select();">
+    </div>
+
+    <div class="form-group" id="group-diametre" style="display: none;">
+        <label for="inp-diametre">Diamètre du réservoir / bac (mètres) :</label>
+        <input type="number" id="inp-diametre" value="12" oninput="calculerParDiametre()" onclick="this.select();">
     </div>
 </div>
 
+<!-- AJUSTEMENTS AVANCÉS (TAUX & CONCENTRATION) -->
 <div class="card">
     <h2>2. Paramètres d'Application (Ajustables)</h2>
     
@@ -112,8 +132,9 @@
     </div>
 </div>
 
+<!-- BILAN DES BESOINS CHIFBRÉS -->
 <div class="card">
-    <h2>3. Bilan Tactique des Besoins</h2>
+    <h2>3. Bilan Quantitatif des Besoins</h2>
     <div class="res-grid">
         <div class="res-box">
             <div class="res-lbl">Solution Moussante</div>
@@ -132,6 +153,25 @@
             <div class="res-val" id="res-qemu">15 L/min</div>
         </div>
     </div>
+</div>
+
+<!-- PROPOSITION DE DISPOSITIF ET ENGREMENT TACTIQUE -->
+<div class="card">
+    <h2>4. Réponse Opérationnelle & Moyens (Doctrine)</h2>
+    <ul class="tactique-list">
+        <li>
+            <span>**Groupe(s) LIF** requis <small style="color:var(--text-muted);">(4000L/min - CEEM 6000L)</small> :</span>
+            <span class="badge-lif" id="tact-glif">0</span>
+        </li>
+        <li>
+            <span>Moyens hydrauliques complémentaires nécessaires :</span>
+            <span id="tact-canons" style="font-weight:bold; color:#fb923c;">Aucun</span>
+        </li>
+        <li>
+            <span>Logistique Émulseur complémentaire requise :</span>
+            <span id="tact-log-emu" style="font-weight:bold; color:#fb923c;">Aucune</span>
+        </li>
+    </ul>
     
     <div class="info-bloc" id="info-sup">
         Cuvette de rétention : Surface fixe stabilisée. Volume d'extinction nominal calibré pour 30 minutes.
@@ -140,15 +180,42 @@
 
 <script>
 // Variables d'état globales
-let configSinistre = 'cuvette'; // 'cuvette' ou 'nappe'
-let typeProduit = 'hydro'; // 'hydro' ou 'solvant'
+let configSinistre = 'cuvette'; 
+let typeProduit = 'hydro'; 
+let modeSaisie = 'surface';
+
+function setModeSaisie(mode) {
+    modeSaisie = mode;
+    document.getElementById('btn-mode-surf').classList.toggle('active', mode === 'surface');
+    document.getElementById('btn-mode-diam').classList.toggle('active', mode === 'diametre');
+    
+    if (mode === 'surface') {
+        document.getElementById('group-surface').style.display = 'block';
+        document.getElementById('group-diametre').style.display = 'none';
+        calculerMousse();
+    } else {
+        document.getElementById('group-surface').style.display = 'none';
+        document.getElementById('group-diametre').style.display = 'block';
+        calculerParDiametre();
+    }
+}
+
+function calcularParDiametre() {
+    const diametre = parseFloat(document.getElementById('inp-diametre').value) || 0;
+    // Formule de l'aire du cercle : Pi * R²
+    const rayon = diametre / 2;
+    const surfaceCalculee = Math.PI * Math.pow(rayon, 2);
+    
+    // Injecte furtivement la valeur calculée dans la variable de surface
+    document.getElementById('inp-surface').value = Math.round(surfaceCalculee);
+    calculerMousse();
+}
 
 function setConfiguration(type) {
     configSinistre = type;
     document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
     document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
     
-    // Récupération de la durée choisie sur le curseur pour l'injecter dans le commentaire
     const dureeChoisie = document.getElementById('slip-duree').value;
     const infoBox = document.getElementById('info-sup');
     
@@ -171,7 +238,6 @@ function setProduit(prod) {
     document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
     document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
     
-    // Ajustement automatique des taux par défaut selon la doctrine
     if (prod === 'hydro') {
         document.getElementById('slip-ta').value = 5;
         document.getElementById('val-ta').innerText = "5.0 L/min/m²";
@@ -179,7 +245,7 @@ function setProduit(prod) {
         document.getElementById('slip-ta').value = 10;
         document.getElementById('val-ta').innerText = "10.0 L/min/m²";
     }
-    calculerMousse();
+    if (modeSaisie === 'diametre') { calculerParDiametre(); } else { calculerMousse(); }
 }
 
 function updateSlider(param, value) {
@@ -187,7 +253,6 @@ function updateSlider(param, value) {
     if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
     if (param === 'duree') document.getElementById('val-duree').innerText = value + " min";
     
-    // Force la mise à jour dynamique du commentaire textuel du bas
     setConfiguration(configSinistre);
 }
 
@@ -197,34 +262,78 @@ function calculerMousse() {
     const conc = parseFloat(document.getElementById('slip-conc').value);
     const duree = parseInt(document.getElementById('slip-duree').value);
     
-    // 1. Débit de solution moussante (Qsm)
+    // 1. Débits Bruts
     const qsm = surface * ta;
-    
-    // 2. Débit d'émulseur pur (Qemu)
     const qemu = qsm * (conc / 100);
-    
-    // 3. Débit d'eau requis (Qeau)
     const qeau = qsm - qemu;
     
-    // 4. Volume d'émulseur requis (VolEmu) avec marge +50% si nappe libre
+    // 2. Volumes Émulseur (marge +50% si nappe libre)
     let volEmu = qemu * duree;
-    if (configSinistre === 'nappe') {
-        volEmu = volEmu * 1.5; 
-    }
+    if (configSinistre === 'nappe') { volEmu = volEmu * 1.5; }
     
-    // Affichage des résultats
+    // Affichage des résultats quantitatifs
     document.getElementById('res-qsm').innerText = Math.round(qsm) + " L/min";
     document.getElementById('res-qeau').innerText = Math.round(qeau) + " L/min";
     document.getElementById('res-qemu').innerText = qemu.toFixed(1) + " L/min";
+    document.getElementById('res-vol-emu').innerText = Math.round(volEmu) + " L";
     
-    // Conditionnement indicatif pour l'émulseur
-    let conditionnement = "";
-    if(volEmu >= 1000) {
-        conditionnement = ` (${(volEmu/1000).toFixed(1)} IBC / Berce)`;
+    // ==========================================
+    // TRADUCTION TACTIQUE (GROUPE LIF & COMPLÉMENTS)
+    // ==========================================
+    
+    // Un groupe LIF = Capacité max de 4000 L/min de solution moussante
+    // Et embarque une CEEM de 6000 L d'émulseur
+    let groupesLIF_Hydraulique = Math.floor(qsm / 4000);
+    let groupesLIF_Logistique = Math.floor(volEmu / 6000);
+    
+    // On prend le max des deux besoins pour dimensionner le nombre de groupes LIF requis
+    let nbrGLIF = Math.max(groupesLIF_Hydraulique, groupesLIF_Logistique);
+    
+    // Si un débit minimal est requis mais inférieur à 4000, on peut avoir besoin de 0 groupe LIF (moyens de secteur suffisants)
+    // Mais si le besoin dépasse les moyens du bord, on calcule le reste
+    document.getElementById('tact-glif').innerText = nbrGLIF;
+    
+    // Calcul du reliquat hydraulique non couvert par les groupes LIF engagés
+    let qsmRestant = qsm - (nbrGLIF * 4000);
+    let txtCanons = "";
+    
+    if (qsmRestant <= 0) {
+        txtCanons = "Couvert par le(s) groupe(s) LIF";
     } else {
-        conditionnement = ` (${Math.ceil(volEmu/20)} bidons de 20L)`;
+        // Proposition d'engins en complément selon le débit restant
+        let nbrC2000 = Math.floor(qsmRestant / 2000);
+        qsmRestant %= 2000;
+        let nbrC1000 = Math.floor(qsmRestant / 1000);
+        qsmRestant %= 1000;
+        let nbrL400 = Math.ceil(qsmRestant / 400);
+        
+        let arrMoyens = [];
+        if (nbrC2000 > 0) arrMoyens.push(`${nbrC2000} Canon(s) 2000`);
+        if (nbrC1000 > 0) arrMoyens.push(`${nbrC1000} Canon(s) 1000`);
+        if (nbrL400 > 0) arrMoyens.push(`${nbrL400} Lance(s) 400 L/min`);
+        
+        txtCanons = arrMoyens.join(" + ");
     }
-    document.getElementById('res-vol-emu').innerText = Math.round(volEmu) + " L" + conditionnement;
+    document.getElementById('tact-canons').innerText = txtCanons;
+    
+    // Calcul du reliquat logistique d'émulseur non couvert par les CEEM de 6000L des groupes LIF engagés
+    let volEmuRestant = volEmu - (nbrGLIF * 6000);
+    let txtLogEmu = "";
+    
+    if (volEmuRestant <= 0) {
+        txtLogEmu = "Stock suffisant dans les CEEM du Groupe LIF";
+    } else {
+        let nbrCDRM = Math.floor(volEmuRestant / 2000);
+        let resteLitres = volEmuRestant % 2000;
+        let nbrBidons20 = Math.ceil(resteLitres / 20);
+        
+        let arrLog = [];
+        if (nbrCDRM > 0) arrLog.push(`${nbrCDRM} CDRM / Réserve (2000L)`);
+        if (nbrBidons20 > 0) arrLog.push(`${nbrBidons20} Bidon(s) de 20L (~${Math.round(nbrBidons20*20)}L)`);
+        
+        txtLogEmu = arrLog.join(" + ");
+    }
+    document.getElementById('tact-log-emu').innerText = txtLogEmu;
 }
 
 // Premier calcul au chargement automatique
@@ -233,5 +342,5 @@ window.onload = function() {
 };
 </script>
 
-</body>
+</body >
 </html>
