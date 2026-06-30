@@ -148,15 +148,15 @@ function setConfiguration(type) {
     document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
     document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
     
-    // Une nappe libre peut s'étendre : la doctrine conseille souvent une marge ou une autonomie accrue
+    // Mise à jour du commentaire dynamique selon la doctrine
     const infoBox = document.getElementById('info-sup');
     if (type === 'nappe') {
-        infoBox.innerHTML = "⚠️ Nappe libre : Risque d'étalement. Surveillez l'extension de la surface géométrique.";
+        infoBox.innerHTML = "⚠️ Nappe libre : Risque d'étalement. Le stock d'émulseur requis intègre automatiquement une marge de sécurité de +50% pour compenser les pertes et l'extension géométrique.";
         infoBox.style.color = "#fdba74";
         infoBox.style.background = "#7c2d1233";
         infoBox.style.borderColor = "#7c2d12";
     } else {
-        infoBox.innerHTML = "Cuvette de rétention : Surface fixe stabilisée. Volume d'extinction calculé.";
+        infoBox.innerHTML = "Cuvette de rétention : Surface fixe stabilisée. Volume d'extinction nominal calibré pour la durée choisie.";
         infoBox.style.color = "#fca5a5";
         infoBox.style.background = "#7f1d1d33";
         infoBox.style.borderColor = "#7f1d1d";
