@@ -1,1 +1,233 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>DIMENSIONNEMENT MOUSSE TACTIQUE</title>
+    
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="Calcul Mousse">
+    
+    <style>
+        :root {
+            --bg-app: #0f172a;
+            --card-bg: #1e293b;
+            --accent-blue: #2563eb;
+            --accent-red: #dc2626;
+            --accent-green: #16a34a;
+            --text-main: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
+        
+        header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+        header h1 { margin: 0; font-size: 1.2rem; color: #fb923c; font-weight: 800; letter-spacing: 0.5px; }
+        header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 
+        .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+        .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #cbd5e1; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+        
+        /* Boutons à bascule (Toggle group) */
+        .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
+        .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
+        .toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
+        .toggle-btn.active.red { background: var(--accent-red); border-color: #ef4444; }
+
+        /* Formulaire */
+        .form-group { margin-bottom: 10px; }
+        .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
+        .form-group input[type="number"] { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 8px; border-radius: 6px; font-size: 1rem; font-weight: bold; }
+        
+        /* Sliders / Curseurs */
+        .slider-container { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 8px; }
+        .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+        .slider-val { font-weight: bold; color: #fb923c; }
+        input[type="range"] { width: 100%; accent-color: #fb923c; margin: 4px 0; }
+
+        /* Grille des résultats */
+        .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .res-box { background: #0f172a; border-left: 4px solid var(--accent-blue); padding: 8px; border-radius: 4px; }
+        .res-box.green { border-left-color: var(--accent-green); }
+        .res-box.orange { border-left-color: #fb923c; }
+        .res-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+        .res-val { font-size: 1.1rem; font-weight: 800; margin-top: 2px; color: #ffffff; }
+
+        .info-bloc { font-size: 0.75rem; color: #fca5a5; background: #7f1d1d33; padding: 6px; border-radius: 4px; border: 1px solid #7f1d1d; margin-top: 8px; text-align: center; font-style: italic; }
+    </style>
+</head>
+<body>
+
+<header>
+    <h1>MOUSSE TACTIQUE — DIMENSIONNEMENT</h1>
+    <p>Calculateur de Débits et Stocks Émulseur GOC / Sites Industriels</p>
+</header>
+
+<div class="card">
+    <h2>1. Configuration du Sinistre</h2>
+    <label style="font-size: 0.8rem; color: var(--text-muted); display:block; margin-bottom:4px;">Configuration Géométrique :</label>
+    <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">🛢️ Cuvette / Rétention</button>
+        <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">🌊 Nappe libre / Épandage</button>
+    </div>
+
+    <label style="font-size: 0.8rem; color: var(--text-muted); display:block; margin-bottom:4px;">Nature du Produit :</label>
+    <div class="toggle-group">
+        <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure (Non-Polaire)</button>
+        <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant / Alcool (Polaire)</button>
+    </div>
+
+    <div class="form-group">
+        <label id="lbl-surface" for="inp-surface">Surface estimée ou mesurée du sinistre (m²) :</label>
+        <input type="number" id="inp-surface" value="100" oninput="calculerMousse()" onclick="this.select();">
+    </div>
+</div>
+
+<div class="card">
+    <h2>2. Paramètres d'Application (Ajustables)</h2>
+    
+    <div class="slider-container">
+        <div class="slider-header">
+            <span>Taux d'application requis :</span>
+            <span class="slider-val" id="val-ta">5.0 L/min/m²</span>
+        </div>
+        <input type="range" id="slip-ta" min="1" max="15" step="0.5" value="5" oninput="updateSlider('ta', this.value)">
+    </div>
+
+    <div class="slider-container">
+        <div class="slider-header">
+            <span>Taux de concentration émulseur :</span>
+            <span class="slider-val" id="val-conc">3.0 %</span>
+        </div>
+        <input type="range" id="slip-conc" min="0.5" max="6" step="0.1" value="3" oninput="updateSlider('conc', this.value)">
+    </div>
+
+    <div class="slider-container">
+        <div class="slider-header">
+            <span>Durée minimale d'extinction (Autonomie) :</span>
+            <span class="slider-val" id="val-duree">30 min</span>
+        </div>
+        <input type="range" id="slip-duree" min="15" max="60" step="5" value="30" oninput="updateSlider('duree', this.value)">
+    </div>
+</div>
+
+<div class="card">
+    <h2>3. Bilan Tactique des Besoins</h2>
+    <div class="res-grid">
+        <div class="res-box">
+            <div class="res-lbl">Solution Moussante</div>
+            <div class="res-val" id="res-qsm">500 L/min</div>
+        </div>
+        <div class="res-box orange">
+            <div class="res-lbl">Stock Émulseur requis</div>
+            <div class="res-val" id="res-vol-emu">450 L</div>
+        </div>
+        <div class="res-box">
+            <div class="res-lbl">Besoins en Eau</div>
+            <div class="res-val" id="res-qeau">485 L/min</div>
+        </div>
+        <div class="res-box green">
+            <div class="res-lbl">Débit Émulseur pur</div>
+            <div class="res-val" id="res-qemu">15 L/min</div>
+        </div>
+    </div>
+    
+    <div class="info-bloc" id="info-sup">
+        Cuvette de rétention : Surface fixe stabilisée. Volume d'extinction calibré pour 30 minutes.
+    </div>
+</div>
+
+<script>
+// Variables d'état globales
+let configSinistre = 'cuvette'; // 'cuvette' ou 'nappe'
+let typeProduit = 'hydro'; // 'hydro' ou 'solvant'
+
+function setConfiguration(type) {
+    configSinistre = type;
+    document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
+    document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
+    
+    // Une nappe libre peut s'étendre : la doctrine conseille souvent une marge ou une autonomie accrue
+    const infoBox = document.getElementById('info-sup');
+    if (type === 'nappe') {
+        infoBox.innerHTML = "⚠️ Nappe libre : Risque d'étalement. Surveillez l'extension de la surface géométrique.";
+        infoBox.style.color = "#fdba74";
+        infoBox.style.background = "#7c2d1233";
+        infoBox.style.borderColor = "#7c2d12";
+    } else {
+        infoBox.innerHTML = "Cuvette de rétention : Surface fixe stabilisée. Volume d'extinction calculé.";
+        infoBox.style.color = "#fca5a5";
+        infoBox.style.background = "#7f1d1d33";
+        infoBox.style.borderColor = "#7f1d1d";
+    }
+    calculerMousse();
+}
+
+function setProduit(prod) {
+    typeProduit = prod;
+    document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
+    document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
+    
+    // Ajustement automatique des taux par défaut selon la doctrine
+    if (prod === 'hydro') {
+        document.getElementById('slip-ta').value = 5;
+        document.getElementById('val-ta').innerText = "5.0 L/min/m²";
+    } else {
+        document.getElementById('slip-ta').value = 10;
+        document.getElementById('val-ta').innerText = "10.0 L/min/m²";
+    }
+    calculerMousse();
+}
+
+function updateSlider(param, value) {
+    if (param === 'ta') document.getElementById('val-ta').innerText = parseFloat(value).toFixed(1) + " L/min/m²";
+    if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
+    if (param === 'duree') document.getElementById('val-duree').innerText = value + " min";
+    calculerMousse();
+}
+
+function calculerMousse() {
+    const surface = parseFloat(document.getElementById('inp-surface').value) || 0;
+    const ta = parseFloat(document.getElementById('slip-ta').value);
+    const conc = parseFloat(document.getElementById('slip-conc').value);
+    const duree = parseInt(document.getElementById('slip-duree').value);
+    
+    // 1. Débit de solution moussante (Qsm)
+    const qsm = surface * ta;
+    
+    // 2. Débit d'émulseur pur (Qemu)
+    const qemu = qsm * (conc / 100);
+    
+    // 3. Débit d'eau requis (Qeau)
+    const qeau = qsm - qemu;
+    
+    // 4. Volume d'émulseur requis (VolEmu) avec une marge de sécurité de +100% (réserve) si c'est une nappe
+    let volEmu = qemu * duree;
+    if (configSinistre === 'nappe') {
+        volEmu = volEmu * 1.5; // Sécurité de 50% d'émulseur supplémentaire face à l'imprévu d'une nappe
+    }
+    
+    // Affichage des résultats
+    document.getElementById('res-qsm').innerText = Math.round(qsm) + " L/min";
+    document.getElementById('res-qeau').innerText = Math.round(qeau) + " L/min";
+    document.getElementById('res-qemu').innerText = qemu.toFixed(1) + " L/min";
+    
+    // Conditionnement indicatif pour l'émulseur
+    let conditionnement = "";
+    if(volEmu >= 1000) {
+        conditionnement = ` (${(volEmu/1000).toFixed(1)} IBC / Berce)`;
+    } else {
+        conditionnement = ` (${Math.ceil(volEmu/20)} bidons de 20L)`;
+    }
+    document.getElementById('res-vol-emu').innerText = Math.round(volEmu) + " L" + conditionnement;
+}
+
+// Premier calcul au chargement
+window.onload = function() {
+    calculerMousse();
+};
+</script>
+
+</body>
+</html>
