@@ -27,7 +27,8 @@
         header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 
         .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #cbd5e1; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+        .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: #fb923c; border-bottom: 1px solid #334155; padding-bottom: 4px; }
+        .card h2 span { color: var(--text-muted); font-size: 0.8rem; float: right; font-weight: normal; }
         
         /* Boutons à bascule (Toggle group) */
         .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
@@ -49,18 +50,16 @@
 
         /* Grille des résultats */
         .res-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-        .res-box { background: #0f172a; border-left: 4px solid var(--accent-blue); padding: 8px; border-radius: 4px; }
+        .res-box { background: #0f172a; border-left: 4px solid var(--accent-blue); padding: 6px; border-radius: 4px; }
         .res-box.green { border-left-color: var(--accent-green); }
         .res-box.orange { border-left-color: #fb923c; }
-        .res-box.red { border-left-color: var(--accent-red); }
-        .res-lbl { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
-        .res-val { font-size: 1.1rem; font-weight: 800; margin-top: 2px; color: #ffffff; }
+        .res-lbl { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; }
+        .res-val { font-size: 1rem; font-weight: 800; margin-top: 2px; color: #ffffff; }
 
         /* Liste tactique d'engins */
         .tactique-list { margin: 5px 0 0 0; padding: 0; list-style: none; font-size: 0.85rem; }
         .tactique-list li { padding: 6px 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
         .tactique-list li:last-child { border-bottom: none; }
-        .badge-qty { background: #fb923c; color: #0f172a; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
         .badge-lif { background: #a855f7; color: white; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
 
         .info-bloc { font-size: 0.75rem; color: #fca5a5; background: #7f1d1d33; padding: 6px; border-radius: 4px; border: 1px solid #7f1d1d; margin-top: 8px; text-align: center; font-style: italic; line-height: 1.3; }
@@ -70,11 +69,11 @@
 
 <header>
     <h1>MOUSSE TACTIQUE — DIMENSIONNEMENT</h1>
-    <p>Calculateur de Débits, Moyens LIF & Suivi Logistique</p>
+    <p>Outil de Raisonnement Operationnel GOC / Sites Industriels</p>
 </header>
 
 <div class="card">
-    <h2>1. Configuration du Sinistre</h2>
+    <h2>Étape 1 : Situation du Sinistre <span>(Ce qui brûle)</span></h2>
     <div class="toggle-group">
         <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">🛢️ Cuvette / Rétention</button>
         <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">🌊 Nappe / Épandage</button>
@@ -86,12 +85,12 @@
     </div>
 
     <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-mode-surf" onclick="setModeSaisie('surface')">📐 Surface (m²)</button>
-        <button class="toggle-btn" id="btn-mode-diam" onclick="setModeSaisie('diametre')">⭕ Diamètre du Bac (m)</button>
+        <button class="toggle-btn active" id="btn-mode-surf" onclick="setModeSaisie('surface')">📐 Par Surface (m²)</button>
+        <button class="toggle-btn" id="btn-mode-diam" onclick="setModeSaisie('diametre')">⭕ Par Diamètre (m)</button>
     </div>
 
     <div class="form-group" id="group-surface">
-        <label for="inp-surface">Surface totale du sinistre (m²) :</label>
+        <label for="inp-surface">Surface enflammée mesurée ou estimée (m²) :</label>
         <input type="number" id="inp-surface" value="100" oninput="calculerMousse()" onclick="this.select();">
     </div>
 
@@ -102,29 +101,33 @@
 </div>
 
 <div class="card">
-    <h2>2. Moyens Entreprise & Historique de l'Attaque</h2>
+    <h2>Étape 2 : Moyens Internes & Autonomie Usine</h2>
     <div class="form-inline-3">
         <div class="form-group">
-            <label style="font-size:0.7rem;" for="inp-q-deja">Débit en place (L/min)</label>
+            <label style="font-size:0.7rem;" for="inp-q-deja">Débit déjà projeté (L/min)</label>
             <input type="number" id="inp-q-deja" value="0" oninput="calculerMousse()" onclick="this.select();">
         </div>
         <div class="form-group">
-            <label style="font-size:0.7rem;" for="inp-t-deja">Tps écoulé (min)</label>
+            <label style="font-size:0.7rem;" for="inp-t-deja">Temps écoulé (min)</label>
             <input type="number" id="inp-t-deja" value="0" oninput="calculerMousse()" onclick="this.select();">
         </div>
         <div class="form-group">
-            <label style="font-size:0.7rem;" for="inp-stock-ent">Stock Émulseur (L)</label>
+            <label style="font-size:0.7rem;" for="inp-stock-ent">Stock Émulseur initial (L)</label>
             <input type="number" id="inp-stock-ent" value="0" oninput="calculerMousse()" onclick="this.select();">
         </div>
+    </div>
+    
+    <div id="diag-usine" style="font-size:0.75rem; font-weight:bold; padding:6px; border-radius:4px; text-align:center; margin-top:4px; background:#334155;">
+        Renseignez les données usine pour évaluer l'autonomie.
     </div>
 </div>
 
 <div class="card">
-    <h2>3. Objectifs d'Application</h2>
+    <h2>Étape 3 : Objectifs d'Attaque / Temporisation</h2>
     
     <div class="slider-container">
         <div class="slider-header">
-            <span>Taux d'application requis :</span>
+            <span>Taux d'application cible :</span>
             <span class="slider-val" id="val-ta">5.0 L/min/m²</span>
         </div>
         <input type="range" id="slip-ta" min="1" max="15" step="0.5" value="5" oninput="updateSlider('ta', this.value)">
@@ -132,7 +135,7 @@
 
     <div class="slider-container">
         <div class="slider-header">
-            <span>Taux de concentration émulseur :</span>
+            <span>Concentration de l'émulseur :</span>
             <span class="slider-val" id="val-conc">3.0 %</span>
         </div>
         <input type="range" id="slip-conc" min="0.5" max="6" step="0.1" value="3" oninput="updateSlider('conc', this.value)">
@@ -140,26 +143,44 @@
 
     <div class="slider-container">
         <div class="slider-header">
-            <span>Durée d'autonomie visée (Attaque) :</span>
+            <span>Durée d'autonomie visée pour l'attaque :</span>
             <span class="slider-val" id="val-duree">30 min</span>
         </div>
         <input type="range" id="slip-duree" min="15" max="60" step="5" value="30" oninput="updateSlider('duree', this.value)">
     </div>
 </div>
 
+<div class="card" style="border: 1px solid #fb923c;">
+    <h2 style="color:#ffffff;">Étape 4 : Analyse du Reste à Faire (Moyens SP)</h2>
+    <ul class="tactique-list">
+        <li>
+            <span>**Groupe(s) LIF** à engager d'urgence :</span>
+            <span class="badge-lif" id="tact-glif">0</span>
+        </li>
+        <li>
+            <span>Moyens hydrauliques complémentaires :</span>
+            <span id="tact-canons" style="font-weight:bold; color:#fb923c; text-align:right;">Aucun</span>
+        </li>
+        <li>
+            <span>**Logistique Émulseur SP à acheminer** :</span>
+            <span id="tact-apport-sp" style="font-weight:bold; color:#f87171; text-align:right;">0 L</span>
+        </li>
+    </ul>
+</div>
+
 <div class="card">
-    <h2>4. Bilan Quantitatif Global (Théorique)</h2>
+    <h2>Bilan Quantitatif Global Théorique</h2>
     <div class="res-grid">
         <div class="res-box">
-            <div class="res-lbl">Sol. Moussante Totale</div>
+            <div class="res-lbl">Solution Moussante Totale</div>
             <div class="res-val" id="res-qsm">500 L/min</div>
         </div>
         <div class="res-box orange">
-            <div class="res-lbl">Stock Émulseur Total</div>
+            <div class="res-lbl">Volume Émulseur Global</div>
             <div class="res-val" id="res-vol-emu">450 L</div>
         </div>
         <div class="res-box">
-            <div class="res-lbl">Eau (Débit total)</div>
+            <div class="res-lbl">Débit d'Eau Global</div>
             <div class="res-val" id="res-qeau">485 L/min</div>
         </div>
         <div class="res-box green">
@@ -167,28 +188,6 @@
             <div class="res-val" id="res-qemu">15 L/min</div>
         </div>
     </div>
-</div>
-
-<div class="card">
-    <h2>5. Réponse Opérationnelle & Renforts SP</h2>
-    <ul class="tactique-list">
-        <li>
-            <span>**Groupe(s) LIF** à demander :</span>
-            <span class="badge-lif" id="tact-glif">0</span>
-        </li>
-        <li>
-            <span>Moyens hydrauliques compléments :</span>
-            <span id="tact-canons" style="font-weight:bold; color:#fb923c; text-align:right;">Aucun</span>
-        </li>
-        <li>
-            <span>Émulseur restant Entreprise :</span>
-            <span id="tact-solde-entreprise" style="font-weight:bold; color:#16a34a;">0 L</span>
-        </li>
-        <li>
-            <span>**Volume Émulseur à amener par les SP** :</span>
-            <span id="tact-apport-sp" style="font-weight:bold; color:#dc2626;">0 L</span>
-        </li>
-    </ul>
     
     <div class="info-bloc" id="info-sup">
         Cuvette de rétention : Surface fixe stabilisée. Volume d'extinction nominal calibré pour 30 minutes.
@@ -274,12 +273,12 @@ function calculerMousse() {
     const conc = parseFloat(document.getElementById('slip-conc').value);
     const duree = parseInt(document.getElementById('slip-duree').value);
     
-    // Récupération des données entreprise / historique
+    // Étape 2 : Données de l'entreprise
     const qDejaProjete = parseFloat(document.getElementById('inp-q-deja').value) || 0;
     const tDejaEcoule = parseFloat(document.getElementById('inp-t-deja').value) || 0;
     const stockInitialEntreprise = parseFloat(document.getElementById('inp-stock-ent').value) || 0;
     
-    // 1. CALCULS THÉORIQUES TOTAUX
+    // CALCULS THÉORIQUES TOTAUX (Besoins absolus liés au sinistre)
     const qsmTotal = surface * ta;
     const qemuTotal = qsmTotal * (conc / 100);
     const qeauTotal = qsmTotal - qemuTotal;
@@ -287,17 +286,48 @@ function calculerMousse() {
     let volEmuTheorique = qemuTotal * duree;
     if (configSinistre === 'nappe') { volEmuTheorique *= 1.5; }
     
-    // Affichage Section 4
+    // Affichage des débits globaux en bas
     document.getElementById('res-qsm').innerText = Math.round(qsmTotal) + " L/min";
     document.getElementById('res-qeau').innerText = Math.round(qeauTotal) + " L/min";
     document.getElementById('res-qemu').innerText = qemuTotal.toFixed(1) + " L/min";
     document.getElementById('res-vol-emu').innerText = Math.round(volEmuTheorique) + " L";
     
-    // 2. ANALYSE DU RESTE À FAIRE EN DEBIT (MANQUANT)
+    // DIAGNOSTIC DE L'AUTONOMIE USINE (Étape 2)
+    const emuConsomme = qDejaProjete * (conc / 100) * tDejaEcoule;
+    let soldeEntreprise = stockInitialEntreprise - emuConsomme;
+    if (soldeEntreprise < 0) soldeEntreprise = 0;
+    
+    const diagBox = document.getElementById('diag-usine');
+    if (stockInitialEntreprise > 0) {
+        if (soldeEntreprise === 0 && emuConsomme >= stockInitialEntreprise) {
+            diagBox.innerText = "❌ RUPTURE DE STOCK SUR LE SITE INDUSTRIAL !";
+            diagBox.style.background = "#7f1d1d";
+            diagBox.style.color = "#fca5a5";
+        } else {
+            // Calculer combien de temps l'industriel peut tenir à son rythme actuel
+            const qEmuPurUsine = qDejaProjete * (conc / 100);
+            if (qEmuPurUsine > 0) {
+                const minutesRestantesUsine = Math.floor(soldeEntreprise / qEmuPurUsine);
+                diagBox.innerText = `⚠️ Stock restant usine : ${Math.round(soldeEntreprise)} L (Autonomie : env. ${minutesRestantesUsine} min à débit actuel)`;
+                diagBox.style.background = "#7c2d12";
+                diagBox.style.color = "#fdba74";
+            } else {
+                diagBox.innerText = `✅ Stock disponible usine : ${Math.round(soldeEntreprise)} L (Aucun moyen en action)`;
+                diagBox.style.background = "#14532d";
+                diagBox.style.color = "#bbf7d0";
+            }
+        }
+    } else {
+        diagBox.innerText = "ℹ️ Aucun moyen ou stock entreprise renseigné (Attaque 100% Sapeurs-Pompiers).";
+        diagBox.style.background = "#334155";
+        diagBox.style.color = "white";
+    }
+
+    // ÉTAPE 4 : ANALYSE DU RESTE À FAIRE (RENFORTS SP)
     let qsmManquant = qsmTotal - qDejaProjete;
     if (qsmManquant < 0) qsmManquant = 0;
     
-    // Sizing des Groupes LIF basés sur le débit MANQUANT
+    // Dimensionnement des Groupes LIF (4000 L/min max)
     let nbrGLIF = Math.floor(qsmManquant / 4000);
     document.getElementById('tact-glif').innerText = nbrGLIF;
     
@@ -305,7 +335,7 @@ function calculerMousse() {
     let txtCanons = "";
     
     if (qsmManquant <= 0) {
-        txtCanons = "Débit actuel en place suffisant";
+        txtCanons = "Dispositif en place suffisant";
     } else {
         let nbrC2000 = Math.floor(qsmRestantApresLIF / 2000);
         let resteQ = qsmRestantApresLIF % 2000;
@@ -320,50 +350,38 @@ function calculerMousse() {
     }
     document.getElementById('tact-canons').innerText = txtCanons;
     
-    // 3. ANALYSE LOGISTIQUE (STOCK & CONSOMMATION)
-    // Émulseur déjà consommé par les moyens de l'entreprise
-    const emuConsomme = qDejaProjete * (conc / 100) * tDejaEcoule;
-    
-    // Solde actuel de l'entreprise
-    let soldeEntreprise = stockInitialEntreprise - emuConsomme;
-    if (soldeEntreprise < 0) soldeEntreprise = 0;
-    
-    // Ce que les moyens en place vont encore consommer pour la suite de la durée visée
+    // Besoins futurs en émulseur sur la durée d'attaque demandée
     const emuFuturMoyensEnPlace = qDejaProjete * (conc / 100) * duree;
-    
-    // Ce que les nouveaux moyens (LIF / renforts) vont consommer sur cette durée
     let emuFuturNouveauxMoyens = qsmManquant * (conc / 100) * duree;
-    if (configSinistre === 'nappe') { emuFuturNouveauxMoyens *= 1.5; } // Marge sur la part renforts nappe
+    if (configSinistre === 'nappe') { emuFuturNouveauxMoyens *= 1.5; } 
     
-    // Besoin total en émulseur pour la suite de l'intervention
     const totalBesoinFutur = emuFuturMoyensEnPlace + emuFuturNouveauxMoyens;
-    
-    // Calcul de l'apport requis par les Sapeurs-Pompiers
     let apportSPRequis = totalBesoinFutur - soldeEntreprise;
     if (apportSPRequis < 0) apportSPRequis = 0;
     
-    // Affichage des bilans de stocks
-    document.getElementById('tact-solde-entreprise').innerText = Math.round(soldeEntreprise) + " L (Dispo)";
-    if (soldeEntreprise === 0 && stockInitialEntreprise > 0 && emuConsomme >= stockInitialEntreprise) {
-        document.getElementById('tact-solde-entreprise').innerText = "RUPTURE STOCK SITE";
-        document.getElementById('tact-solde-entreprise').style.color = "var(--accent-red)";
-    } else {
-        document.getElementById('tact-solde-entreprise').style.color = "var(--accent-green)";
-    }
-    
-    // Traduction de l'apport SP en vecteurs logistiques (IBC ou CDRM)
+    // Conditionnement intelligent (Règle des 10 bidons max)
     let txtApportSP = Math.round(apportSPRequis) + " L";
     if (apportSPRequis > 0) {
-        let nbrCDRM = Math.floor(apportSPRequis / 2000);
-        let resteL = apportSPRequis % 2000;
-        let nbrBidons = Math.ceil(resteL / 20);
-        
         let arrLog = [];
-        if (nbrCDRM > 0) arrLog.push(`${nbrCDRM} CDRM (2000L)`);
-        if (nbrBidons > 0) arrLog.push(`${nbrBidons} bidon(s) 20L`);
+        if (apportSPRequis <= 200) {
+            let nbrBidons = Math.ceil(apportSPRequis / 20);
+            arrLog.push(`${nbrBidons} bidon(s) de 20L`);
+        } else {
+            let nbrCDRM = Math.floor(apportSPRequis / 2000);
+            let resteL = apportSPRequis % 2000;
+            if (nbrCDRM > 0) arrLog.push(`${nbrCDRM} CDRM / Berce (2000L)`);
+            if (resteL > 0) {
+                if (resteL > 200) {
+                    arrLog.push(`1 Cuve IBC (1000L)`);
+                } else {
+                    let nbrBidonsReste = Math.ceil(resteL / 20);
+                    arrLog.push(`${nbrBidonsReste} bidon(s) de 20L`);
+                }
+            }
+        }
         txtApportSP += ` (Prévoir : ${arrLog.join(" + ")})`;
     } else {
-        txtApportSP = "0 L — Stock usine suffisant";
+        txtApportSP = "0 L — Stock usine suffisant pour l'attaque";
     }
     document.getElementById('tact-apport-sp').innerText = txtApportSP;
 }
