@@ -162,7 +162,7 @@
             <span id="tact-canons" style="font-weight:bold; color:#fb923c; text-align:right;">Aucun</span>
         </li>
         <li>
-            <span>**Logistique Émulseur SP à acheminer** :</span>
+            <span>**Vecteurs Émulseur SP (CEEM) à acheminer** :</span>
             <span id="tact-apport-sp" style="font-weight:bold; color:#f87171; text-align:right;">0 L</span>
         </li>
     </ul>
@@ -359,19 +359,33 @@ function calculerMousse() {
     let apportSPRequis = totalBesoinFutur - soldeEntreprise;
     if (apportSPRequis < 0) apportSPRequis = 0;
     
-    // Conditionnement intelligent (Règle des 10 bidons max)
+    // =========================================================
+    // LOGIQUE DE CONDITIONNEMENT PROPRE AU SDIS (CEEM 6000L)
+    // =========================================================
     let txtApportSP = Math.round(apportSPRequis) + " L";
     if (apportSPRequis > 0) {
         let arrLog = [];
         if (apportSPRequis <= 200) {
             let nbrBidons = Math.ceil(apportSPRequis / 20);
             arrLog.push(`${nbrBidons} bidon(s) de 20L`);
+        } else if (apportSPRequis > 200 && apportSPRequis <= 1000) {
+            arrLog.push(`1 Cuve IBC (1000L)`);
         } else {
-            let nbrCDRM = Math.floor(apportSPRequis / 2000);
-            let resteL = apportSPRequis % 2000;
-            if (nbrCDRM > 0) arrLog.push(`${nbrCDRM} CDRM / Berce (2000L)`);
+            // Logistique lourde SDIS basée sur les CEEM de 6000 Litres
+            let nbrCEEM = Math.floor(apportSPRequis / 6000);
+            let resteL = apportSPRequis % 6000;
+            
+            if (nbrCEEM > 0) {
+                arrLog.push(`${nbrCEEM} CEEM (6000L)`);
+            }
+            
             if (resteL > 0) {
-                if (resteL > 200) {
+                // Gestion du reliquat après les CEEM entières
+                if (resteL > 1000) {
+                    // Si le reste dépasse une cuve IBC, on préconise soit une autre IBC, soit d'arrondir à la CEEM selon volume
+                    let nbrIBC = Math.ceil(resteL / 1000);
+                    arrLog.push(`${nbrIBC} Cuve(s) IBC (1000L)`);
+                } else if (resteL > 200) {
                     arrLog.push(`1 Cuve IBC (1000L)`);
                 } else {
                     let nbrBidonsReste = Math.ceil(resteL / 20);
@@ -379,7 +393,7 @@ function calculerMousse() {
                 }
             }
         }
-        txtApportSP += ` (Prévoir : ${arrLog.join(" + ")})`;
+        txtApportSP += ` — Prévoir : ${arrLog.join(" + ")}`;
     } else {
         txtApportSP = "0 L — Stock usine suffisant pour l'attaque";
     }
