@@ -43,7 +43,6 @@
         .slider-val { font-weight: bold; color: var(--accent-orange); }
         input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4px 0; }
 
-        /* Tables pour la doctrine */
         .doc-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.8rem; }
         .doc-table th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 6px; font-weight: normal; border: 1px solid #334155; }
         .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
@@ -54,15 +53,14 @@
         .tactique-list li:last-child { border-bottom: none; }
         .badge-lif { background: #a855f7; color: white; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
 
-        .info-bloc { font-size: 0.75rem; color: #fca5a5; background: #7f1d1d33; padding: 6px; border-radius: 4px; border: 1px solid #7f1d1d; margin-top: 8px; text-align: center; }
-        .alert-box { font-size: 0.8rem; font-weight: bold; padding: 8px; border-radius: 6px; text-align: center; margin-top: 6px; }
+        .alert-box { font-size: 0.8rem; font-weight: bold; padding: 8px; border-radius: 6px; text-align: center; margin-top: 6px; line-height: 1.4; }
     </style>
 </head>
 <body>
 
 <header>
     <h1>MOUSSE TACTIQUE — SDIS</h1>
-    <p>Raisonnement GOC selon Logigramme de Doctrine</p>
+    <p>Raisonnement GOC & Analyse Cinétique</p>
 </header>
 
 <div class="card">
@@ -94,7 +92,7 @@
     
     <div class="form-inline-2">
         <div class="slider-container" style="margin-bottom:0;">
-            <div class="slider-header"><span>Taux ($Tx_{ext}$) :</span><span class="slider-val" id="val-ta">5.0</span></div>
+            <div class="slider-header"><span>Taux (Tx ext) :</span><span class="slider-val" id="val-ta">5.0</span></div>
             <input type="range" id="slip-ta" min="1" max="20" step="0.5" value="5" oninput="updateSlider('ta', this.value)">
         </div>
         <div class="slider-container" style="margin-bottom:0;">
@@ -137,25 +135,6 @@
     </table>
 </div>
 
-<div class="card" id="card-debordement" style="border: 1px solid var(--accent-red);">
-    <h2>⚠️ Risque de Débordement de la Cuvette</h2>
-    <div class="form-inline-3">
-        <div class="form-group">
-            <label>Vol. Utile Cuve (L)</label>
-            <input type="number" id="deb-Vcuvette" value="150000" oninput="calculerTout()">
-        </div>
-        <div class="form-group">
-            <label>Débit Fuite (L/min)</label>
-            <input type="number" id="deb-Qfuite" value="500" oninput="calculerTout()">
-        </div>
-        <div class="form-group">
-            <label>Vol. Initial Stocké (L)</label>
-            <input type="number" id="deb-Vinitial" value="20000" oninput="calculerTout()">
-        </div>
-    </div>
-    <div id="alert-debordement" class="alert-box">--</div>
-</div>
-
 <div class="card">
     <h2>Étape 3 : Moyens Internes Usine</h2>
     <div class="form-inline-3">
@@ -187,10 +166,35 @@
             <span id="tact-canons" style="font-weight:bold; color:var(--accent-orange);">Aucun</span>
         </li>
         <li>
-            <span>**Logistique Émulseur SP (Calibré CEEM)** :</span>
+            <span>**Vecteurs Émulseur SP (Calibré CEEM)** :</span>
             <span id="tact-apport-sp" style="font-weight:bold; color:#f87171; text-align:right;">0 L</span>
         </li>
     </ul>
+</div>
+
+<div class="card" id="card-debordement" style="border: 1px solid var(--accent-red);">
+    <h2>⚠️ Risque de Débordement de la Rétention</h2>
+    <div class="form-inline-2">
+        <div class="form-group">
+            <label>Capacité Max Rétention (L)</label>
+            <input type="number" id="deb-Vcuvette" value="100000" oninput="calculerTout()">
+        </div>
+        <div class="form-group">
+            <label>Vol. Initial du Produit dans Cuve (L)</label>
+            <input type="number" id="deb-Vcuve-initial" value="80000" oninput="calculerTout()">
+        </div>
+    </div>
+    <div class="form-inline-2">
+        <div class="form-group">
+            <label>Vol. déjà déversé en rétention (L)</label>
+            <input type="number" id="deb-Vdeverse" value="15000" oninput="calculerTout()">
+        </div>
+        <div class="form-group">
+            <label>Débit Actuel de Fuite Cuve (L/min)</label>
+            <input type="number" id="deb-Qfuite" value="400" oninput="calculerTout()">
+        </div>
+    </div>
+    <div id="alert-debordement" class="alert-box">--</div>
 </div>
 
 <div class="card" style="border-left: 4px solid var(--accent-green);">
@@ -237,7 +241,6 @@ function setConfiguration(type) {
     document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
     document.getElementById('card-debordement').style.display = type === 'cuvette' ? 'block' : 'none';
     
-    // Auto-ajustement forfaitaire des durées selon la doctrine de ton logigramme
     const surf = parseFloat(document.getElementById('inp-surface').value) || 0;
     if(type === 'nappe') {
         document.getElementById('inp-duree').value = surf <= 400 ? 20 : 40;
@@ -252,12 +255,11 @@ function setProduit(prod) {
     document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
     document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
     
-    // Taux automatiques issus de ton logigramme
     if (prod === 'hydro') {
         document.getElementById('slip-ta').value = 5;
         document.getElementById('val-ta').innerText = "5.0";
     } else {
-        document.getElementById('slip-ta').value = 15; // Valeur usuelle du logigramme pour miscible direct/indirect
+        document.getElementById('slip-ta').value = 15; 
         document.getElementById('val-ta').innerText = "15.0";
     }
     calculerTout();
@@ -275,7 +277,7 @@ function calculerTout() {
     const conc = parseFloat(document.getElementById('slip-conc').value);
     const duree = parseFloat(document.getElementById('inp-duree').value) || 0;
     
-    // 1. CALCULS BRUTS DOCTRINE (ÉTAPE 2)
+    // 1. CALCULS BRUTS DOCTRINE
     const qsmExt = surface * ta;
     const qemuExt = qsmExt * (conc / 100);
     const volEmuExt = qemuExt * duree;
@@ -321,40 +323,78 @@ function calculerTout() {
         diagBox.style.background = "#334155"; diagBox.style.color = "white";
     }
 
-    // 3. RISK DE DÉBORDEMENT CUVETTE
+    // 3. RISK DE DÉBORDEMENT AVANCÉ (LOGIQUE DISSONANCE CUVE / RETENTION)
     if (configSinistre === 'cuvette') {
-        const vCuvette = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
+        const vReticule = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
+        const vCuveInit = parseFloat(document.getElementById('deb-Vcuve-initial').value) || 0;
+        const vDeverserInit = parseFloat(document.getElementById('deb-Vdeverse').value) || 0;
         const qFuite = parseFloat(document.getElementById('deb-Qfuite').value) || 0;
-        const vInitial = parseFloat(document.getElementById('deb-Vinitial').value) || 0;
         
-        // Volume total de solution moussante appliqué (Usine) depuis le début
-        const vSolutionMousseDeverser = qUsine * tUsine; 
-        const volumeActuelDansCuvette = vInitial + vSolutionMousseDeverser;
+        // Débit total projeté actuellement (Usine + Besoin théorique SP calculé)
+        const qMousseTotalActuel = qsmExt; 
         
-        // Débit d'apport actuel dans la cuvette = Débit de fuite de produit + débit de solution moussante actuel
-        const apportMinute = qFuite + qUsine;
-        const espaceDisponible = vCuvette - volumeActuelDansCuvette;
+        // Quantité de produit restant physique dans la cuve
+        let produitRestantDansCuve = vCuveInit - vDeverserInit;
+        if (produitRestantDansCuve < 0) produitRestantDansCuve = 0;
+        
+        // Temps théorique avant que la cuve ne soit totalement vide de produit
+        let tempsAvantCuveVide = qFuite > 0 ? (produitRestantDansCuve / qFuite) : Infinity;
+        
+        // Bilan instantané dans la rétention
+        let volumeLiquideActuelRetention = vDeverserInit + (qUsine * tUsine);
+        let espaceLibreRetention = vReticule - volumeLiquideActuelRetention;
+        
         const alertBox = document.getElementById('alert-debordement');
         
-        if (espaceDisponible <= 0) {
-            alertBox.innerText = "🚨 LA CUVETTE DÉBORDE DÉJÀ !";
+        if (espaceLibreRetention <= 0) {
+            alertBox.innerText = "🚨 LA RÉTENTION DÉBORDE DÉJÀ !";
             alertBox.style.background = "#7f1d1d"; alertBox.style.color = "#fca5a5";
-        } else if (apportMinute > 0) {
-            const minutesAvantDebordement = Math.floor(espaceDisponible / apportMinute);
-            if (minutesAvantDebordement <= 15) {
-                alertBox.innerText = `🚨 DÉBORDEMENT IMMINENT : Plus que ${minutesAvantDebordement} minutes !`;
-                alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
-            } else {
-                alertBox.innerText = `⏳ Temps restant estimé avant débordement : env. ${minutesAvantDebordement} min`;
-                alertBox.style.background = "#7c2d12"; alertBox.style.color = "#fdba74";
-            }
         } else {
-            alertBox.innerText = "✅ Aucun apport (Pas de fuite, pas de lance). Aucun risque immédiat.";
-            alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
+            // Apport par minute cumulé (Fuite de produit + lances d'extinction)
+            let apportParMinute = qFuite + qMousseTotalActuel;
+            
+            if (apportParMinute > 0) {
+                let minutesAvantDebordement = espaceLibreRetention / apportMinute;
+                
+                // Analyse cinétique : Est-ce que la fuite s'arrête avant le débordement ?
+                if (qFuite > 0 && tempsAvantCuveVide < minutesAvantDebordement) {
+                    // La cuve se vide entièrement avant de faire déborder la rétention !
+                    // Après la fin de la fuite, seul le débit de mousse continue à remplir le reste
+                    let volumeApresCuveVide = volumeLiquideActuelRetention + (apportParMinute * tempsAvantCuveVide);
+                    let resteEspaceApresCuveVide = vReticule - volumeApresCuveVide;
+                    
+                    if (resteEspaceApresCuveVide > 0 && qMousseTotalActuel > 0) {
+                        let minutesSupplementairesMousse = resteEspaceApresCuveVide / qMousseTotalActuel;
+                        let tempsTotalSecurite = tempsAvantCuveVide + minutesSupplementairesMousse;
+                        
+                        alertBox.innerText = `✅ CINETIQUE FAVORABLE :\nLa cuve sera vide dans ${Math.round(tempsAvantCuveVide)} min. La rétention absorbera 100% du produit restant. Débordement possible uniquement si la mousse continue au-delà de ${Math.round(tempsTotalSecurite)} min.`;
+                        alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
+                    } else if (resteEspaceApresCuveVide <= 0) {
+                        alertBox.innerText = `🚨 DÉBORDEMENT INÉVITABLE pendant la vidange de la cuve (estimé dans env. ${Math.round(minutesAvantDebordement)} min).`;
+                        alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
+                    } else {
+                        alertBox.innerText = `✅ SÉCURITÉ GARANTIE :\nLa cuve sera vide dans ${Math.round(tempsAvantCuveVide)} min et aucun moyen mousse n'est requis. Aucun risque de débordement.`;
+                        alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
+                    }
+                } else {
+                    // Le débit cumulé fait déborder la cuve avant qu'elle ne soit vide
+                    let minRestantes = Math.floor(minutesAvantDebordement);
+                    if (minRestantes <= 15) {
+                        alertBox.innerText = `🚨 ALERTE IMPOSANTE : Débordement de la rétention dans ${minRestantes} min ! (Apport massif Fuite + Mousse).`;
+                        alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
+                    } else {
+                        alertBox.innerText = `⏳ Temps restant estimé avant débordement : env. ${minRestantes} min (Fuite + Mousse combinées).`;
+                        alertBox.style.background = "#7c2d12"; alertBox.style.color = "#fdba74";
+                    }
+                }
+            } else {
+                alertBox.innerText = "✅ Aucun apport en cours. Aucun risque de débordement.";
+                alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
+            }
         }
     }
 
-    // 4. ÉTAPE 4 : CALCUL DES RENFORTS (RESTE À FAIRE POUR ATTENTION EXTINCTION)
+    // 4. ÉTAPE 4 : CALCUL DES RENFORTS
     let qsmManquant = qsmExt - qUsine;
     if (qsmManquant < 0) qsmManquant = 0;
     
@@ -393,7 +433,6 @@ function calculerTout() {
         } else if (apportSPRequis <= 1000) {
             arrLog.push(`1 Cuve IBC (1000L)`);
         } else {
-            // Configuration Logistique CEEM 6000 Litres (Spécifique SDIS)
             let nbrCEEM = Math.floor(apportSPRequis / 6000);
             let resteCEEM = apportSPRequis % 6000;
             if (nbrCEEM > 0) arrLog.push(`${nbrCEEM} CEEM (6000L)`);
@@ -415,9 +454,7 @@ function calculerTout() {
 
     // 5. ANTICIPATION (TAPIS PRÉVENTIFS)
     const surfAnti = parseFloat(document.getElementById('inp-surf-anti').value) || 0;
-    // Formule logigramme : Vol = S * 0.15 * C
     const volCreaAnti = surfAnti * 0.15 * conc;
-    // Entretien : 0.2 L/min/m² de solution moussante
     const qsmEntAnti = surfAnti * 0.2;
     
     document.getElementById('anti-vol-crea').innerText = Math.round(volCreaAnti) + " L d'émulseur";
