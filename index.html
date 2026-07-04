@@ -28,7 +28,6 @@
 
         .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155; padding-bottom: 4px; }
-        .card h2 span { color: var(--text-muted); font-size: 0.8rem; float: right; font-weight: normal; }
         
         .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
         .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
@@ -220,7 +219,7 @@ let horizonActuel = 180;
 const moyensParDefaut = [
     { nom: "Moyens fixes Établissement", debit: 0, arrivee: "08:00", arret: "" },
     { nom: "Premier FPT / G-LIF 1", debit: 4000, arrivee: "08:25", arret: "" },
-    { nom: "Renfort G-LIF 2 (SDIS)", debit: 4000, arrivee: "08:50", arret: "" } // Laissé vide par défaut désormais
+    { nom: "Renfort G-LIF 2 (SDIS)", debit: 4000, arrivee: "08:50", arret: "" }
 ];
 
 function changeHorizon(minutes) {
@@ -230,15 +229,16 @@ function changeHorizon(minutes) {
     calculerTout();
 }
 
+// CORRECTION : Les paramètres par défaut de l'objet data sont maintenant alignés pour éviter les bugs
 function ajouterLigneMoyen(data = { nom: "Nouveau Vecteur", debit: 2000, arrivee: "08:30", arret: "" }) {
     const container = document.getElementById('moyens-liste');
     const div = document.createElement('div');
     div.className = 'moyens-grid';
     div.innerHTML = `
-        <input type="text" class="m-nom" value="${data.nom}" placeholder="Nom du moyen" oninput="calculerTout()">
-        <input type="number" class="m-debit" value="${data.debit}" placeholder="L/min" oninput="calculerTout()">
-        <input type="time" class="m-arrivee" value="${data.arrivee}" oninput="calculerTout()">
-        <input type="time" class="m-arret" value="${data.arret}" oninput="calculerTout()">
+        <input type="text" class="m-nom" value="${data.nom || ''}" placeholder="Nom du moyen" oninput="calculerTout()">
+        <input type="number" class="m-debit" value="${data.debit !== undefined ? data.debit : 2000}" placeholder="L/min" oninput="calculerTout()">
+        <input type="time" class="m-arrivee" value="${data.arrivee || ''}" oninput="calculerTout()">
+        <input type="time" class="m-arret" value="${data.arret || ''}" oninput="calculerTout()">
         <button class="btn-remove" onclick="this.parentElement.remove(); calculerTout();">❌</button>
     `;
     container.appendChild(div);
@@ -248,6 +248,7 @@ function ajouterLigneMoyen(data = { nom: "Nouveau Vecteur", debit: 2000, arrivee
 function timeToMinutes(timeStr) {
     if (!timeStr || timeStr.trim() === "") return null;
     const parts = timeStr.split(':');
+    if (parts.length < 2) return null;
     return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 }
 
@@ -364,3 +365,76 @@ function calculerTout() {
         const debit = parseFloat(ligne.querySelector('.m-debit').value) || 0;
         const arrStr = ligne.querySelector('.m-arrivee').value;
         const arrStrArret = ligne.querySelector('.m-arret').value;
+        
+        let arrMin = timeToMinutes(arrStr);
+        let arretMin = timeToMinutes(arrStrArret);
+
+        listeMoyensEngages.push({
+            nom: nom,
+            debit: debit,
+            arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
+            arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999
+        });
+    });
+
+    let labelsX = [];
+    let dataExt = [];
+    let dataTemp = [];
+    let dataMaintien = [];
+    let dataReel = [];
+    
+    let topExtinctionMinute = -1;
+    let finExtinctionMinute = -1;
+    let maximumAtteint = 0;
+
+    const step = horizonActuel === 420 ? 5 : 2; 
+
+    for (let delta = 0; delta <= horizonActuel; delta += step) {
+        labelsX.push(minutesToTimeStr(t0Min + delta));
+        
+        let debitCourant = 0;
+        listeMoyensEngages.forEach(m => {
+            if (delta >= m.arrDelta && delta < m.arretDelta) {
+                debitCourant += m.debit;
+            }
+        });
+        
+        dataReel.push(debitCourant);
+        if (debitCourant > maximumAtteint) maximumAtteint = debitCourant;
+
+        if (debitCourant >= qsmExt && topExtinctionMinute === -1) {
+            topExtinctionMinute = delta;
+            finExtinctionMinute = delta + dureeMissionDoctrine;
+        }
+
+        dataTemp.push(qsmTemp);
+        dataMaintien.push(qsmMaintien);
+
+        if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
+            dataExt.push(qsmMaintien); 
+        } else {
+            dataExt.push(qsmExt);
+        }
+    }
+
+    myChart.data.labels = labelsX;
+    myChart.data.datasets = [
+        { label: 'Seuil Attaque', data: dataExt, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
+        { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
+        { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#a855f7', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
+        { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
+    ];
+    myChart.update();
+
+    const statusBox = document.getElementById('top-extinction-status');
+    
+    if (topExtinctionMinute !== -1) {
+        const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
+        const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
+        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>
+        Débit d'attaque atteint. L'assaut général de ${dureeMissionDoctrine} min peut se dérouler de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>. Le désengagement partiel des vecteurs non requis pour le maintien du tapis est possible dès ${heureFinStr}.`;
+        statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
+    } 
+    else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
+        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>
+        Le cumul maximal atteint ${Math.round(maximumAtteint)} L/min. C'est au
