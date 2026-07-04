@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIMENSIONNEMENT MOUSSE & CINÉTIQUE TACTIQUE</title>
+    <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -45,9 +45,15 @@
         .form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
         .form-inline-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 
-        /* Grille spécifique pour le tableau des moyens de renforts */
-        .moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 6px; align-items: center; margin-bottom: 6px; background: #0f172a; padding: 6px; border-radius: 6px; }
-        .moyens-header { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding-left: 4px; }
+        /* Grille des moyens dynamiques */
+        .moyens-container { margin-bottom: 10px; }
+        .moyens-grid { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a; padding: 6px; border-radius: 6px; }
+        .moyens-header-grid { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; }
+        .moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; }
+        .moyens-grid input[type="text"] { text-align: left; }
+        
+        .btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+        .btn-remove { background: var(--accent-red); border: none; color: white; padding: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
 
         .slider-container { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 8px; }
         .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
@@ -58,8 +64,8 @@
         .doc-table th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 6px; font-weight: normal; border: 1px solid #334155; }
         .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
 
-        .chart-container { position: relative; width: 100%; height: 250px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
-        .alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+        .chart-container { position: relative; width: 100%; height: 260px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
+        .alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; }
         
         .legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
@@ -70,7 +76,7 @@
 
 <header>
     <h1>MOUSSE TACTIQUE — SDIS</h1>
-    <p>Cinétique d'Engagement & Planification Tactique</p>
+    <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
 
 <div class="card">
@@ -96,9 +102,15 @@
         </select>
     </div>
 
-    <div class="form-group">
-        <label for="inp-surface">Surface enflammée (m²) :</label>
-        <input type="number" id="inp-surface" value="500" oninput="appliquerDoctrineTauxDuree()">
+    <div class="form-inline-2">
+        <div class="form-group">
+            <label for="inp-surface">Surface enflammée (m²) :</label>
+            <input type="number" id="inp-surface" value="500" oninput="appliquerDoctrineTauxDuree()">
+        </div>
+        <div class="form-group">
+            <label for="inp-t0">Heure de Référence (T0) :</label>
+            <input type="time" id="inp-t0" value="08:00" oninput="calculerTout()">
+        </div>
     </div>
 
     <div class="form-inline-2">
@@ -141,47 +153,25 @@
 </div>
 
 <div class="card" style="border: 2px solid var(--accent-blue);">
-    <h2>📈 Projection Tactique & Cinétique Globale</h2>
+    <h2>📈 Suivi Cinétique Dynamique des Moyens</h2>
     
     <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
-    <div class="toggle-group" style="margin-bottom: 10px;">
-        <button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)">⏳ 3 Heures (Délai Max Règl. Extinction)</button>
-        <button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">🚨 7 Heures (Gestion Globale + Maintien)</button>
+    <div class="toggle-group" style="margin-bottom: 12px;">
+        <button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)">⏳ 3 Heures (Extinction)</button>
+        <button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">🚨 7 Heures (Total Régl. + Maintien)</button>
     </div>
 
-    <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 6px 0; font-weight:bold;">Planification de la montée en puissance des moyens :</p>
+    <div class="moyens-header-grid">
+        <span>Nom du Moyen / Vecteur</span>
+        <span>Débit (L/m)</span>
+        <span>Arrivée</span>
+        <span>Arrêt</span>
+        <span></span>
+    </div>
+
+    <div id="moyens-liste" class="moyens-container"></div>
     
-    <div class="moyens-grid" style="background:transparent; margin-bottom:2px; padding-bottom:0;">
-        <span class="moyens-header">Vecteur / Origine</span>
-        <span class="moyens-header">Débit (L/min)</span>
-        <span class="moyens-header">Arrivée (min)</span>
-    </div>
-
-    <div class="moyens-grid">
-        <label style="font-size:0.8rem; color:white; font-weight:bold;">🏭 Moyens Fixes Usine</label>
-        <input type="number" id="flow-usine" value="0" oninput="calculerTout()">
-        <input type="number" id="time-usine" value="0" disabled style="opacity:0.5;">
-    </div>
-    <div class="moyens-grid">
-        <label style="font-size:0.8rem; color:#60a5fa;">🚒 Renfort G-LIF 1</label>
-        <input type="number" id="flow-lif1" value="4000" oninput="calculerTout()">
-        <input type="number" id="time-lif1" value="20" oninput="calculerTout()">
-    </div>
-    <div class="moyens-grid">
-        <label style="font-size:0.8rem; color:#60a5fa;">🚒 Renfort G-LIF 2</label>
-        <input type="number" id="flow-lif2" value="4000" oninput="calculerTout()">
-        <input type="number" id="time-lif2" value="45" oninput="calculerTout()">
-    </div>
-    <div class="moyens-grid">
-        <label style="font-size:0.8rem; color:#f472b6;">🐳 Vecteur CEEM (Grand Débit)</label>
-        <input type="number" id="flow-ceem" value="6000" oninput="calculerTout()">
-        <input type="number" id="time-ceem" value="60" oninput="calculerTout()">
-    </div>
-    <div class="moyens-grid">
-        <label style="font-size:0.8rem; color:#34d399;">🤝 Aide Mutuelle / Voisins</label>
-        <input type="number" id="flow-mutuelle" value="2000" oninput="calculerTout()">
-        <input type="number" id="time-mutuelle" value="35" oninput="calculerTout()">
-    </div>
+    <button class="btn-action" onclick="ajouterLigneMoyen()">➕ Ajouter un moyen / vecteur</button>
 
     <div class="chart-container">
         <canvas id="kineticChart"></canvas>
@@ -191,7 +181,7 @@
         <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Attaque</span></div>
         <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
         <div class="legend-item"><div class="color-box" style="background:#a855f7;"></div><span style="color:#c084fc;">Maintien Tapis (0.2)</span></div>
-        <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Hydrauliques Réels</span></div>
+        <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
     </div>
     
     <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
@@ -217,13 +207,50 @@ let configSinistre = 'cuvette';
 let typeProduit = 'hydro'; 
 let myChart = null;
 let dureeMissionDoctrine = 40; 
-let horizonActuel = 180; // Par défaut à 3 heures (180 minutes)
+let horizonActuel = 180; 
+
+// Initialisation de quelques moyens types pour guider l'utilisateur au départ
+const moyensParDefaut = [
+    { nom: "Moyens fixes Établissement", debit: 0, arrivee: "08:00", arret: "" },
+    { nom: "Premier FPT / G-LIF 1", debit: 4000, arrivee: "08:25", arret: "" },
+    { nom: "Renfort G-LIF 2 (SDIS)", debit: 4000, arrivee: "08:50", arret: "11:30" }
+];
 
 function changeHorizon(minutes) {
     horizonActuel = minutes;
     document.getElementById('btn-h180').classList.toggle('active', minutes === 180);
     document.getElementById('btn-h420').classList.toggle('active', minutes === 420);
     calculerTout();
+}
+
+function ajouterLigneMoyen(data = { nom: "Nouveau Vecteur", debit: 2000, arrivee: "08:30", arret: "" }) {
+    const container = document.getElementById('moyens-liste');
+    const div = document.createElement('div');
+    div.className = 'moyens-grid';
+    div.innerHTML = `
+        <input type="text" class="m-nom" value="${data.nom}" placeholder="Nom du moyen" oninput="calculerTout()">
+        <input type="number" class="m-debit" value="${data.debit}" placeholder="L/min" oninput="calculerTout()">
+        <input type="time" class="m-arrivee" value="${data.arrivee}" oninput="calculerTout()">
+        <input type="time" class="m-arret" value="${data.arret}" oninput="calculerTout()">
+        <button class="btn-remove" onclick="this.parentElement.remove(); calculerTout();">❌</button>
+    `;
+    container.appendChild(div);
+    calculerTout();
+}
+
+// Convertisseur heure de la journée (HH:MM) vers minutes absolues depuis minuit
+function timeToMinutes(timeStr) {
+    if (!timeStr) return null;
+    const parts = timeStr.split(':');
+    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+}
+
+// Convertisseur minutes absolues depuis minuit vers libellé d'heure de la journée (HH:MM)
+function minutesToTimeStr(totalMinutes) {
+    const mins = totalMinutes % 1440;
+    const h = Math.floor(mins / 60).toString().padStart(2, '0');
+    const m = (mins % 60).toString().padStart(2, '0');
+    return `${h}:${m}`;
 }
 
 function appliquerDoctrineTauxDuree() {
@@ -285,10 +312,10 @@ function initChart() {
         options: {
             responsive: true,
             maintainAspectRatio: false,
-            animation: false, // Plus rapide sur mobile ancien
+            animation: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Temps (minutes)', color: '#94a3b8', font: { size: 10 } } },
+                x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Heure réelle de la journée', color: '#94a3b8', font: { size: 10 } } },
                 y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
             }
         }
@@ -301,14 +328,14 @@ function calculerTout() {
     const surface = parseFloat(document.getElementById('inp-surface').value) || 0;
     const ta = parseFloat(document.getElementById('slip-ta').value);
     const conc = parseFloat(document.getElementById('slip-conc').value);
+    const t0Str = document.getElementById('inp-t0').value;
+    const t0Min = timeToMinutes(t0Str) || 480; // Par défaut 08:00 si vide
     
-    // 1. Seuils doctrinaux
     const qsmExt = surface * ta;
     const volEmuExt = qsmExt * (conc / 100) * dureeMissionDoctrine;
     const qsmTemp = qsmExt / 2;
     const volEmuTemp = qsmTemp * (conc / 100) * dureeMissionDoctrine;
     
-    // 2. Besoin d'entretien du tapis (0.2 L/min/m² pendant 4h / 240 min)
     const qsmMaintien = surface * 0.2; 
     const volEmuMaintien = qsmMaintien * (conc / 100) * 240;
 
@@ -318,17 +345,28 @@ function calculerTout() {
     document.getElementById('brut-vol-temp').innerText = Math.round(volEmuTemp) + " L";
     document.getElementById('brut-vol-maintien').innerText = Math.round(volEmuMaintien) + " L";
 
-    // 3. Récupération dynamique de la matrice des renforts tactiques
-    const qUsine = parseFloat(document.getElementById('flow-usine').value) || 0;
-    const qLif1 = parseFloat(document.getElementById('flow-lif1').value) || 0;
-    const tLif1 = parseFloat(document.getElementById('time-lif1').value) || 0;
-    const qLif2 = parseFloat(document.getElementById('flow-lif2').value) || 0;
-    const tLif2 = parseFloat(document.getElementById('time-lif2').value) || 0;
-    const qCeem = parseFloat(document.getElementById('flow-ceem').value) || 0;
-    const tCeem = parseFloat(document.getElementById('time-ceem').value) || 0;
-    const qMutuelle = parseFloat(document.getElementById('flow-mutuelle').value) || 0;
-    const tMutuelle = parseFloat(document.getElementById('time-mutuelle').value) || 0;
+    // Extraction des moyens configurés dynamiquement dans le DOM
+    const lignes = document.querySelectorAll('#moyens-liste .moyens-grid');
+    let listeMoyensEngages = [];
     
+    lignes.forEach(ligne => {
+        const nom = ligne.querySelector('.m-nom').value;
+        const debit = parseFloat(ligne.querySelector('.m-debit').value) || 0;
+        const arrStr = ligne.querySelector('.m-arrivee').value;
+        const arrStrArret = ligne.querySelector('.m-arret').value;
+        
+        let arrMin = timeToMinutes(arrStr);
+        let arretMin = timeToMinutes(arrStrArret);
+
+        // Si l'arrivée est définie avant le T0, on la recale pour la cohérence ou on la conserve
+        listeMoyensEngages.push({
+            nom: nom,
+            debit: debit,
+            arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
+            arretDelta: arretMin !== null ? (arretMin - t0Min) : 9999
+        });
+    });
+
     let labelsX = [];
     let dataExt = [];
     let dataTemp = [];
@@ -339,41 +377,39 @@ function calculerTout() {
     let finExtinctionMinute = -1;
     let maximumAtteint = 0;
 
-    // Échantillonnage intelligent selon l'horizon pour ne pas surcharger l'iPhone
     const step = horizonActuel === 420 ? 5 : 2; 
 
-    for (let m = 0; m <= horizonActuel; m += step) {
-        labelsX.push(m);
+    for (let delta = 0; delta <= horizonActuel; delta += step) {
+        // L'abscisse est traduite en heure réelle (HH:MM)
+        labelsX.push(minutesToTimeStr(t0Min + delta));
         
-        // Calcul du cumul hydraulique disponible à l'instant t
-        let debitCourant = qUsine;
-        if (m >= tLif1) debitCourant += qLif1; 
-        if (m >= tLif2) debitCourant += qLif2; 
-        if (m >= tCeem) debitCourant += qCeem; 
-        if (m >= tMutuelle) debitCourant += qMutuelle; 
+        // Calcul du cumul hydraulique à l'instant delta
+        let debitCourant = 0;
+        listeMoyensEngages.forEach(m => {
+            if (delta >= m.arrDelta && delta < m.arretDelta) {
+                debitCourant += m.debit;
+            }
+        });
         
         dataReel.push(debitCourant);
         if (debitCourant > maximumAtteint) maximumAtteint = debitCourant;
 
-        // Repérage du TOP Extinction
+        // Détection du TOP Extinction
         if (debitCourant >= qsmExt && topExtinctionMinute === -1) {
-            topExtinctionMinute = m;
-            finExtinctionMinute = m + dureeMissionDoctrine;
+            topExtinctionMinute = delta;
+            finExtinctionMinute = delta + dureeMissionDoctrine;
         }
 
-        // Lignes de repères graphiques
         dataTemp.push(qsmTemp);
         dataMaintien.push(qsmMaintien);
 
-        // Chute dynamique du besoin d'extinction après la réussite de l'attaque générale
-        if (topExtinctionMinute !== -1 && m >= finExtinctionMinute) {
+        if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
             dataExt.push(qsmMaintien); 
         } else {
             dataExt.push(qsmExt);
         }
     }
 
-    // Assignation des données au graphique
     myChart.data.labels = labelsX;
     myChart.data.datasets = [
         { label: 'Seuil Attaque', data: dataExt, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
@@ -381,32 +417,30 @@ function calculerTout() {
         { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#a855f7', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
         { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
     ];
-    myChart.update(); // Recalcul et réajustement automatique des échelles (abscisses/ordonnées)
+    myChart.update();
 
-    // 4. LOGIQUE TACTIQUE DE L'ANALYSE DÉCISIONNELLE AVEC ARBITRAGE RFT
     const statusBox = document.getElementById('top-extinction-status');
     
     if (topExtinctionMinute !== -1) {
-        // Cas 1 : Succès doctrinal
-        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDÉ À T+${topExtinctionMinute} MIN</b><br>
-        Le débit requis de ${Math.round(qsmExt)} L/min est entièrement réuni. L'assaut général de ${dureeMissionDoctrine} min est planifié jusqu'à T+${finExtinctionMinute}. Bascule automatique sur la surveillance du tapis ensuite.`;
+        const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
+        const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
+        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>
+        Débit d'attaque atteint. L'assaut général de ${dureeMissionDoctrine} min peut se dérouler de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>. Le désengagement partiel des vecteurs non requis pour le maintien du tapis est possible dès ${heureFinStr}.`;
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
-        // Cas 2 : Entre la tempo et l'attaque -> ALERTE gaspillage / Choix RFT
-        statusBox.innerHTML = `⚠️ <b>ALERTE DOCTRINE : SEUIL D'ATTAQUE INTROUVABLE</b><br>
-        Tes ressources culminent à ${Math.round(maximumAtteint)} L/min, soit juste au-dessus du seuil de temporisation (${Math.round(qsmTemp)} L/min) mais sans atteindre l'Attaque. 
-        <br><span style="color:#fde047; font-weight:800;">👉 STRATÉGIE RFT : Brider le débit sous la temporisation pour préserver l'émulseur. Interdiction de lancer l'assaut. Prioriser la Réduction du Flux Thermique.</span>`;
+        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>
+        Le cumul maximal atteint ${Math.round(maximumAtteint)} L/min. C'est au-dessus de la temporisation (${Math.round(qsmTemp)} L/min) mais insuffisant pour l'extinction.<br>
+        <span style="color:#fde047; font-weight:800;">👉 RECOMMANDATION COS : Ne pas lancer l'assaut (risque de ruine de la mousse). Brider le débit sous le seuil de tempo pour économiser l'émulseur et agir uniquement en Réduction du Flux Thermique (RFT).</span>`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     } 
     else {
-        // Cas 3 : En dessous de tout
         statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>
-        Le flux maximal disponible (${Math.round(maximumAtteint)} L/min) ne couvre même pas le seuil minimal de temporisation / RFT (${Math.round(qsmTemp)} L/min). Demander immédiatement de nouveaux vecteurs lourds (CEEM / G-LIF).`;
+        Le flux disponible (${Math.round(maximumAtteint)} L/min) ne permet même pas d'armer la Temporisation ou la RFT de sécurité (${Math.round(qsmTemp)} L/min). Risque de propagation majeur.`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
 
-    // Gestion cinétique de la rétention
+    // Calcul de rétention
     if (configSinistre === 'cuvette') {
         const vMax = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
         const qFuite = parseFloat(document.getElementById('deb-Qfuite').value) || 0;
@@ -414,16 +448,18 @@ function calculerTout() {
         const alertBox = document.getElementById('alert-debordement');
         
         if (tempsRemplissage < 60) {
-            alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement sous ${Math.round(tempsRemplissage)} min s'il n'y a pas d'action de pompage conjointe.`;
+            alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes.`;
             alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
         } else {
-            alertBox.innerText = `✅ Volume de rétention stable (durée de sécurité théorique : ${Math.round(tempsRemplissage)} min).`;
+            alertBox.innerText = `✅ Volume de rétention stable (durée théorique de sécurité : ${Math.round(tempsRemplissage)} min).`;
             alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
         }
     }
 }
 
 window.onload = function() {
+    // Génération initiale des lignes par défaut
+    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
     setConfiguration('cuvette');
 };
 </script>
