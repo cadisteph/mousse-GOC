@@ -178,7 +178,7 @@
 
     <div id="moyens-liste" class="moyens-container"></div>
     
-    <button class="btn-action" onclick="ajouterLigneMoyen()">➕ Ajouter un moyen / vecteur</button>
+    <button class="btn-action" onclick="ajouterLigneMoyen(null)">➕ Ajouter un moyen / vecteur</button>
 
     <div class="chart-container">
         <canvas id="kineticChart"></canvas>
@@ -229,16 +229,19 @@ function changeHorizon(minutes) {
     calculerTout();
 }
 
-// CORRECTION : Les paramètres par défaut de l'objet data sont maintenant alignés pour éviter les bugs
-function ajouterLigneMoyen(data = { nom: "Nouveau Vecteur", debit: 2000, arrivee: "08:30", arret: "" }) {
+// CORRECTION : Protection robuste des variables d'initialisation
+function ajouterLigneMoyen(data) {
+    const backup = { nom: "Nouveau Vecteur", debit: 2000, arrivee: "08:30", arret: "" };
+    const finalData = data ? data : backup;
+
     const container = document.getElementById('moyens-liste');
     const div = document.createElement('div');
     div.className = 'moyens-grid';
     div.innerHTML = `
-        <input type="text" class="m-nom" value="${data.nom || ''}" placeholder="Nom du moyen" oninput="calculerTout()">
-        <input type="number" class="m-debit" value="${data.debit !== undefined ? data.debit : 2000}" placeholder="L/min" oninput="calculerTout()">
-        <input type="time" class="m-arrivee" value="${data.arrivee || ''}" oninput="calculerTout()">
-        <input type="time" class="m-arret" value="${data.arret || ''}" oninput="calculerTout()">
+        <input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="Nom du moyen" oninput="calculerTout()">
+        <input type="number" class="m-debit" value="${finalData.debit !== undefined ? finalData.debit : 2000}" placeholder="L/min" oninput="calculerTout()">
+        <input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="calculerTout()">
+        <input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
         <button class="btn-remove" onclick="this.parentElement.remove(); calculerTout();">❌</button>
     `;
     container.appendChild(div);
@@ -437,4 +440,37 @@ function calculerTout() {
     } 
     else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
         statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>
-        Le cumul maximal atteint ${Math.round(maximumAtteint)} L/min. C'est au
+        Le cumul maximal atteint ${Math.round(maximumAtteint)} L/min. C'est au-dessus de la temporisation (${Math.round(qsmTemp)} L/min) mais insuffisant pour l'extinction.<br>
+        <span style="color:#fde047; font-weight:800;">👉 RECOMMANDATION COS : Ne pas lancer l'assaut (risque de ruine de la mousse). Brider le débit sous le seuil de tempo pour économiser l'émulseur et agir uniquement en Réduction du Flux Thermique (RFT).</span>`;
+        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
+    } 
+    else {
+        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>
+        Le flux disponible (${Math.round(maximumAtteint)} L/min) ne permet même pas d'armer la Temporisation ou la RFT de sécurité (${Math.round(qsmTemp)} L/min). Risque de propagation majeur.`;
+        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
+    }
+
+    if (configSinistre === 'cuvette') {
+        const vMax = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
+        const qFuite = parseFloat(document.getElementById('deb-Qfuite').value) || 0;
+        let tempsRemplissage = vMax / (qFuite + qsmExt);
+        const alertBox = document.getElementById('alert-debordement');
+        
+        if (tempsRemplissage < 60) {
+            alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes.`;
+            alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
+        } else {
+            alertBox.innerText = `✅ Volume de rétention stable (durée théorique de sécurité : ${Math.round(tempsRemplissage)} min).`;
+            alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
+        }
+    }
+}
+
+window.onload = function() {
+    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+    setConfiguration('cuvette');
+};
+</script>
+
+</body>
+</html>
