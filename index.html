@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
     
+    <!-- Inclusion de Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -43,7 +44,6 @@
         .form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; }
         
         .form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
-        .form-inline-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
 
         /* Grille des moyens dynamiques */
         .moyens-container { margin-bottom: 10px; }
@@ -79,6 +79,7 @@
     <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
 
+<!-- ÉTAPE 1 : SITUATION DU SINISTRE -->
 <div class="card">
     <h2>Étape 1 : Situation du Sinistre</h2>
     
@@ -125,8 +126,18 @@
     </div>
 </div>
 
+<!-- ÉTAPE 2 : CALCULS DOCTRINAUX -->
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
     <h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
+    
+    <div style="margin-bottom: 10px; background: #0f172a; padding: 6px; border-radius: 6px; border: 1px solid #334155;">
+        <label for="select-maintien-rule" style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:2px; text-transform:uppercase; font-weight:bold;">Calcul du Maintien de Tapis (4h) :</label>
+        <select id="select-maintien-rule" class="select-custom" style="font-size:0.8rem; padding:5px;" onchange="calculerTout()">
+            <option value="onesixth">Règle Opérationnelle du 1/6ème du débit d'attaque (Recommandé CODIS)</option>
+            <option value="regime-general">Fixe Régime Général (0.2 L/min/m²)</option>
+        </select>
+    </div>
+
     <table class="doc-table">
         <thead>
             <tr>
@@ -152,6 +163,7 @@
     </table>
 </div>
 
+<!-- MODULE DE CONFIGURATION DYNAMIQUE DES MOYENS -->
 <div class="card" style="border: 2px solid var(--accent-blue);">
     <h2>📈 Suivi Cinétique Dynamique des Moyens</h2>
     
@@ -161,6 +173,7 @@
         <button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">🚨 7 Heures (Total Régl. + Maintien)</button>
     </div>
 
+    <!-- En-tête du tableau des moyens -->
     <div class="moyens-header-grid">
         <span>Nom du Moyen / Vecteur</span>
         <span>Débit (L/m)</span>
@@ -169,10 +182,12 @@
         <span></span>
     </div>
 
+    <!-- Zone d'injection des lignes dynamiques -->
     <div id="moyens-liste" class="moyens-container"></div>
     
     <button class="btn-action" onclick="ajouterLigneMoyen()">➕ Ajouter un moyen / vecteur</button>
 
+    <!-- Graphique -->
     <div class="chart-container">
         <canvas id="kineticChart"></canvas>
     </div>
@@ -180,13 +195,14 @@
     <div class="legend-mini">
         <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Attaque</span></div>
         <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
-        <div class="legend-item"><div class="color-box" style="background:#a855f7;"></div><span style="color:#c084fc;">Maintien Tapis (0.2)</span></div>
+        <div class="legend-item"><div class="color-box" style="background:#a855f7;"></div><span style="color:#c084fc;">Maintien Tapis</span></div>
         <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
     </div>
     
     <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
 </div>
 
+<!-- CONFINEMENT & RÉTENTION -->
 <div class="card" id="card-debordement" style="border: 1px solid var(--accent-red); display:block;">
     <h2>⚠️ Risque de Débordement de la Rétention</h2>
     <div class="form-inline-2">
@@ -209,7 +225,6 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
-// Initialisation de quelques moyens types pour guider l'utilisateur au départ
 const moyensParDefaut = [
     { nom: "Moyens fixes Établissement", debit: 0, arrivee: "08:00", arret: "" },
     { nom: "Premier FPT / G-LIF 1", debit: 4000, arrivee: "08:25", arret: "" },
@@ -238,14 +253,12 @@ function ajouterLigneMoyen(data = { nom: "Nouveau Vecteur", debit: 2000, arrivee
     calculerTout();
 }
 
-// Convertisseur heure de la journée (HH:MM) vers minutes absolues depuis minuit
 function timeToMinutes(timeStr) {
     if (!timeStr) return null;
     const parts = timeStr.split(':');
     return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 }
 
-// Convertisseur minutes absolues depuis minuit vers libellé d'heure de la journée (HH:MM)
 function minutesToTimeStr(totalMinutes) {
     const mins = totalMinutes % 1440;
     const h = Math.floor(mins / 60).toString().padStart(2, '0');
@@ -329,15 +342,23 @@ function calculerTout() {
     const ta = parseFloat(document.getElementById('slip-ta').value);
     const conc = parseFloat(document.getElementById('slip-conc').value);
     const t0Str = document.getElementById('inp-t0').value;
-    const t0Min = timeToMinutes(t0Str) || 480; // Par défaut 08:00 si vide
+    const t0Min = timeToMinutes(t0Str) || 480; 
     
     const qsmExt = surface * ta;
     const volEmuExt = qsmExt * (conc / 100) * dureeMissionDoctrine;
     const qsmTemp = qsmExt / 2;
     const volEmuTemp = qsmTemp * (conc / 100) * dureeMissionDoctrine;
     
-    const qsmMaintien = surface * 0.2; 
-    const volEmuMaintien = qsmMaintien * (conc / 100) * 240;
+    // Logique du sélecteur de maintien
+    const regleMaintien = document.getElementById('select-maintien-rule').value;
+    let qsmMaintien = surface * 0.2; // Base réglementaire (Régime Général)
+    
+    if (regleMaintien === 'onesixth') {
+        // Règle du 1/6ème du débit d'attaque (ou 0.2 L/min/m² si supérieur pour sécurité)
+        qsmMaintien = Math.max(qsmMaintien, qsmExt / 6);
+    }
+    
+    const volEmuMaintien = qsmMaintien * (conc / 100) * 240; // 4h de maintien
 
     document.getElementById('brut-qsm-ext').innerText = Math.round(qsmExt) + " L/min";
     document.getElementById('brut-vol-ext').innerText = Math.round(volEmuExt) + " L";
@@ -345,7 +366,6 @@ function calculerTout() {
     document.getElementById('brut-vol-temp').innerText = Math.round(volEmuTemp) + " L";
     document.getElementById('brut-vol-maintien').innerText = Math.round(volEmuMaintien) + " L";
 
-    // Extraction des moyens configurés dynamiquement dans le DOM
     const lignes = document.querySelectorAll('#moyens-liste .moyens-grid');
     let listeMoyensEngages = [];
     
@@ -358,12 +378,11 @@ function calculerTout() {
         let arrMin = timeToMinutes(arrStr);
         let arretMin = timeToMinutes(arrStrArret);
 
-        // Si l'arrivée est définie avant le T0, on la recale pour la cohérence ou on la conserve
         listeMoyensEngages.push({
             nom: nom,
             debit: debit,
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-            arretDelta: arretMin !== null ? (arretMin - t0Min) : 9999
+            arretDelta: arrMin !== null ? (arretMin - t0Min) : 9999
         });
     });
 
@@ -380,10 +399,8 @@ function calculerTout() {
     const step = horizonActuel === 420 ? 5 : 2; 
 
     for (let delta = 0; delta <= horizonActuel; delta += step) {
-        // L'abscisse est traduite en heure réelle (HH:MM)
         labelsX.push(minutesToTimeStr(t0Min + delta));
         
-        // Calcul du cumul hydraulique à l'instant delta
         let debitCourant = 0;
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && delta < m.arretDelta) {
@@ -394,7 +411,6 @@ function calculerTout() {
         dataReel.push(debitCourant);
         if (debitCourant > maximumAtteint) maximumAtteint = debitCourant;
 
-        // Détection du TOP Extinction
         if (debitCourant >= qsmExt && topExtinctionMinute === -1) {
             topExtinctionMinute = delta;
             finExtinctionMinute = delta + dureeMissionDoctrine;
@@ -440,7 +456,6 @@ function calculerTout() {
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
 
-    // Calcul de rétention
     if (configSinistre === 'cuvette') {
         const vMax = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
         const qFuite = parseFloat(document.getElementById('deb-Qfuite').value) || 0;
@@ -458,7 +473,6 @@ function calculerTout() {
 }
 
 window.onload = function() {
-    // Génération initiale des lignes par défaut
     moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
     setConfiguration('cuvette');
 };
