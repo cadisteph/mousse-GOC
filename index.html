@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
     
-    <!-- Inclusion de Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -79,7 +78,6 @@
     <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
 
-<!-- ÉTAPE 1 : SITUATION DU SINISTRE -->
 <div class="card">
     <h2>Étape 1 : Situation du Sinistre</h2>
     
@@ -126,7 +124,6 @@
     </div>
 </div>
 
-<!-- ÉTAPE 2 : CALCULS DOCTRINAUX -->
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
     <h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
     
@@ -163,7 +160,6 @@
     </table>
 </div>
 
-<!-- MODULE DE CONFIGURATION DYNAMIQUE DES MOYENS -->
 <div class="card" style="border: 2px solid var(--accent-blue);">
     <h2>📈 Suivi Cinétique Dynamique des Moyens</h2>
     
@@ -173,7 +169,6 @@
         <button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">🚨 7 Heures (Total Régl. + Maintien)</button>
     </div>
 
-    <!-- En-tête du tableau des moyens -->
     <div class="moyens-header-grid">
         <span>Nom du Moyen / Vecteur</span>
         <span>Débit (L/m)</span>
@@ -182,12 +177,10 @@
         <span></span>
     </div>
 
-    <!-- Zone d'injection des lignes dynamiques -->
     <div id="moyens-liste" class="moyens-container"></div>
     
     <button class="btn-action" onclick="ajouterLigneMoyen()">➕ Ajouter un moyen / vecteur</button>
 
-    <!-- Graphique -->
     <div class="chart-container">
         <canvas id="kineticChart"></canvas>
     </div>
@@ -202,7 +195,6 @@
     <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
 </div>
 
-<!-- CONFINEMENT & RÉTENTION -->
 <div class="card" id="card-debordement" style="border: 1px solid var(--accent-red); display:block;">
     <h2>⚠️ Risque de Débordement de la Rétention</h2>
     <div class="form-inline-2">
@@ -228,7 +220,7 @@ let horizonActuel = 180;
 const moyensParDefaut = [
     { nom: "Moyens fixes Établissement", debit: 0, arrivee: "08:00", arret: "" },
     { nom: "Premier FPT / G-LIF 1", debit: 4000, arrivee: "08:25", arret: "" },
-    { nom: "Renfort G-LIF 2 (SDIS)", debit: 4000, arrivee: "08:50", arret: "11:30" }
+    { nom: "Renfort G-LIF 2 (SDIS)", debit: 4000, arrivee: "08:50", arret: "" } // Laissé vide par défaut désormais
 ];
 
 function changeHorizon(minutes) {
@@ -254,7 +246,7 @@ function ajouterLigneMoyen(data = { nom: "Nouveau Vecteur", debit: 2000, arrivee
 }
 
 function timeToMinutes(timeStr) {
-    if (!timeStr) return null;
+    if (!timeStr || timeStr.trim() === "") return null;
     const parts = timeStr.split(':');
     return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 }
@@ -349,16 +341,14 @@ function calculerTout() {
     const qsmTemp = qsmExt / 2;
     const volEmuTemp = qsmTemp * (conc / 100) * dureeMissionDoctrine;
     
-    // Logique du sélecteur de maintien
     const regleMaintien = document.getElementById('select-maintien-rule').value;
-    let qsmMaintien = surface * 0.2; // Base réglementaire (Régime Général)
+    let qsmMaintien = surface * 0.2; 
     
     if (regleMaintien === 'onesixth') {
-        // Règle du 1/6ème du débit d'attaque (ou 0.2 L/min/m² si supérieur pour sécurité)
         qsmMaintien = Math.max(qsmMaintien, qsmExt / 6);
     }
     
-    const volEmuMaintien = qsmMaintien * (conc / 100) * 240; // 4h de maintien
+    const volEmuMaintien = qsmMaintien * (conc / 100) * 240; 
 
     document.getElementById('brut-qsm-ext').innerText = Math.round(qsmExt) + " L/min";
     document.getElementById('brut-vol-ext').innerText = Math.round(volEmuExt) + " L";
@@ -374,109 +364,3 @@ function calculerTout() {
         const debit = parseFloat(ligne.querySelector('.m-debit').value) || 0;
         const arrStr = ligne.querySelector('.m-arrivee').value;
         const arrStrArret = ligne.querySelector('.m-arret').value;
-        
-        let arrMin = timeToMinutes(arrStr);
-        let arretMin = timeToMinutes(arrStrArret);
-
-        listeMoyensEngages.push({
-            nom: nom,
-            debit: debit,
-            arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-            arretDelta: arrMin !== null ? (arretMin - t0Min) : 9999
-        });
-    });
-
-    let labelsX = [];
-    let dataExt = [];
-    let dataTemp = [];
-    let dataMaintien = [];
-    let dataReel = [];
-    
-    let topExtinctionMinute = -1;
-    let finExtinctionMinute = -1;
-    let maximumAtteint = 0;
-
-    const step = horizonActuel === 420 ? 5 : 2; 
-
-    for (let delta = 0; delta <= horizonActuel; delta += step) {
-        labelsX.push(minutesToTimeStr(t0Min + delta));
-        
-        let debitCourant = 0;
-        listeMoyensEngages.forEach(m => {
-            if (delta >= m.arrDelta && delta < m.arretDelta) {
-                debitCourant += m.debit;
-            }
-        });
-        
-        dataReel.push(debitCourant);
-        if (debitCourant > maximumAtteint) maximumAtteint = debitCourant;
-
-        if (debitCourant >= qsmExt && topExtinctionMinute === -1) {
-            topExtinctionMinute = delta;
-            finExtinctionMinute = delta + dureeMissionDoctrine;
-        }
-
-        dataTemp.push(qsmTemp);
-        dataMaintien.push(qsmMaintien);
-
-        if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
-            dataExt.push(qsmMaintien); 
-        } else {
-            dataExt.push(qsmExt);
-        }
-    }
-
-    myChart.data.labels = labelsX;
-    myChart.data.datasets = [
-        { label: 'Seuil Attaque', data: dataExt, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
-        { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
-        { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#a855f7', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
-        { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
-    ];
-    myChart.update();
-
-    const statusBox = document.getElementById('top-extinction-status');
-    
-    if (topExtinctionMinute !== -1) {
-        const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
-        const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>
-        Débit d'attaque atteint. L'assaut général de ${dureeMissionDoctrine} min peut se dérouler de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>. Le désengagement partiel des vecteurs non requis pour le maintien du tapis est possible dès ${heureFinStr}.`;
-        statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
-    } 
-    else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
-        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>
-        Le cumul maximal atteint ${Math.round(maximumAtteint)} L/min. C'est au-dessus de la temporisation (${Math.round(qsmTemp)} L/min) mais insuffisant pour l'extinction.<br>
-        <span style="color:#fde047; font-weight:800;">👉 RECOMMANDATION COS : Ne pas lancer l'assaut (risque de ruine de la mousse). Brider le débit sous le seuil de tempo pour économiser l'émulseur et agir uniquement en Réduction du Flux Thermique (RFT).</span>`;
-        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
-    } 
-    else {
-        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>
-        Le flux disponible (${Math.round(maximumAtteint)} L/min) ne permet même pas d'armer la Temporisation ou la RFT de sécurité (${Math.round(qsmTemp)} L/min). Risque de propagation majeur.`;
-        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
-    }
-
-    if (configSinistre === 'cuvette') {
-        const vMax = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
-        const qFuite = parseFloat(document.getElementById('deb-Qfuite').value) || 0;
-        let tempsRemplissage = vMax / (qFuite + qsmExt);
-        const alertBox = document.getElementById('alert-debordement');
-        
-        if (tempsRemplissage < 60) {
-            alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes.`;
-            alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
-        } else {
-            alertBox.innerText = `✅ Volume de rétention stable (durée théorique de sécurité : ${Math.round(tempsRemplissage)} min).`;
-            alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
-        }
-    }
-}
-
-window.onload = function() {
-    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
-    setConfiguration('cuvette');
-};
-</script>
-
-</body>
-</html>
