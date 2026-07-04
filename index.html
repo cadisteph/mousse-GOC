@@ -3,8 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIMENSIONNEMENT MOUSSE TACTIQUE</title>
+    <title>DIMENSIONNEMENT MOUSSE & CINÉTIQUE</title>
     
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
     <style>
         :root {
             --bg-app: #0f172a;
@@ -31,6 +33,11 @@
         .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
         .toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
 
+        /* Style spécifique pour la sous-grille de classification POI */
+        .poi-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; }
+        .poi-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: bold; text-transform: uppercase;}
+        .select-custom { background: #1e293b; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 0.9rem; }
+
         .form-group { margin-bottom: 10px; }
         .form-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 4px; }
         .form-group input[type="number"] { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 8px; border-radius: 6px; font-size: 1rem; font-weight: bold; }
@@ -48,11 +55,7 @@
         .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
         .doc-table tr.highlight { background: #2563eb22; }
 
-        .tactique-list { margin: 5px 0 0 0; padding: 0; list-style: none; font-size: 0.85rem; }
-        .tactique-list li { padding: 6px 0; border-bottom: 1px solid #334155; display: flex; justify-content: space-between; align-items: center; }
-        .tactique-list li:last-child { border-bottom: none; }
-        .badge-lif { background: #a855f7; color: white; font-weight: 800; padding: 1px 6px; border-radius: 4px; font-size: 0.8rem; }
-
+        .chart-container { position: relative; width: 100%; height: 220px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
         .alert-box { font-size: 0.8rem; font-weight: bold; padding: 8px; border-radius: 6px; text-align: center; margin-top: 6px; line-height: 1.4; }
     </style>
 </head>
@@ -60,40 +63,41 @@
 
 <header>
     <h1>MOUSSE TACTIQUE — SDIS</h1>
-    <p>Raisonnement GOC & Analyse Cinétique</p>
+    <p>Raisonnement GOC & Courbe de Gestion des Moyens</p>
 </header>
 
 <div class="card">
     <h2>Étape 1 : Situation du Sinistre <span>(Saisie terrain)</span></h2>
+    
     <div class="toggle-group">
         <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">🛢️ Cuvette / Réservoir</button>
         <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">🌊 Nappe / Épandage</button>
     </div>
 
     <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure</button>
+        <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure (Non miscible)</button>
         <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant (Miscible)</button>
     </div>
 
-    <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-mode-surf" onclick="setModeSaisie('surface')">📐 Par Surface (m²)</button>
-        <button class="toggle-btn" id="btn-mode-diam" onclick="setModeSaisie('diametre')">⭕ Par Diamètre (m)</button>
+    <div id="bloc-poi" class="poi-grid">
+        <div class="poi-label">Réglementation & Doctrine Site :</div>
+        <select id="select-poi-type" class="select-custom" onchange="appliquerDoctrineTauxDuree()">
+            <option value="sans-poi">Site SANS POI (Régime Général)</option>
+            <option value="poi-non-autonome">Site avec POI NON Autonome (App. Indirecte unique)</option>
+            <option value="poi-autonome-directe">Site avec POI Autonome — Application Directe</option>
+            <option value="poi-autonome-indirecte">Site avec POI Autonome — Application Indirecte</option>
+        </select>
     </div>
 
-    <div class="form-group" id="group-surface">
+    <div class="form-group">
         <label for="inp-surface">Surface enflammée (m²) :</label>
-        <input type="number" id="inp-surface" value="100" oninput="calculerTout()" onclick="this.select();">
+        <input type="number" id="inp-surface" value="500" oninput="appliquerDoctrineTauxDuree()">
     </div>
 
-    <div class="form-group" id="group-diametre" style="display: none;">
-        <label for="inp-diametre">Diamètre du réservoir (m) :</label>
-        <input type="number" id="inp-diametre" value="12" oninput="calculerParDiametre()" onclick="this.select();">
-    </div>
-    
     <div class="form-inline-2">
         <div class="slider-container" style="margin-bottom:0;">
             <div class="slider-header"><span>Taux (Tx ext) :</span><span class="slider-val" id="val-ta">5.0</span></div>
-            <input type="range" id="slip-ta" min="1" max="20" step="0.5" value="5" oninput="updateSlider('ta', this.value)">
+            <input type="range" id="slip-ta" min="1" max="25" step="1" value="5" oninput="updateSlider('ta', this.value)">
         </div>
         <div class="slider-container" style="margin-bottom:0;">
             <div class="slider-header"><span>Concentration :</span><span class="slider-val" id="val-conc">3.0 %</span></div>
@@ -103,139 +107,109 @@
 </div>
 
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
-    <h2>Étape 2 : Référence Doctrinale Brute <span>(Objectifs théoriques)</span></h2>
-    <div class="form-group">
-        <label for="inp-duree">Durée forfaitaire de la mission selon Guide (min) :</label>
-        <input type="number" id="inp-duree" value="40" oninput="calculerTout()" onclick="this.select();">
-    </div>
-    
+    <h2>Étape 2 : Seuils de Débit Doctrinaux (<span id="lbl-duree-stat">40</span> min)</h2>
     <table class="doc-table">
         <thead>
             <tr>
-                <th>Option Tactique</th>
-                <th>Débit Sol. (L/min)</th>
-                <th>Débit Émuls. (L/min)</th>
-                <th>Vol. Émuls. Requis</th>
+                <th>Seuil Tactique</th>
+                <th>Débit Solution (L/min)</th>
+                <th>Volume Émulseur Total</th>
             </tr>
         </thead>
         <tbody>
-            <tr class="highlight">
-                <td>🔥 EXTINCTION (Taux plein)</td>
+            <tr style="color: #ef4444;">
+                <td>🚀 SEUIL ATTACK (Taux Plein)</td>
                 <td id="brut-qsm-ext">0</td>
-                <td id="brut-qemu-ext">0</td>
-                <td id="brut-vol-ext" style="color: #60a5fa;">0 L</td>
+                <td id="brut-vol-ext">0 L</td>
             </tr>
-            <tr>
+            <tr style="color: #f97316;">
                 <td>⏳ TEMPORISATION (1/2 Taux)</td>
                 <td id="brut-qsm-temp">0</td>
-                <td id="brut-qemu-temp">0</td>
                 <td id="brut-vol-temp">0 L</td>
             </tr>
         </tbody>
     </table>
 </div>
 
-<div class="card">
-    <h2>Étape 3 : Moyens Internes Usine</h2>
+<div class="card" style="border: 2px solid var(--accent-blue);">
+    <h2>📈 Projection & Courbe de Gestion des Moyens</h2>
+    <p style="font-size:0.75rem; color:var(--text-muted); margin:0 0 10px 0;">Délais d'arrivée estimés sur le secteur (en minutes à partir du T0) :</p>
+    
     <div class="form-inline-3">
         <div class="form-group">
-            <label>Débit projeté (L/min)</label>
-            <input type="number" id="inp-q-deja" value="0" oninput="calculerTout()" onclick="this.select();">
+            <label>Moyens Usine (L/min)</label>
+            <input type="number" id="time-q-usine" value="0" oninput="calculerTout()">
         </div>
         <div class="form-group">
-            <label>Temps écoulé (min)</label>
-            <input type="number" id="inp-t-deja" value="0" oninput="calculerTout()" onclick="this.select();">
+            <label>Arrivée LIF 1 (min)</label>
+            <input type="number" id="time-lif1" value="15" oninput="calculerTout()">
         </div>
         <div class="form-group">
-            <label>Stock Émulseur (L)</label>
-            <input type="number" id="inp-stock-ent" value="0" oninput="calculerTout()" onclick="this.select();">
+            <label>Arrivée LIF 2 (min)</label>
+            <input type="number" id="time-lif2" value="30" oninput="calculerTout()">
         </div>
     </div>
-    <div id="diag-usine" class="alert-box" style="background:#334155; font-size:0.75rem;">--</div>
+
+    <div class="chart-container">
+        <canvas id="kineticChart"></canvas>
+    </div>
+    
+    <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
 </div>
 
-<div class="card" style="border: 2px solid var(--accent-orange);">
-    <h2>Étape 4 : Ordre de Renforts Opérationnels (Reste à faire)</h2>
-    <ul class="tactique-list">
-        <li>
-            <span>**Groupe(s) LIF** (4000 L/min) :</span>
-            <span class="badge-lif" id="tact-glif">0</span>
-        </li>
-        <li>
-            <span>Canons / Moyens complémentaires :</span>
-            <span id="tact-canons" style="font-weight:bold; color:var(--accent-orange);">Aucun</span>
-        </li>
-        <li>
-            <span>**Vecteurs Émulseur SP (Calibré CEEM)** :</span>
-            <span id="tact-apport-sp" style="font-weight:bold; color:#f87171; text-align:right;">0 L</span>
-        </li>
-    </ul>
-</div>
-
-<div class="card" id="card-debordement" style="border: 1px solid var(--accent-red);">
-    <h2>⚠️ Risque de Débordement de la Rétention (Cuvette)</h2>
+<div class="card" id="card-debordement" style="border: 1px solid var(--accent-red); display:block;">
+    <h2>⚠️ Risque de Débordement de la Rétention</h2>
     <div class="form-inline-2">
         <div class="form-group">
-            <label>Capacité Max de la Rétention (L)</label>
-            <input type="number" id="deb-Vcuvette" value="100000" oninput="calculerTout()">
+            <label>Capacité Max Rétention (L)</label>
+            <input type="number" id="deb-Vcuvette" value="250000" oninput="calculerTout()">
         </div>
         <div class="form-group">
-            <label>Capacité Totale Cuve Sinistrée (L)</label>
-            <input type="number" id="deb-Vcuve-max" value="100000" oninput="calculerTout()">
-        </div>
-    </div>
-    <div class="form-inline-3">
-        <div class="form-group">
-            <label>% Remplissage Cuve</label>
-            <input type="number" id="deb-pct-cuve" value="80" min="0" max="100" oninput="calculerTout()">
-        </div>
-        <div class="form-group">
-            <label>Vol. déjà en Rétention (L)</label>
-            <input type="number" id="deb-Vdeverse" value="15000" oninput="calculerTout()">
-        </div>
-        <div class="form-group">
-            <label>Débit de Fuite (L/min)</label>
-            <input type="number" id="deb-Qfuite" value="400" oninput="calculerTout()">
+            <label>Débit de Fuite Cuve (L/min)</label>
+            <input type="number" id="deb-Qfuite" value="500" oninput="calculerTout()">
         </div>
     </div>
     <div id="alert-debordement" class="alert-box">--</div>
 </div>
 
-<div class="card" style="border-left: 4px solid var(--accent-green);">
-    <h2>🔮 Anticipation : Tapis sur Compartiments Voisins</h2>
-    <div class="form-group">
-        <label for="inp-surf-anti">Surface totale des cuvettes adjacentes à protéger (m²) :</label>
-        <input type="number" id="inp-surf-anti" value="0" oninput="calculerTout()" onclick="this.select();">
-    </div>
-    <table class="doc-table">
-        <tr>
-            <td>Création du tapis (Épaisseur 15cm)</td>
-            <td>Besoin Émulseur : <span id="anti-vol-crea" style="color:var(--accent-green);">0 L</span></td>
-        </tr>
-        <tr>
-            <td>Entretien du tapis (0.2 L/min/m² de Sol.)</td>
-            <td>Débit Solution Moussante : <span id="anti-qsm-ent">0 L/min</span></td>
-        </tr>
-    </table>
-</div>
-
 <script>
 let configSinistre = 'cuvette'; 
 let typeProduit = 'hydro'; 
-let modeSaisie = 'surface';
+let myChart = null;
+let dureeMissionDoctrine = 40; // Variable globale pour suivre la durée calculée
 
-function setModeSaisie(mode) {
-    modeSaisie = mode;
-    document.getElementById('btn-mode-surf').classList.toggle('active', mode === 'surface');
-    document.getElementById('btn-mode-diam').classList.toggle('active', mode === 'diametre');
-    document.getElementById('group-surface').style.display = mode === 'surface' ? 'block' : 'none';
-    document.getElementById('group-diametre').style.display = mode === 'diametre' ? 'block' : 'none';
-    if (mode === 'diametre') { calculerParDiametre(); } else { calculerTout(); }
-}
+// Fonction maîtresse pour appliquer la matrice de ton logigramme doctrinal
+function appliquerDoctrineTauxDuree() {
+    const surface = parseFloat(document.getElementById('inp-surface').value) || 0;
+    let tauxAutomatique = 5;
 
-function calculerParDiametre() {
-    const d = parseFloat(document.getElementById('inp-diametre').value) || 0;
-    document.getElementById('inp-surface').value = Math.round(Math.PI * Math.pow(d / 2, 2));
+    if (configSinistre === 'nappe') {
+        // Règle Nappe
+        dureeMissionDoctrine = surface <= 400 ? 20 : 40;
+        tauxAutomatique = typeProduit === 'hydro' ? 10 : 20;
+    } else {
+        // Règle Cuvette / Réservoir (Toujours 40 min de base)
+        dureeMissionDoctrine = 40;
+        const configurationPOI = document.getElementById('select-poi-type').value;
+
+        if (configurationPOI === 'sans-poi') {
+            tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
+        } else if (configurationPOI === 'poi-non-autonome') {
+            tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
+        } else if (configurationPOI === 'poi-autonome-directe') {
+            tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
+        } else if (configurationPOI === 'poi-autonome-indirecte') {
+            tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
+        }
+    }
+
+    // Mise à jour de l'affichage textuel de la durée cible
+    document.getElementById('lbl-duree-stat').innerText = dureeMissionDoctrine;
+
+    // Forçage de la valeur du curseur pour correspondre à la réglementation
+    document.getElementById('slip-ta').value = tauxAutomatique;
+    document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
+
     calculerTout();
 }
 
@@ -243,15 +217,12 @@ function setConfiguration(type) {
     configSinistre = type;
     document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
     document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
+    
+    // Masquer ou afficher le sélecteur POI selon le type
+    document.getElementById('bloc-poi').style.display = type === 'cuvette' ? 'grid' : 'none';
     document.getElementById('card-debordement').style.display = type === 'cuvette' ? 'block' : 'none';
     
-    const surf = parseFloat(document.getElementById('inp-surface').value) || 0;
-    if(type === 'nappe') {
-        document.getElementById('inp-duree').value = surf <= 400 ? 20 : 40;
-    } else {
-        document.getElementById('inp-duree').value = 40; 
-    }
-    calculerTout();
+    appliquerDoctrineTauxDuree();
 }
 
 function setProduit(prod) {
@@ -259,14 +230,7 @@ function setProduit(prod) {
     document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
     document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
     
-    if (prod === 'hydro') {
-        document.getElementById('slip-ta').value = 5;
-        document.getElementById('val-ta').innerText = "5.0";
-    } else {
-        document.getElementById('slip-ta').value = 15; 
-        document.getElementById('val-ta').innerText = "15.0";
-    }
-    calculerTout();
+    appliquerDoctrineTauxDuree();
 }
 
 function updateSlider(param, value) {
@@ -275,194 +239,101 @@ function updateSlider(param, value) {
     calculerTout();
 }
 
+function initChart() {
+    const ctx = document.getElementById('kineticChart').getContext('2d');
+    myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: Array.from({length: 46}, (_, i) => i), // Vue sur 45 minutes
+            datasets: [
+                { label: 'Débit d\'Extinction Requis', data: [], borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
+                { label: 'Débit de Temporisation', data: [], borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
+                { label: 'Moyens Hydrauliques Réels SP + Usine', data: [], borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.1)', borderWidth: 3, pointRadius: 2, fill: true }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: {
+                x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Temps (minutes)', color: '#94a3b8', font: { size: 10 } } },
+                y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
+            }
+        }
+    });
+}
+
 function calculerTout() {
+    if (!myChart) initChart();
+
     const surface = parseFloat(document.getElementById('inp-surface').value) || 0;
     const ta = parseFloat(document.getElementById('slip-ta').value);
     const conc = parseFloat(document.getElementById('slip-conc').value);
-    const duree = parseFloat(document.getElementById('inp-duree').value) || 0;
     
-    // 1. CALCULS BRUTS DOCTRINE
+    // Calculs de base doctrinale ajustés selon la durée déterminée
     const qsmExt = surface * ta;
-    const qemuExt = qsmExt * (conc / 100);
-    const volEmuExt = qemuExt * duree;
-    
+    const volEmuExt = qsmExt * (conc / 100) * dureeMissionDoctrine;
     const qsmTemp = qsmExt / 2;
-    const qemuTemp = qsmTemp * (conc / 100);
-    const volEmuTemp = qemuTemp * duree;
+    const volEmuTemp = qsmTemp * (conc / 100) * dureeMissionDoctrine;
     
     document.getElementById('brut-qsm-ext').innerText = Math.round(qsmExt);
-    document.getElementById('brut-qemu-ext').innerText = qemuExt.toFixed(1);
     document.getElementById('brut-vol-ext').innerText = Math.round(volEmuExt) + " L";
-    
     document.getElementById('brut-qsm-temp').innerText = Math.round(qsmTemp);
-    document.getElementById('brut-qemu-temp').innerText = qemuTemp.toFixed(1);
     document.getElementById('brut-vol-temp').innerText = Math.round(volEmuTemp) + " L";
 
-    // 2. ÉTAPE 3 : DIAGNOSTIC USINE
-    const qUsine = parseFloat(document.getElementById('inp-q-deja').value) || 0;
-    const tUsine = parseFloat(document.getElementById('inp-t-deja').value) || 0;
-    const stockUsine = parseFloat(document.getElementById('inp-stock-ent').value) || 0;
+    // Récupération de la cinétique des renforts
+    const qUsine = parseFloat(document.getElementById('time-q-usine').value) || 0;
+    const tLif1 = parseFloat(document.getElementById('time-lif1').value) || 999;
+    const tLif2 = parseFloat(document.getElementById('time-lif2').value) || 999;
     
-    const emuConsommeUsine = qUsine * (conc / 100) * tUsine;
-    let soldeUsine = stockUsine - emuConsommeUsine;
-    if (soldeUsine < 0) soldeUsine = 0;
-    
-    const diagBox = document.getElementById('diag-usine');
-    const qEmuPurUsine = qUsine * (conc / 100);
-    
-    if (stockUsine > 0) {
-        if (soldeUsine <= 0 && qUsine > 0) {
-            diagBox.innerText = "❌ RUPTURE DE STOCK ÉMULSEUR SUR LE SITE !";
-            diagBox.style.background = "#7f1d1d"; diagBox.style.color = "#fca5a5";
-        } else if (qEmuPurUsine > 0) {
-            let autUsine = Math.floor(soldeUsine / qEmuPurUsine);
-            diagBox.innerText = `⚠️ Stock dispo usine : ${Math.round(soldeUsine)} L (Autonomie : env. ${autUsine} min à ce rythme)`;
-            diagBox.style.background = "#7c2d12"; diagBox.style.color = "#fdba74";
-        } else {
-            diagBox.innerText = `✅ Stock disponible usine : ${Math.round(soldeUsine)} L (Pas d'extinction usine en cours)`;
-            diagBox.style.background = "#14532d"; diagBox.style.color = "#bbf7d0";
+    let dataExt = [];
+    let dataTemp = [];
+    let dataReel = [];
+    let topExtinctionMinute = -1;
+
+    for (let m = 0; m <= 45; m++) {
+        dataExt.push(qsmExt);
+        dataTemp.push(qsmTemp);
+        
+        let debitCourant = qUsine;
+        if (m >= tLif1) debitCourant += 4000; // 1 G-LIF = 4000 L/min solution moussante
+        if (m >= tLif2) debitCourant += 4000; 
+        
+        dataReel.push(debitCourant);
+        
+        if (debitCourant >= qsmExt && topExtinctionMinute === -1) {
+            topExtinctionMinute = m;
         }
-    } else {
-        diagBox.innerText = "ℹ️ Aucun moyen usine actif (Attaque purement Sapeurs-Pompiers).";
-        diagBox.style.background = "#334155"; diagBox.style.color = "white";
     }
 
-    // 3. CINÉTIQUE AVANCÉE DE DÉBORDEMENT RÉTENTION & CUVE SINISTRÉE
+    myChart.data.datasets[0].data = dataExt;
+    myChart.data.datasets[1].data = dataTemp;
+    myChart.data.datasets[2].data = dataReel;
+    myChart.update();
+
+    const statusBox = document.getElementById('top-extinction-status');
+    if (topExtinctionMinute !== -1) {
+        statusBox.innerText = `🟢 TOP EXTINCTION ATTEINT À T+${topExtinctionMinute} MIN\nDébit requis (${Math.round(qsmExt)} L/min) disponible pour ordonner l'attaque continue de ${dureeMissionDoctrine} minutes.`;
+        statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
+    } else {
+        statusBox.innerText = `❌ REQUIS NON ATTEINT AVEC LES RENFORTS ACTUELS\nLe débit max plafonne à ${Math.max(...dataReel)} L/min au lieu des ${Math.round(qsmExt)} L/min requis par la doctrine.`;
+        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
+    }
+
     if (configSinistre === 'cuvette') {
-        const vRetentionMax = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
-        const vCuveMax = parseFloat(document.getElementById('deb-Vcuve-max').value) || 0;
-        const pctCuve = parseFloat(document.getElementById('deb-pct-cuve').value) || 0;
-        const vDeverserInit = parseFloat(document.getElementById('deb-Vdeverse').value) || 0;
+        const vMax = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
         const qFuite = parseFloat(document.getElementById('deb-Qfuite').value) || 0;
-        
-        const qMousseTotalActuel = qsmExt; 
-        
-        // Calcul automatique du volume initial réel de produit dans la cuve sinistrée
-        const vCuveSinistreeInit = vCuveMax * (pctCuve / 100);
-        
-        // Quantité de produit restant physiquement dans la cuve fuyarde
-        let produitRestantDansCuveSinistree = vCuveSinistreeInit - vDeverserInit;
-        if (produitRestantDansCuveSinistree < 0) produitRestantDansCuveSinistree = 0;
-        
-        // Temps avant épuisement de la cuve fuyarde
-        let tempsAvantCuveVide = qFuite > 0 ? (produitRestantDansCuveSinistree / qFuite) : Infinity;
-        
-        // Volume total actuel combiné en rétention
-        let volumeLiquideActuelRetention = vDeverserInit + (qUsine * tUsine);
-        let espaceLibreRetention = vRetentionMax - volumeLiquideActuelRetention;
-        
+        let tempsRemplissage = vMax / (qFuite + qsmExt);
         const alertBox = document.getElementById('alert-debordement');
         
-        if (espaceLibreRetention <= 0) {
-            alertBox.innerText = "🚨 LA RÉTENTION DÉBORDE DÉJÀ !";
-            alertBox.style.background = "#7f1d1d"; alertBox.style.color = "#fca5a5";
+        if (tempsRemplissage < 60) {
+            alertBox.innerText = `🚨 CRITIQUE : Débordement de la rétention estimé sous ${Math.round(tempsRemplissage)} minutes si l'assaut est maintenu.`;
+            alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
         } else {
-            let apportParMinute = qFuite + qMousseTotalActuel;
-            
-            if (apportParMinute > 0) {
-                let minutesAvecApportCumule = espaceLibreRetention / apportParMinute;
-                
-                if (qFuite > 0 && tempsAvantCuveVide < minutesAvecApportCumule) {
-                    // Cas favorable : la cuve s'épuise avant le débordement
-                    let volumeApresCuveVide = volumeLiquideActuelRetention + (apportParMinute * tempsAvantCuveVide);
-                    let resteEspaceApresCuveVide = vRetentionMax - volumeApresCuveVide;
-                    
-                    if (resteEspaceApresCuveVide > 0 && qMousseTotalActuel > 0) {
-                        let minutesSupplementairesMousse = resteEspaceApresCuveVide / qMousseTotalActuel;
-                        let tempsTotalSecurite = tempsAvantCuveVide + minutesSupplementairesMousse;
-                        
-                        alertBox.innerText = `✅ CINÉTIQUE DISPOSITIF FAVORABLE :\nLa cuve sinistrée sera vide dans ${Math.round(tempsAvantCuveVide)} min. La rétention contiendra 100% du produit fuyard. Débordement possible si l'application de mousse se prolonge au-delà de ${Math.round(tempsTotalSecurite)} min.`;
-                        alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
-                    } else if (resteEspaceApresCuveVide <= 0) {
-                        alertBox.innerText = `🚨 DÉBORDEMENT DE LA RÉTENTION INÉVITABLE durant la vidange de la cuve sinistrée (estimé dans env. ${Math.round(minutesAvecApportCumule)} min).`;
-                        alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
-                    } else {
-                        alertBox.innerText = `✅ SÉCURITÉ GARANTIE :\nLa cuve sinistrée sera vide dans ${Math.round(tempsAvantCuveVide)} min sans besoin de mousse externe continue. Aucun risque de débordement.`;
-                        alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
-                    }
-                } else {
-                    // Cas défavorable : ça déborde avant que la cuve ne soit vide
-                    let minRestantes = Math.floor(minutesAvecApportCumule);
-                    if (minRestantes <= 15) {
-                        alertBox.innerText = `🚨 ALERTE CINÉTIQUE : Débordement de la rétention générale dans ${minRestantes} min ! (Fuite active + Mousse de lutte).`;
-                        alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
-                    } else {
-                        alertBox.innerText = `⏳ Temps disponible avant débordement de la rétention : env. ${minRestantes} min.`;
-                        alertBox.style.background = "#7c2d12"; alertBox.style.color = "#fdba74";
-                    }
-                }
-            } else {
-                alertBox.innerText = "✅ Aucun apport en cours. Rétention stable.";
-                alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
-            }
+            alertBox.innerText = `✅ Rétention stable pour absorber env. ${Math.round(tempsRemplissage)} min de flux cumulé.`;
+            alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
         }
     }
-
-    // 4. ÉTAPE 4 : CALCUL DES RENFORTS
-    let qsmManquant = qsmExt - qUsine;
-    if (qsmManquant < 0) qsmManquant = 0;
-    
-    let nbrGLIF = Math.floor(qsmManquant / 4000);
-    document.getElementById('tact-glif').innerText = nbrGLIF;
-    
-    let qsmRestant = qsmManquant - (nbrGLIF * 4000);
-    let txtCanons = "";
-    if (qsmManquant <= 0) {
-        txtCanons = "Dispositif en place suffisant";
-    } else {
-        let nbrC2000 = Math.floor(qsmRestant / 2000);
-        let nbrC1000 = Math.floor((qsmRestant % 2000) / 1000);
-        let nbrL400 = Math.ceil(((qsmRestant % 2000) % 1000) / 400);
-        let arr = [];
-        if (nbrC2000 > 0) arr.push(`${nbrC2000} Canon(s) 2000`);
-        if (nbrC1000 > 0) arr.push(`${nbrC1000} Canon(s) 1000`);
-        if (nbrL400 > 0) arr.push(`${nbrL400} Lance(s) 400`);
-        txtCanons = arr.length > 0 ? arr.join(" + ") : "Couvert par LIF";
-    }
-    document.getElementById('tact-canons').innerText = txtCanons;
-    
-    // Logistique Émulseur Futurs Sapeurs-Pompiers
-    const emuFuturUsine = qUsine * (conc / 100) * duree;
-    const emuFuturSP = qsmManquant * (conc / 100) * duree;
-    const totalBesoinFutur = emuFuturUsine + emuFuturSP;
-    
-    let apportSPRequis = totalBesoinFutur - soldeUsine;
-    if (apportSPRequis < 0) apportSPRequis = 0;
-    
-    let txtApportSP = Math.round(apportSPRequis) + " L";
-    if (apportSPRequis > 0) {
-        let arrLog = [];
-        if (apportSPRequis <= 200) {
-            arrLog.push(`${Math.ceil(apportSPRequis / 20)} bidon(s) de 20L`);
-        } else if (apportSPRequis <= 1000) {
-            arrLog.push(`1 Cuve IBC (1000L)`);
-        } else {
-            let nbrCEEM = Math.floor(apportSPRequis / 6000);
-            let resteCEEM = apportSPRequis % 6000;
-            if (nbrCEEM > 0) arrLog.push(`${nbrCEEM} CEEM (6000L)`);
-            if (resteCEEM > 0) {
-                if (resteCEEM > 1000) {
-                    arrLog.push(`${Math.ceil(resteCEEM / 1000)} Cuve(s) IBC`);
-                } else if (resteCEEM > 200) {
-                    arrLog.push(`1 Cuve IBC (1000L)`);
-                } else {
-                    arrLog.push(`${Math.ceil(resteCEEM / 20)} bidon(s) de 20L`);
-                }
-            }
-        }
-        txtApportSP += ` (Soit : ${arrLog.join(" + ")})`;
-    } else {
-        txtApportSP = "0 L — Stock usine suffisant pour la durée de l'attaque";
-    }
-    document.getElementById('tact-apport-sp').innerText = txtApportSP;
-
-    // 5. ANTICIPATION (TAPIS PRÉVENTIFS)
-    const surfAnti = parseFloat(document.getElementById('inp-surf-anti').value) || 0;
-    const volCreaAnti = surfAnti * 0.15 * conc;
-    const qsmEntAnti = surfAnti * 0.2;
-    
-    document.getElementById('anti-vol-crea').innerText = Math.round(volCreaAnti) + " L d'émulseur";
-    document.getElementById('anti-qsm-ent').innerText = Math.round(qsmEntAnti) + " L/min";
 }
 
 window.onload = function() {
