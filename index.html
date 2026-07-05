@@ -507,4 +507,43 @@ function calculerTout() {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
         statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Débit d'attaque atteint. Assaut de ${dureeMissionDoctrine} min possible de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>.`;
-        statusBox.style.background = "#14532d"; statusBox.style.color = "#
+        statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
+    } 
+    else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
+        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>Débit insuffisant pour l'attaque.<br><span style="color:#fde047; font-weight:800;">👉 RECOMMANDATION COS : Agir uniquement en Réduction du Flux Thermique (RFT) sous le seuil de tempo pour préserver l'émulseur.</span>`;
+        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
+    } 
+    else {
+        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne permet pas d'armer la Temporisation ou la RFT de sécurité (${Math.round(qsmTemp)} L/min).`;
+        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
+    }
+
+    if (configSinistre === 'cuvette') {
+        const vMax = parseFloat(document.getElementById('deb-Vcuvette').value);
+        const qFuite = parseFloat(document.getElementById('deb-Qfuite').value);
+        const alertBox = document.getElementById('alert-debordement');
+        
+        if (isNaN(vMax) || isNaN(qFuite) || surface === 0) {
+            alertBox.innerText = `--`;
+            alertBox.style.background = "#0f172a"; alertBox.style.color = "var(--text-muted)";
+        } else {
+            let tempsRemplissage = vMax / (qFuite + qsmExt);
+            if (tempsRemplissage < 60) {
+                alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes.`;
+                alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
+            } else {
+                alertBox.innerText = `✅ Volume de rétention stable (durée théorique de sécurité : ${Math.round(tempsRemplissage)} min).`;
+                alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
+            }
+        }
+    }
+}
+
+window.onload = function() {
+    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+    setConfiguration('cuvette');
+};
+</script>
+
+</body>
+</html>
