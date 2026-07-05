@@ -135,11 +135,11 @@
         <div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
             <div class="form-group">
                 <label style="color:#fb923c;">Débit de Fuite (L/min) :</label>
-                <input type="number" id="inp-qfuite-calcul" value="500" placeholder="Ex: 500" oninput="calculerTout()">
+                <input type="number" id="inp-qfuite-calcul" value="" placeholder="Ex: 500" oninput="calculerTout()">
             </div>
             <div class="form-group">
                 <label style="color:#fb923c;">Vol. Max Cuvette (L) :</label>
-                <input type="number" id="inp-vcuvette-calcul" value="250000" placeholder="Ex: 250000" oninput="calculerTout()">
+                <input type="number" id="inp-vcuvette-calcul" value="" placeholder="Ex: 250000" oninput="calculerTout()">
             </div>
         </div>
     </div>
@@ -251,7 +251,7 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
-// Initialisation STRICTEMENT vierge pour un usage opérationnel à blanc
+// Ligne unique STRICTEMENT vierge pour l'initialisation
 const moyensParDefaut = [
     { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
@@ -304,8 +304,10 @@ function ajouterLigneMoyen(data) {
 function reinitialiserApplication() {
     document.getElementById('inp-surface').value = "";
     document.getElementById('inp-t0').value = "";
-    document.getElementById('inp-qfuite-calcul').value = "500";
-    document.getElementById('inp-vcuvette-calcul').value = "250000";
+    
+    // Remise à zéro stricte des valeurs de fuite cachées
+    document.getElementById('inp-qfuite-calcul').value = "";
+    document.getElementById('inp-vcuvette-calcul').value = "";
     
     document.getElementById('select-poi-type').value = "sans-poi";
     document.getElementById('select-maintien-rule').value = "onesixth";
@@ -445,20 +447,22 @@ function calculerTout() {
         let arrMin = timeToMinutes(arrStr);
         let arretMin = timeToMinutes(arrStrArret);
 
-        stockTotalAporte += emulseur;
-
-        listeMoyensEngages.push({
-            nom: nom,
-            debit: debit,
-            emulseurApporte: emulseur,
-            arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-            arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
-            dejaComptabilise: false
-        });
+        if (debit > 0 || emulseur > 0) {
+            stockTotalAporte += emulseur;
+            listeMoyensEngages.push({
+                nom: nom,
+                debit: debit,
+                emulseurApporte: emulseur,
+                arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
+                arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
+                dejaComptabilise: false
+            });
+        }
     });
 
     document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
 
+    // Récupération stricte de la fuite (0 si vide)
     const qFuite = parseFloat(document.getElementById('inp-qfuite-calcul').value) || 0;
 
     let labelsX = [];
@@ -517,7 +521,7 @@ function calculerTout() {
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
         // --- CINÉTIQUE DE LA FUITE ---
-        if (!fuiteEstScellee) {
+        if (!fuiteEstScellee && qFuite > 0) {
             if (debitCourantSolution >= qFuite && minuteSurclassementFuite === -1 && !ruptureMousseHappen) {
                 minuteSurclassementFuite = delta;
             }
@@ -531,10 +535,10 @@ function calculerTout() {
         }
 
         // --- COURBE OBJECTIF ---
-        if (!fuiteEstScellee) {
+        if (!fuiteEstScellee && qFuite > 0) {
             dataDynamicObjective.push(qsmTemp);
         } else {
-            if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen) {
+            if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen && qsmExt > 0) {
                 topExtinctionMinute = delta;
                 finExtinctionMinute = delta + dureeMissionDoctrine;
             }
@@ -572,12 +576,16 @@ function calculerTout() {
         statusBox.innerHTML = `⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
         statusBox.style.background = "#334155"; statusBox.style.color = "white";
     }
-    else if (!fuiteRecouverte && !fuiteEstScellee) {
+    else if (!fuiteRecouverte && !fuiteEstScellee && qFuite > 0) {
         let explicationEnCours = `L'armement actuel des moyens hydrauliques (${Math.round(maximumAtteint)} L/min) ne permet pas de surclasser le débit de la fuite (${Math.round(qFuite)} L/min).`;
         if (minuteSurclassementFuite !== -1) {
             explicationEnCours = `Surclassement atteint à ${minutesToTimeStr(t0Min + minuteSurclassementFuite)}. Établissement du tapis protecteur en cours (scellement prévu à ${minutesToTimeStr(t0Min + minuteSurclassementFuite + 10)}).`;
         }
         statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT GELÉ</b><br>${explicationEnCours}<br><span style="color:#fb923c; font-weight:bold;">Action requise : Alignez des moyens supérieurs à la fuite pour initier le scellement.</span>`;
+        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
+    }
+    else if (!fuiteRecouverte && qFuite === 0) {
+        statusBox.innerHTML = `⚠️ <b>FUITE ACTIVÉE : DONNÉES MANQUANTES</b><br>Veuillez entrer un débit de fuite pour que la cinétique calcule le seuil de scellement du tapis.`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     }
     else if (ruptureMousseHappen) {
@@ -596,7 +604,7 @@ function calculerTout() {
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     } 
     else {
-        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne couvre even pas le besoin de Temporisation sécuritaire (${Math.round(qsmTemp)} L/min).`;
+        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne couvre pas le besoin de Temporisation sécuritaire (${Math.round(qsmTemp)} L/min).`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
 }
