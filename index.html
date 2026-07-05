@@ -45,8 +45,9 @@
 
         /* Grille des moyens dynamiques */
         .moyens-container { margin-bottom: 10px; }
-        .moyens-grid { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a; padding: 6px; border-radius: 6px; }
-        .moyens-header-grid { display: grid; grid-template-columns: 2fr 1.2fr 1fr 1fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; }
+        .moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 0.8fr 0.8fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a; padding: 6px; border-radius: 6px; }
+        .moyens-header-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 0.8fr 0.8fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
+        .moyens-header-grid span:first-child { text-align: left; }
         .moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; }
         .moyens-grid input[type="text"] { text-align: left; }
         
@@ -68,6 +69,10 @@
         .legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
         .legend-item { display: flex; align-items: center; gap: 4px; }
         .color-box { width: 12px; height: 12px; border-radius: 3px; }
+
+        .reserve-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 8px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #475569;}
+        .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
+        .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
     </style>
 </head>
 <body>
@@ -169,8 +174,9 @@
     </div>
 
     <div class="moyens-header-grid">
-        <span>Nom du Moyen / Vecteur</span>
+        <span>Nom du Vecteur / Renfort</span>
         <span>Débit (L/m)</span>
+        <span>Émulseur (L)</span>
         <span>Arrivée</span>
         <span>Arrêt</span>
         <span></span>
@@ -178,7 +184,22 @@
 
     <div id="moyens-liste" class="moyens-container"></div>
     
-    <button class="btn-action" onclick="ajouterLigneMoyen(null)">➕ Ajouter un moyen / vecteur</button>
+    <button class="btn-action" onclick="ajouterLigneMoyen(null)">➕ Ajouter un vecteur ou renfort émulseur</button>
+
+    <div class="reserve-box">
+        <div>
+            <div class="reserve-title">Stock Amoncelé</div>
+            <div class="reserve-val" id="res-total" style="color:var(--accent-green);">0 L</div>
+        </div>
+        <div>
+            <div class="reserve-title">Conso. Cumulée</div>
+            <div class="reserve-val" id="res-conso" style="color:var(--accent-red);">0 L</div>
+        </div>
+        <div>
+            <div class="reserve-title">Stock Fin Horizon</div>
+            <div class="reserve-val" id="res-restant">0 L</div>
+        </div>
+    </div>
 
     <div class="chart-container">
         <canvas id="kineticChart"></canvas>
@@ -216,10 +237,12 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
+// Mise à jour de la dotation initiale théorique en émulseur par défaut des engins engagés
 const moyensParDefaut = [
-    { nom: "Moyens fixes Établissement", debit: 0, arrivee: "08:00", arret: "" },
-    { nom: "Premier FPT / G-LIF 1", debit: 4000, arrivee: "08:25", arret: "" },
-    { nom: "Renfort G-LIF 2 (SDIS)", debit: 4000, arrivee: "08:50", arret: "" }
+    { nom: "Moyens fixes Établissement", debit: 0, emulseur: 0, arrivee: "08:00", arret: "" },
+    { nom: "Premier GI-LIF 1 (FPT/CEE)", debit: 4000, emulseur: 6000, arrivee: "08:25", arret: "" },
+    { nom: "Renfort Émulseur (Berce log)", debit: 0, emulseur: 8000, arrivee: "08:45", arret: "" },
+    { nom: "Renfort GI-LIF 2 (SDIS)", debit: 4000, emulseur: 6000, arrivee: "08:50", arret: "" }
 ];
 
 function changeHorizon(minutes) {
@@ -229,17 +252,17 @@ function changeHorizon(minutes) {
     calculerTout();
 }
 
-// CORRECTION : Protection robuste des variables d'initialisation
 function ajouterLigneMoyen(data) {
-    const backup = { nom: "Nouveau Vecteur", debit: 2000, arrivee: "08:30", arret: "" };
+    const backup = { nom: "Nouveau Vecteur / Berce", debit: 2000, emulseur: 0, arrivee: "08:30", arret: "" };
     const finalData = data ? data : backup;
 
     const container = document.getElementById('moyens-liste');
     const div = document.createElement('div');
     div.className = 'moyens-grid';
     div.innerHTML = `
-        <input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="Nom du moyen" oninput="calculerTout()">
+        <input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="Nom" oninput="calculerTout()">
         <input type="number" class="m-debit" value="${finalData.debit !== undefined ? finalData.debit : 2000}" placeholder="L/min" oninput="calculerTout()">
+        <input type="number" class="m-emulseur" value="${finalData.emulseur !== undefined ? finalData.emulseur : 0}" placeholder="Ému (L)" oninput="calculerTout()">
         <input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="calculerTout()">
         <input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
         <button class="btn-remove" onclick="this.parentElement.remove(); calculerTout();">❌</button>
@@ -362,23 +385,31 @@ function calculerTout() {
 
     const lignes = document.querySelectorAll('#moyens-liste .moyens-grid');
     let listeMoyensEngages = [];
+    let stockTotalAporte = 0;
     
     lignes.forEach(ligne => {
         const nom = ligne.querySelector('.m-nom').value;
         const debit = parseFloat(ligne.querySelector('.m-debit').value) || 0;
+        const emulseur = parseFloat(ligne.querySelector('.m-emulseur').value) || 0;
         const arrStr = ligne.querySelector('.m-arrivee').value;
         const arrStrArret = ligne.querySelector('.m-arret').value;
         
         let arrMin = timeToMinutes(arrStr);
         let arretMin = timeToMinutes(arrStrArret);
 
+        stockTotalAporte += emulseur;
+
         listeMoyensEngages.push({
             nom: nom,
             debit: debit,
+            emulseurApporte: emulseur,
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-            arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999
+            arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
+            dejaComptabilise: false
         });
     });
+
+    document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
 
     let labelsX = [];
     let dataExt = [];
@@ -389,23 +420,55 @@ function calculerTout() {
     let topExtinctionMinute = -1;
     let finExtinctionMinute = -1;
     let maximumAtteint = 0;
+    
+    // Suivi dynamique minute par minute du stock d'émulseur restant
+    let reserveEmulseurDisponible = 0;
+    let consoCumuleeEmulseur = 0;
+    let ruptureMousseHappen = false;
 
     const step = horizonActuel === 420 ? 5 : 2; 
 
     for (let delta = 0; delta <= horizonActuel; delta += step) {
         labelsX.push(minutesToTimeStr(t0Min + delta));
         
-        let debitCourant = 0;
+        // 1. Approvisionnement en temps réel : On ajoute l'émulseur des vecteurs qui arrivent à cette minute précise
+        listeMoyensEngages.forEach(m => {
+            if (delta >= m.arrDelta && !m.dejaComptabilise) {
+                reserveEmulseurDisponible += m.emulseurApporte;
+                m.dejaComptabilise = true;
+            }
+        });
+
+        // 2. Calcul du débit hydraulique théorique
+        let debitCourantSolution = 0;
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && delta < m.arretDelta) {
-                debitCourant += m.debit;
+                debitCourantSolution += m.debit;
             }
         });
         
-        dataReel.push(debitCourant);
-        if (debitCourant > maximumAtteint) maximumAtteint = debitCourant;
+        // 3. Calcul de la consommation d'émulseur générée durant ce pas de temps (L/min * conc * minutes)
+        let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
+        
+        // Sécurité : Si la réserve s'épuise, on coupe le flux réel sur le graphique !
+        if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
+            debitCourantSolution = 0; 
+            consoPasDeTemps = 0;
+            ruptureMousseHappen = true;
+        } else if (reserveEmulseurDisponible - consoPasDeTemps < 0) {
+            // Épuisement partiel pendant ce pas de temps
+            debitCourantSolution = (reserveEmulseurDisponible / (conc / 100)) / step;
+            consoPasDeTemps = reserveEmulseurDisponible;
+            ruptureMousseHappen = true;
+        }
 
-        if (debitCourant >= qsmExt && topExtinctionMinute === -1) {
+        reserveEmulseurDisponible -= consoPasDeTemps;
+        consoCumuleeEmulseur += consoPasDeTemps;
+
+        dataReel.push(debitCourantSolution);
+        if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
+
+        if (debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen) {
             topExtinctionMinute = delta;
             finExtinctionMinute = delta + dureeMissionDoctrine;
         }
@@ -420,6 +483,16 @@ function calculerTout() {
         }
     }
 
+    // Affichage des compteurs globaux
+    document.getElementById('res-conso').innerText = Math.round(consoCumuleeEmulseur) + " L";
+    const resRestantBox = document.getElementById('res-restant');
+    resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
+    if (reserveEmulseurDisponible <= 0) {
+        resRestantBox.style.color = "var(--accent-red)";
+    } else {
+        resRestantBox.style.color = "var(--text-main)";
+    }
+
     myChart.data.labels = labelsX;
     myChart.data.datasets = [
         { label: 'Seuil Attaque', data: dataExt, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
@@ -431,11 +504,17 @@ function calculerTout() {
 
     const statusBox = document.getElementById('top-extinction-status');
     
-    if (topExtinctionMinute !== -1) {
+    if (ruptureMousseHappen) {
+        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br>
+        Le stock disponible est tombé à 0 pendant l'opération. Les lignes sont tombées en panne de mousse. Le tapis s'est ruiné. <br>
+        <span style="color:#fca5a5;">👉 Augmentez les réserves des vecteurs initiaux ou planifiez l'arrivée de Berces d'Émulseur (debit = 0, emulseur = 8000L) plus tôt dans la cinétique.</span>`;
+        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
+    }
+    else if (topExtinctionMinute !== -1) {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
         statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>
-        Débit d'attaque atteint. L'assaut général de ${dureeMissionDoctrine} min peut se dérouler de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>. Le désengagement partiel des vecteurs non requis pour le maintien du tapis est possible dès ${heureFinStr}.`;
+        Débit d'attaque atteint. L'assaut général de ${dureeMissionDoctrine} min peut se dérouler de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>. Autonomie résiduelle sécurisée.`;
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
