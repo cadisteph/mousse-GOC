@@ -251,8 +251,9 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
+// Initialisation STRICTEMENT vierge pour un usage opérationnel à blanc
 const moyensParDefaut = [
-    { nom: "Moyens fixes Établissement", debit: "1000", emulseur: "5000", arrivee: "08:15", arret: "" }
+    { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
 
 function changeHorizon(minutes) {
@@ -452,14 +453,13 @@ function calculerTout() {
             emulseurApporte: emulseur,
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
             arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
-            dejaComptabilise: false // Sera réinitialisé correctement au début de chaque pas de temps
+            dejaComptabilise: false
         });
     });
 
     document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
 
     const qFuite = parseFloat(document.getElementById('inp-qfuite-calcul').value) || 0;
-    const vCuvetteMax = parseFloat(document.getElementById('inp-vcuvette-calcul').value) || 0;
 
     let labelsX = [];
     let dataDynamicObjective = []; 
@@ -484,7 +484,6 @@ function calculerTout() {
     for (let delta = 0; delta <= horizonActuel; delta += step) {
         labelsX.push(minutesToTimeStr(t0Min + delta));
         
-        // CORRECTION MAJEURE : On calcule l'émulseur dispo de manière cumulative propre à chaque minute
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && !m.dejaComptabilise) {
                 reserveEmulseurDisponible += m.emulseurApporte;
@@ -517,7 +516,7 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
-        // --- CINETIQUE DE LA FUITE EN DIRECT ---
+        // --- CINÉTIQUE DE LA FUITE ---
         if (!fuiteEstScellee) {
             if (debitCourantSolution >= qFuite && minuteSurclassementFuite === -1 && !ruptureMousseHappen) {
                 minuteSurclassementFuite = delta;
@@ -531,7 +530,7 @@ function calculerTout() {
             }
         }
 
-        // --- COURBE D'OBJECTIF DE L'EXTINCTION ---
+        // --- COURBE OBJECTIF ---
         if (!fuiteEstScellee) {
             dataDynamicObjective.push(qsmTemp);
         } else {
@@ -597,7 +596,7 @@ function calculerTout() {
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     } 
     else {
-        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne couvre même pas le besoin de Temporisation sécuritaire (${Math.round(qsmTemp)} L/min).`;
+        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne couvre even pas le besoin de Temporisation sécuritaire (${Math.round(qsmTemp)} L/min).`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
 }
