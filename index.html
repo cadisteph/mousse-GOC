@@ -252,7 +252,7 @@ let dureeMissionDoctrine = 40;
 let horizonActuel = 180; 
 
 const moyensParDefaut = [
-    { nom: "Moyens fixes Établissement", debit: "", emulseur: "", arrivee: "", arret: "" }
+    { nom: "Moyens fixes Établissement", debit: "1000", emulseur: "5000", arrivee: "08:15", arret: "" }
 ];
 
 function changeHorizon(minutes) {
@@ -452,18 +452,17 @@ function calculerTout() {
             emulseurApporte: emulseur,
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
             arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
-            dejaComptabilise: false
+            dejaComptabilise: false // Sera réinitialisé correctement au début de chaque pas de temps
         });
     });
 
     document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
 
-    // PARAMÈTRES DE FUITE OPÉRATIONNELS
     const qFuite = parseFloat(document.getElementById('inp-qfuite-calcul').value) || 0;
     const vCuvetteMax = parseFloat(document.getElementById('inp-vcuvette-calcul').value) || 0;
 
     let labelsX = [];
-    let dataDynamicObjective = []; // Courbe rouge qui s'adapte en temps réel
+    let dataDynamicObjective = []; 
     let dataTemp = [];
     let dataMaintien = [];
     let dataReel = [];
@@ -476,7 +475,6 @@ function calculerTout() {
     let consoCumuleeEmulseur = 0;
     let ruptureMousseHappen = false;
 
-    // Variables pour l'algorithme de calcul prédictif de fuite
     let minuteSurclassementFuite = -1;
     let fuiteEstScellee = fuiteRecouverte; 
     let minuteScellementsEffectif = -1;
@@ -486,7 +484,7 @@ function calculerTout() {
     for (let delta = 0; delta <= horizonActuel; delta += step) {
         labelsX.push(minutesToTimeStr(t0Min + delta));
         
-        // Approvisionnement dynamique en émulseur au moment de l'arrivée du moyen
+        // CORRECTION MAJEURE : On calcule l'émulseur dispo de manière cumulative propre à chaque minute
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && !m.dejaComptabilise) {
                 reserveEmulseurDisponible += m.emulseurApporte;
@@ -494,7 +492,6 @@ function calculerTout() {
             }
         });
 
-        // Calcul du débit de solution actuellement injecté par les moyens
         let debitCourantSolution = 0;
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && delta < m.arretDelta) {
@@ -502,7 +499,6 @@ function calculerTout() {
             }
         });
         
-        // Calcul conso sur le pas de temps
         let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
         
         if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
@@ -521,39 +517,35 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
-        // --- MOTEUR DE CINÉTIQUE : TRAITEMENT DE LA FUITE ---
+        // --- CINETIQUE DE LA FUITE EN DIRECT ---
         if (!fuiteEstScellee) {
-            // A. Est-ce que le débit réel déployé surpasse le débit physique de la fuite ?
             if (debitCourantSolution >= qFuite && minuteSurclassementFuite === -1 && !ruptureMousseHappen) {
                 minuteSurclassementFuite = delta;
             }
             if (debitCourantSolution < qFuite && minuteSurclassementFuite !== -1) {
-                minuteSurclassementFuite = -1; // Annulation si les moyens baissent
+                minuteSurclassementFuite = -1; 
             }
-            // B. Si les moyens maintiennent le surclassement pendant 10 min, la fuite passe à "Scellée"
             if (minuteSurclassementFuite !== -1 && (delta - minuteSurclassementFuite) >= 10) {
                 fuiteEstScellee = true;
                 minuteScellementsEffectif = delta;
             }
         }
 
-        // --- CONSTRUCTION DYNAMIQUE DE LA COURBE D'OBJECTIF (ROUGE) ---
+        // --- COURBE D'OBJECTIF DE L'EXTINCTION ---
         if (!fuiteEstScellee) {
-            // Tant que la fuite crache, l'objectif est d'assurer au moins la TEMPO (RFT)
             dataDynamicObjective.push(qsmTemp);
         } else {
-            // Une fois scellée, on cherche à lancer l'ATTAQUE pendant la durée réglementaire
             if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen) {
                 topExtinctionMinute = delta;
                 finExtinctionMinute = delta + dureeMissionDoctrine;
             }
 
             if (topExtinctionMinute !== -1 && delta >= topExtinctionMinute && delta < finExtinctionMinute) {
-                dataDynamicObjective.push(qsmExt); // On est en plein assaut extinction
+                dataDynamicObjective.push(qsmExt); 
             } else if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
-                dataDynamicObjective.push(qsmMaintien); // Phase de maintien après l'assaut
+                dataDynamicObjective.push(qsmMaintien); 
             } else {
-                dataDynamicObjective.push(qsmExt); // En attente du pic de puissance d'attaque
+                dataDynamicObjective.push(qsmExt); 
             }
         }
 
