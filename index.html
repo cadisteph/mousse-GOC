@@ -26,6 +26,9 @@
         header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
         header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 
+        .btn-reset { background: #334155; border: 1px solid #475569; color: #f1f5f9; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; display: block; margin: 0 auto 12px auto; transition: background 0.2s; }
+        .btn-reset:hover { background: #475569; border-color: #64748b; }
+
         .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155; padding-bottom: 4px; }
         
@@ -81,6 +84,8 @@
     <h1>MOUSSE TACTIQUE — SDIS</h1>
     <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
+
+<button class="btn-reset" onclick="reinitialiserApplication()">🔄 Réinitialiser l'application</button>
 
 <div class="card">
     <h2>Étape 1 : Situation du Sinistre</h2>
@@ -237,7 +242,6 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
-// CHANGEMENT : Seul le Moyen fixe Établissement subsiste, entièrement nettoyé de ses valeurs par défaut
 const moyensParDefaut = [
     { nom: "Moyens fixes Établissement", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
@@ -250,7 +254,6 @@ function changeHorizon(minutes) {
 }
 
 function ajouterLigneMoyen(data) {
-    // CHANGEMENT : Les lignes vierges créées manuellement s'ouvrent totalement vides
     const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
     const finalData = data ? data : backup;
 
@@ -269,6 +272,31 @@ function ajouterLigneMoyen(data) {
     calculerTout();
 }
 
+// FONCTION DE RÉINITIALISATION COMPLÈTE
+function reinitialiserApplication() {
+    // Réinitialisation des inputs text/number/time du bloc principal
+    document.getElementById('inp-surface').value = "";
+    document.getElementById('inp-t0').value = "";
+    document.getElementById('deb-Vcuvette').value = "";
+    document.getElementById('deb-Qfuite').value = "";
+    
+    // Remise à l'état par défaut des configurations
+    document.getElementById('select-poi-type').value = "sans-poi";
+    document.getElementById('select-maintien-rule').value = "onesixth";
+    document.getElementById('slip-conc').value = "3";
+    document.getElementById('val-conc').innerText = "3.0 %";
+    
+    setConfiguration('cuvette');
+    setProduit('hydro');
+    changeHorizon(180);
+
+    // Vidage complet de la liste des moyens
+    document.getElementById('moyens-liste').innerHTML = "";
+    
+    // Ré-injection exclusive de la ligne "Moyens fixes Établissement" à blanc
+    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+}
+
 function timeToMinutes(timeStr) {
     if (!timeStr || timeStr.trim() === "") return null;
     const parts = timeStr.split(':');
@@ -284,7 +312,8 @@ function minutesToTimeStr(totalMinutes) {
 }
 
 function appliquerDoctrineTauxDuree() {
-    const surface = parseFloat(document.getElementById('inp-surface').value) || 0;
+    const surfaceInput = document.getElementById('inp-surface').value;
+    const surface = parseFloat(surfaceInput) || 0;
     let tauxAutomatique = 5;
 
     if (configSinistre === 'nappe') {
@@ -355,12 +384,12 @@ function initChart() {
 function calculerTout() {
     if (!myChart) initChart();
 
-    const surface = parseFloat(document.getElementById('inp-surface').value) || 0;
-    const ta = parseFloat(document.getElementById('slip-ta').value);
-    const conc = parseFloat(document.getElementById('slip-conc').value);
-    const t0Str = document.getElementById('inp-t0').value;
+    const surfaceInput = document.getElementById('inp-surface').value;
+    const surface = parseFloat(surfaceInput) || 0;
     
-    // Protection : Si T0 n'est pas saisi, on se base par défaut sur 08:00 pour ne pas rompre la boucle graphique
+    const ta = parseFloat(document.getElementById('slip-ta').value) || 0;
+    const conc = parseFloat(document.getElementById('slip-conc').value) || 0;
+    const t0Str = document.getElementById('inp-t0').value;
     const t0Min = timeToMinutes(t0Str) || 480; 
     
     const qsmExt = surface * ta;
@@ -403,7 +432,6 @@ function calculerTout() {
             nom: nom,
             debit: debit,
             emulseurApporte: emulseur,
-            // Protection : Si aucune heure d'arrivée, le moyen commence fictivement à T0
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
             arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
             dejaComptabilise: false
@@ -494,7 +522,6 @@ function calculerTout() {
 
     const statusBox = document.getElementById('top-extinction-status');
     
-    // Gestion des affichages de statuts si les données fondamentales manquent
     if (surface === 0 || !t0Str) {
         statusBox.innerHTML = `⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0) pour calibrer l'analyse cinétique.`;
         statusBox.style.background = "#334155"; statusBox.style.color = "white";
