@@ -234,7 +234,7 @@
     </div>
 
     <div class="legend-mini">
-        <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Attaque</span></div>
+        <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Courant</span></div>
         <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
         <div class="legend-item"><div class="color-box" style="background:#a855f7;"></div><span style="color:#c084fc;">Maintien Tapis</span></div>
         <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
@@ -451,7 +451,7 @@ function calculerTout() {
             debit: debit,
             emulseurApporte: emulseur,
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-            arretDelta: arrMin !== null ? (arretMin - t0Min) : 99999,
+            arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
             dejaComptabilise: false
         });
     });
@@ -463,7 +463,7 @@ function calculerTout() {
     const vCuvetteMax = parseFloat(document.getElementById('inp-vcuvette-calcul').value) || 0;
 
     let labelsX = [];
-    let dataExt = [];
+    let dataDynamicObjective = []; // Courbe rouge qui s'adapte en temps réel
     let dataTemp = [];
     let dataMaintien = [];
     let dataReel = [];
@@ -486,6 +486,7 @@ function calculerTout() {
     for (let delta = 0; delta <= horizonActuel; delta += step) {
         labelsX.push(minutesToTimeStr(t0Min + delta));
         
+        // Approvisionnement dynamique en émulseur au moment de l'arrivée du moyen
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && !m.dejaComptabilise) {
                 reserveEmulseurDisponible += m.emulseurApporte;
@@ -493,6 +494,7 @@ function calculerTout() {
             }
         });
 
+        // Calcul du débit de solution actuellement injecté par les moyens
         let debitCourantSolution = 0;
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && delta < m.arretDelta) {
@@ -500,6 +502,7 @@ function calculerTout() {
             }
         });
         
+        // Calcul conso sur le pas de temps
         let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
         
         if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
@@ -518,37 +521,44 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
-        // LOGIQUE CINÉTIQUE AVANCÉE : PREDICTION DU SCELLEMENT DE LA FUITE
+        // --- MOTEUR DE CINÉTIQUE : TRAITEMENT DE LA FUITE ---
         if (!fuiteEstScellee) {
-            // Étape A : On cherche le moment où les moyens surclassent le débit de la fuite
+            // A. Est-ce que le débit réel déployé surpasse le débit physique de la fuite ?
             if (debitCourantSolution >= qFuite && minuteSurclassementFuite === -1 && !ruptureMousseHappen) {
                 minuteSurclassementFuite = delta;
             }
-            // Si le débit rechute en dessous, on annule le surclassement
             if (debitCourantSolution < qFuite && minuteSurclassementFuite !== -1) {
-                minuteSurclassementFuite = -1;
+                minuteSurclassementFuite = -1; // Annulation si les moyens baissent
             }
-            // Étape B : Il faut 10 minutes consécutives au-dessus du débit de fuite pour sceller le produit
+            // B. Si les moyens maintiennent le surclassement pendant 10 min, la fuite passe à "Scellée"
             if (minuteSurclassementFuite !== -1 && (delta - minuteSurclassementFuite) >= 10) {
                 fuiteEstScellee = true;
                 minuteScellementsEffectif = delta;
             }
         }
 
-        // Étape C : Une fois la fuite scellée (d'origine ou par calcul), l'assaut majeur devient disponible
-        if (surface > 0 && debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen && fuiteEstScellee) {
-            topExtinctionMinute = delta;
-            finExtinctionMinute = delta + dureeMissionDoctrine;
+        // --- CONSTRUCTION DYNAMIQUE DE LA COURBE D'OBJECTIF (ROUGE) ---
+        if (!fuiteEstScellee) {
+            // Tant que la fuite crache, l'objectif est d'assurer au moins la TEMPO (RFT)
+            dataDynamicObjective.push(qsmTemp);
+        } else {
+            // Une fois scellée, on cherche à lancer l'ATTAQUE pendant la durée réglementaire
+            if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen) {
+                topExtinctionMinute = delta;
+                finExtinctionMinute = delta + dureeMissionDoctrine;
+            }
+
+            if (topExtinctionMinute !== -1 && delta >= topExtinctionMinute && delta < finExtinctionMinute) {
+                dataDynamicObjective.push(qsmExt); // On est en plein assaut extinction
+            } else if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
+                dataDynamicObjective.push(qsmMaintien); // Phase de maintien après l'assaut
+            } else {
+                dataDynamicObjective.push(qsmExt); // En attente du pic de puissance d'attaque
+            }
         }
 
         dataTemp.push(qsmTemp);
         dataMaintien.push(qsmMaintien);
-
-        if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
-            dataExt.push(qsmMaintien); 
-        } else {
-            dataExt.push(qsmExt);
-        }
     }
 
     document.getElementById('res-conso').innerText = Math.round(consoCumuleeEmulseur) + " L";
@@ -558,7 +568,7 @@ function calculerTout() {
 
     myChart.data.labels = labelsX;
     myChart.data.datasets = [
-        { label: 'Seuil Attaque', data: dataExt, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
+        { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
         { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
         { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#a855f7', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
         { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
@@ -574,46 +584,29 @@ function calculerTout() {
     else if (!fuiteRecouverte && !fuiteEstScellee) {
         let explicationEnCours = `L'armement actuel des moyens hydrauliques (${Math.round(maximumAtteint)} L/min) ne permet pas de surclasser le débit de la fuite (${Math.round(qFuite)} L/min).`;
         if (minuteSurclassementFuite !== -1) {
-            explicationEnCours = `Surclassement atteint à ${minutesToTimeStr(t0Min + minuteSurclassementFuite)}. Établissement du tapis de mousse en cours...`;
+            explicationEnCours = `Surclassement atteint à ${minutesToTimeStr(t0Min + minuteSurclassementFuite)}. Établissement du tapis protecteur en cours (scellement prévu à ${minutesToTimeStr(t0Min + minuteSurclassementFuite + 10)}).`;
         }
-        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT GELÉ</b><br>${explicationEnCours}<br><span style="color:#fb923c; font-weight:bold;">Action requise : Augmentez le débit ou attendez l'arrivée de vecteurs pour étouffer le produit.</span>`;
+        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT GELÉ</b><br>${explicationEnCours}<br><span style="color:#fb923c; font-weight:bold;">Action requise : Alignez des moyens supérieurs à la fuite pour initier le scellement.</span>`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     }
     else if (ruptureMousseHappen) {
-        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br> Stock tombé à 0. Lignes en panne de produit.`;
+        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br> Stock tombé à 0. Extinction interrompue.`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
     else if (topExtinctionMinute !== -1) {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-        let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">ℹ️ Traitement cinétique :</b> Fuite scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> après 10 min de neutralisation.`;
-        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Assaut de ${dureeMissionDoctrine} min possible de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>, suivi de 4h de maintien.${noteFuite}`;
+        let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">ℹ️ Traitement de la fuite :</b> Scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> après 10 min de neutralisation continue.`;
+        statusBox.innerHTML = `🟢 <b>TOP ATTACK VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>, suivi du maintien de tapis.${noteFuite}`;
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
-        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>Débit insuffisant pour l'attaque générale. Action RFT seule autorisée.`;
+        statusBox.innerHTML = `⚠️ <b>FUITE FIXÉE — MODE RFT SEUL</b><br>La fuite est neutralisée, mais vos moyens actuels (${Math.round(maximumAtteint)} L/min) restent inférieurs au débit d'attaque requis (${Math.round(qsmExt)} L/min).`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     } 
     else {
-        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne permet pas d'armer la Temporisation ou la RFT de sécurité (${Math.round(qsmTemp)} L/min).`;
+        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne couvre même pas le besoin de Temporisation sécuritaire (${Math.round(qsmTemp)} L/min).`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
-    }
-
-    // GESTION AUTOMATISÉE DU REMPLISSAGE DE LA RÉTENTION (DURÉE SÉCURITÉ)
-    if (configSinistre === 'cuvette' && surface > 0) {
-        // Débit cumulé selon le statut de la fuite (Ajout de la fuite + solution eau/mousse envoyée)
-        const debitCumuleRemplissage = fuiteEstScellee ? (qFuite + qsmExt) : (qFuite + Math.max(qsmTemp, maximumAtteint));
-        let tempsRemplissage = vCuvetteMax / (debitCumuleRemplissage || 1);
-        
-        // On n'affiche le risque de débordement que si les données de rétention sont cohérentes
-        if (vCuvetteMax > 0 && qFuite > 0) {
-            // Le bloc est affiché dynamiquement à travers le calcul
-            const messageRetention = tempsRemplissage < 60 
-                ? `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes (${!fuiteEstScellee ? 'Fuite libre' : 'Fuite contenue'} + Solution Mousse).`
-                : `✅ Volume de rétention stable (durée théorique avant débordement : ${Math.round(tempsRemplissage)} min).`;
-            
-            // On peut logger ou mettre à jour un bandeau si besoin
-        }
     }
 }
 
