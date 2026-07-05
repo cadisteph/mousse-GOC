@@ -26,8 +26,10 @@
         header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
         header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 
-        .btn-reset { background: #334155; border: 1px solid #475569; color: #f1f5f9; padding: 8px 16px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; display: block; margin: 0 auto 12px auto; transition: background 0.2s; }
-        .btn-reset:hover { background: #475569; border-color: #64748b; }
+        /* NOUVEAU STYLE DU BOUTON : TRÈS VISIBLE */
+        .container-reset { text-align: center; margin: 10px 0 15px 0; }
+        .btn-reset { background: var(--accent-orange); border: none; color: #0f172a; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; width: 100%; max-width: 350px; box-shadow: 0 4px 6px rgba(251, 146, 60, 0.2); transition: transform 0.1s; }
+        .btn-reset:active { transform: scale(0.98); }
 
         .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155; padding-bottom: 4px; }
@@ -85,7 +87,9 @@
     <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
 
-<button class="btn-reset" onclick="reinitialiserApplication()">🔄 Réinitialiser l'application</button>
+<div class="container-reset">
+    <button class="btn-reset" onclick="reinitialiserApplication()">🔄 RÉINITIALISER TOUTES LES DONNÉES</button>
+</div>
 
 <div class="card">
     <h2>Étape 1 : Situation du Sinistre</h2>
@@ -272,15 +276,12 @@ function ajouterLigneMoyen(data) {
     calculerTout();
 }
 
-// FONCTION DE RÉINITIALISATION COMPLÈTE
 function reinitialiserApplication() {
-    // Réinitialisation des inputs text/number/time du bloc principal
     document.getElementById('inp-surface').value = "";
     document.getElementById('inp-t0').value = "";
     document.getElementById('deb-Vcuvette').value = "";
     document.getElementById('deb-Qfuite').value = "";
     
-    // Remise à l'état par défaut des configurations
     document.getElementById('select-poi-type').value = "sans-poi";
     document.getElementById('select-maintien-rule').value = "onesixth";
     document.getElementById('slip-conc').value = "3";
@@ -290,10 +291,7 @@ function reinitialiserApplication() {
     setProduit('hydro');
     changeHorizon(180);
 
-    // Vidage complet de la liste des moyens
     document.getElementById('moyens-liste').innerHTML = "";
-    
-    // Ré-injection exclusive de la ligne "Moyens fixes Établissement" à blanc
     moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
 
