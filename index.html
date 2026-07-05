@@ -108,11 +108,11 @@
     <div class="form-inline-2">
         <div class="form-group">
             <label for="inp-surface">Surface enflammée (m²) :</label>
-            <input type="number" id="inp-surface" value="500" oninput="appliquerDoctrineTauxDuree()">
+            <input type="number" id="inp-surface" value="" placeholder="Ex: 500" oninput="appliquerDoctrineTauxDuree()">
         </div>
         <div class="form-group">
             <label for="inp-t0">Heure de Référence (T0) :</label>
-            <input type="time" id="inp-t0" value="08:00" oninput="calculerTout()">
+            <input type="time" id="inp-t0" value="" oninput="calculerTout()">
         </div>
     </div>
 
@@ -220,11 +220,11 @@
     <div class="form-inline-2">
         <div class="form-group">
             <label>Capacité Max Rétention (L)</label>
-            <input type="number" id="deb-Vcuvette" value="250000" oninput="calculerTout()">
+            <input type="number" id="deb-Vcuvette" value="" placeholder="Ex: 250000" oninput="calculerTout()">
         </div>
         <div class="form-group">
             <label>Débit de Fuite Cuve (L/min)</label>
-            <input type="number" id="deb-Qfuite" value="500" oninput="calculerTout()">
+            <input type="number" id="deb-Qfuite" value="" placeholder="Ex: 500" oninput="calculerTout()">
         </div>
     </div>
     <div id="alert-debordement" class="alert-box">--</div>
@@ -237,12 +237,9 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
-// Mise à jour de la dotation initiale théorique en émulseur par défaut des engins engagés
+// CHANGEMENT : Seul le Moyen fixe Établissement subsiste, entièrement nettoyé de ses valeurs par défaut
 const moyensParDefaut = [
-    { nom: "Moyens fixes Établissement", debit: 0, emulseur: 0, arrivee: "08:00", arret: "" },
-    { nom: "Premier GI-LIF 1 (FPT/CEE)", debit: 4000, emulseur: 6000, arrivee: "08:25", arret: "" },
-    { nom: "Renfort Émulseur (Berce log)", debit: 0, emulseur: 8000, arrivee: "08:45", arret: "" },
-    { nom: "Renfort GI-LIF 2 (SDIS)", debit: 4000, emulseur: 6000, arrivee: "08:50", arret: "" }
+    { nom: "Moyens fixes Établissement", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
 
 function changeHorizon(minutes) {
@@ -253,16 +250,17 @@ function changeHorizon(minutes) {
 }
 
 function ajouterLigneMoyen(data) {
-    const backup = { nom: "Nouveau Vecteur / Berce", debit: 2000, emulseur: 0, arrivee: "08:30", arret: "" };
+    // CHANGEMENT : Les lignes vierges créées manuellement s'ouvrent totalement vides
+    const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
     const finalData = data ? data : backup;
 
     const container = document.getElementById('moyens-liste');
     const div = document.createElement('div');
     div.className = 'moyens-grid';
     div.innerHTML = `
-        <input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="Nom" oninput="calculerTout()">
-        <input type="number" class="m-debit" value="${finalData.debit !== undefined ? finalData.debit : 2000}" placeholder="L/min" oninput="calculerTout()">
-        <input type="number" class="m-emulseur" value="${finalData.emulseur !== undefined ? finalData.emulseur : 0}" placeholder="Ému (L)" oninput="calculerTout()">
+        <input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="Vecteur / Moyen" oninput="calculerTout()">
+        <input type="number" class="m-debit" value="${finalData.debit}" placeholder="L/min" oninput="calculerTout()">
+        <input type="number" class="m-emulseur" value="${finalData.emulseur}" placeholder="Ému (L)" oninput="calculerTout()">
         <input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="calculerTout()">
         <input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
         <button class="btn-remove" onclick="this.parentElement.remove(); calculerTout();">❌</button>
@@ -361,6 +359,8 @@ function calculerTout() {
     const ta = parseFloat(document.getElementById('slip-ta').value);
     const conc = parseFloat(document.getElementById('slip-conc').value);
     const t0Str = document.getElementById('inp-t0').value;
+    
+    // Protection : Si T0 n'est pas saisi, on se base par défaut sur 08:00 pour ne pas rompre la boucle graphique
     const t0Min = timeToMinutes(t0Str) || 480; 
     
     const qsmExt = surface * ta;
@@ -403,6 +403,7 @@ function calculerTout() {
             nom: nom,
             debit: debit,
             emulseurApporte: emulseur,
+            // Protection : Si aucune heure d'arrivée, le moyen commence fictivement à T0
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
             arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
             dejaComptabilise: false
@@ -421,7 +422,6 @@ function calculerTout() {
     let finExtinctionMinute = -1;
     let maximumAtteint = 0;
     
-    // Suivi dynamique minute par minute du stock d'émulseur restant
     let reserveEmulseurDisponible = 0;
     let consoCumuleeEmulseur = 0;
     let ruptureMousseHappen = false;
@@ -431,7 +431,6 @@ function calculerTout() {
     for (let delta = 0; delta <= horizonActuel; delta += step) {
         labelsX.push(minutesToTimeStr(t0Min + delta));
         
-        // 1. Approvisionnement en temps réel : On ajoute l'émulseur des vecteurs qui arrivent à cette minute précise
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && !m.dejaComptabilise) {
                 reserveEmulseurDisponible += m.emulseurApporte;
@@ -439,7 +438,6 @@ function calculerTout() {
             }
         });
 
-        // 2. Calcul du débit hydraulique théorique
         let debitCourantSolution = 0;
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && delta < m.arretDelta) {
@@ -447,16 +445,13 @@ function calculerTout() {
             }
         });
         
-        // 3. Calcul de la consommation d'émulseur générée durant ce pas de temps (L/min * conc * minutes)
         let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
         
-        // Sécurité : Si la réserve s'épuise, on coupe le flux réel sur le graphique !
         if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
             debitCourantSolution = 0; 
             consoPasDeTemps = 0;
             ruptureMousseHappen = true;
         } else if (reserveEmulseurDisponible - consoPasDeTemps < 0) {
-            // Épuisement partiel pendant ce pas de temps
             debitCourantSolution = (reserveEmulseurDisponible / (conc / 100)) / step;
             consoPasDeTemps = reserveEmulseurDisponible;
             ruptureMousseHappen = true;
@@ -468,7 +463,7 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
-        if (debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen) {
+        if (surface > 0 && debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen) {
             topExtinctionMinute = delta;
             finExtinctionMinute = delta + dureeMissionDoctrine;
         }
@@ -483,15 +478,10 @@ function calculerTout() {
         }
     }
 
-    // Affichage des compteurs globaux
     document.getElementById('res-conso').innerText = Math.round(consoCumuleeEmulseur) + " L";
     const resRestantBox = document.getElementById('res-restant');
     resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
-    if (reserveEmulseurDisponible <= 0) {
-        resRestantBox.style.color = "var(--accent-red)";
-    } else {
-        resRestantBox.style.color = "var(--text-main)";
-    }
+    resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
 
     myChart.data.labels = labelsX;
     myChart.data.datasets = [
@@ -504,52 +494,17 @@ function calculerTout() {
 
     const statusBox = document.getElementById('top-extinction-status');
     
-    if (ruptureMousseHappen) {
-        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br>
-        Le stock disponible est tombé à 0 pendant l'opération. Les lignes sont tombées en panne de mousse. Le tapis s'est ruiné. <br>
-        <span style="color:#fca5a5;">👉 Augmentez les réserves des vecteurs initiaux ou planifiez l'arrivée de Berces d'Émulseur (debit = 0, emulseur = 8000L) plus tôt dans la cinétique.</span>`;
+    // Gestion des affichages de statuts si les données fondamentales manquent
+    if (surface === 0 || !t0Str) {
+        statusBox.innerHTML = `⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0) pour calibrer l'analyse cinétique.`;
+        statusBox.style.background = "#334155"; statusBox.style.color = "white";
+    }
+    else if (ruptureMousseHappen) {
+        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br> Le stock disponible est tombé à 0. Lignes en panne de produit. <br><span style="color:#fca5a5;">👉 Planifiez l'arrivée de vecteurs ou berces d'émulseur plus tôt.</span>`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
     else if (topExtinctionMinute !== -1) {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>
-        Débit d'attaque atteint. L'assaut général de ${dureeMissionDoctrine} min peut se dérouler de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>. Autonomie résiduelle sécurisée.`;
-        statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
-    } 
-    else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
-        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>
-        Le cumul maximal atteint ${Math.round(maximumAtteint)} L/min. C'est au-dessus de la temporisation (${Math.round(qsmTemp)} L/min) mais insuffisant pour l'extinction.<br>
-        <span style="color:#fde047; font-weight:800;">👉 RECOMMANDATION COS : Ne pas lancer l'assaut (risque de ruine de la mousse). Brider le débit sous le seuil de tempo pour économiser l'émulseur et agir uniquement en Réduction du Flux Thermique (RFT).</span>`;
-        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
-    } 
-    else {
-        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>
-        Le flux disponible (${Math.round(maximumAtteint)} L/min) ne permet même pas d'armer la Temporisation ou la RFT de sécurité (${Math.round(qsmTemp)} L/min). Risque de propagation majeur.`;
-        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
-    }
-
-    if (configSinistre === 'cuvette') {
-        const vMax = parseFloat(document.getElementById('deb-Vcuvette').value) || 0;
-        const qFuite = parseFloat(document.getElementById('deb-Qfuite').value) || 0;
-        let tempsRemplissage = vMax / (qFuite + qsmExt);
-        const alertBox = document.getElementById('alert-debordement');
-        
-        if (tempsRemplissage < 60) {
-            alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes.`;
-            alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
-        } else {
-            alertBox.innerText = `✅ Volume de rétention stable (durée théorique de sécurité : ${Math.round(tempsRemplissage)} min).`;
-            alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
-        }
-    }
-}
-
-window.onload = function() {
-    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
-    setConfiguration('cuvette');
-};
-</script>
-
-</body>
-</html>
+        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Débit d'attaque atteint. Assaut de ${dureeMissionDoctrine} min possible de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>.`;
+        statusBox.style.background = "#14532d"; statusBox.style.color = "#
