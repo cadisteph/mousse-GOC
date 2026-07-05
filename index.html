@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
     
+    <!-- Inclusion de Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -26,7 +27,6 @@
         header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
         header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 
-        /* NOUVEAU STYLE DU BOUTON : TRÈS VISIBLE */
         .container-reset { text-align: center; margin: 10px 0 15px 0; }
         .btn-reset { background: var(--accent-orange); border: none; color: #0f172a; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; width: 100%; max-width: 350px; box-shadow: 0 4px 6px rgba(251, 146, 60, 0.2); transition: transform 0.1s; }
         .btn-reset:active { transform: scale(0.98); }
@@ -37,6 +37,7 @@
         .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
         .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
         .toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
+        .toggle-btn.active-warn { background: var(--accent-orange); border-color: #f97316; color: #0f172a; }
 
         .poi-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; }
         .poi-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: bold; text-transform: uppercase;}
@@ -48,7 +49,6 @@
         
         .form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 
-        /* Grille des moyens dynamiques */
         .moyens-container { margin-bottom: 10px; }
         .moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 0.8fr 0.8fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a; padding: 6px; border-radius: 6px; }
         .moyens-header-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 0.8fr 0.8fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
@@ -91,6 +91,7 @@
     <button class="btn-reset" onclick="reinitialiserApplication()">🔄 RÉINITIALISER TOUTES LES DONNÉES</button>
 </div>
 
+<!-- ÉTAPE 1 : SITUATION DU SINISTRE -->
 <div class="card">
     <h2>Étape 1 : Situation du Sinistre</h2>
     
@@ -102,6 +103,15 @@
     <div class="toggle-group">
         <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure (Non miscible)</button>
         <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant (Miscible)</button>
+    </div>
+
+    <!-- AJOUT MAJEUR : ÉTAT DE LA FUITE / TAPIS DE MOUSSE -->
+    <div style="background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 10px;">
+        <label class="poi-label" style="display:block; margin-bottom:6px;">La fuite de produit est-elle recouverte / étouffée ?</label>
+        <div class="toggle-group" style="margin-bottom:0;">
+            <button class="toggle-btn active" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">🟢 OUI (Assaut possible)</button>
+            <button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)">⚠️ NON (Tempo / RFT Seuls)</button>
+        </div>
     </div>
 
     <div id="bloc-poi" class="poi-grid">
@@ -137,6 +147,7 @@
     </div>
 </div>
 
+<!-- ÉTAPE 2 : CALCULS DOCTRINAUX -->
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
     <h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
     
@@ -173,6 +184,7 @@
     </table>
 </div>
 
+<!-- MODULE DE CONFIGURATION DYNAMIQUE DES MOYENS -->
 <div class="card" style="border: 2px solid var(--accent-blue);">
     <h2>📈 Suivi Cinétique Dynamique des Moyens</h2>
     
@@ -224,6 +236,7 @@
     <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
 </div>
 
+<!-- CONFINEMENT & RÉTENTION -->
 <div class="card" id="card-debordement" style="border: 1px solid var(--accent-red); display:block;">
     <h2>⚠️ Risque de Débordement de la Rétention</h2>
     <div class="form-inline-2">
@@ -242,6 +255,7 @@
 <script>
 let configSinistre = 'cuvette'; 
 let typeProduit = 'hydro'; 
+let fuiteRecouverte = true; // État initial de la fuite
 let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
@@ -254,6 +268,14 @@ function changeHorizon(minutes) {
     horizonActuel = minutes;
     document.getElementById('btn-h180').classList.toggle('active', minutes === 180);
     document.getElementById('btn-h420').classList.toggle('active', minutes === 420);
+    calculerTout();
+}
+
+function setFuiteRecouverte(boolValue) {
+    fuiteRecouverte = boolValue;
+    document.getElementById('btn-fuite-oui').classList.toggle('active', boolValue);
+    document.getElementById('btn-fuite-non').classList.toggle('active-warn', !boolValue);
+    document.getElementById('btn-fuite-non').classList.toggle('active', false);
     calculerTout();
 }
 
@@ -289,6 +311,7 @@ function reinitialiserApplication() {
     
     setConfiguration('cuvette');
     setProduit('hydro');
+    setFuiteRecouverte(true);
     changeHorizon(180);
 
     document.getElementById('moyens-liste').innerHTML = "";
@@ -372,7 +395,7 @@ function initChart() {
             animation: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Heure réelle de la journée', color: '#94a3b8', font: { size: 10 } } },
+                x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Heure réelle', color: '#94a3b8', font: { size: 10 } } },
                 y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
             }
         }
@@ -397,11 +420,7 @@ function calculerTout() {
     
     const regleMaintien = document.getElementById('select-maintien-rule').value;
     let qsmMaintien = surface * 0.2; 
-    
-    if (regleMaintien === 'onesixth') {
-        qsmMaintien = Math.max(qsmMaintien, qsmExt / 6);
-    }
-    
+    if (regleMaintien === 'onesixth') qsmMaintien = Math.max(qsmMaintien, qsmExt / 6);
     const volEmuMaintien = qsmMaintien * (conc / 100) * 240; 
 
     document.getElementById('brut-qsm-ext').innerText = Math.round(qsmExt) + " L/min";
@@ -431,7 +450,7 @@ function calculerTout() {
             debit: debit,
             emulseurApporte: emulseur,
             arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-            arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
+            arretDelta: arrMin !== null ? (arretMin - t0Min) : 99999,
             dejaComptabilise: false
         });
     });
@@ -489,7 +508,8 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
-        if (surface > 0 && debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen) {
+        // LOGIQUE TACTIQUE MODIFIÉE PAR LA COUVERTURE DE LA FUITE
+        if (surface > 0 && debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen && fuiteRecouverte) {
             topExtinctionMinute = delta;
             finExtinctionMinute = delta + dureeMissionDoctrine;
         }
@@ -521,21 +541,25 @@ function calculerTout() {
     const statusBox = document.getElementById('top-extinction-status');
     
     if (surface === 0 || !t0Str) {
-        statusBox.innerHTML = `⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0) pour calibrer l'analyse cinétique.`;
+        statusBox.innerHTML = `⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
         statusBox.style.background = "#334155"; statusBox.style.color = "white";
     }
+    else if (!fuiteRecouverte) {
+        statusBox.innerHTML = `⚠️ <b>FUITE NON RECOUVERTE : ASSAUT REPOUSSÉ</b><br>La fuite alimente le sinistre. Utilisez les moyens en mode <b>TEMPORISATION / RFT</b> pour fixer le tapis de mousse.<br><span style="color:#fb923c; font-weight:800;">👉 Basculez sur "OUI" une fois le produit étouffé pour débloquer l'heure du TOP ATTACK.</span>`;
+        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
+    }
     else if (ruptureMousseHappen) {
-        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br> Le stock disponible est tombé à 0. Lignes en panne de produit. <br><span style="color:#fca5a5;">👉 Planifiez l'arrivée de vecteurs ou berces d'émulseur plus tôt.</span>`;
+        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br> Stock tombé à 0. Lignes en panne de produit.`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
     else if (topExtinctionMinute !== -1) {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Débit d'attaque atteint. Assaut de ${dureeMissionDoctrine} min possible de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>.`;
+        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Assaut de ${dureeMissionDoctrine} min possible de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>, suivi de 4h de maintien.`;
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
-        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>Débit insuffisant pour l'attaque.<br><span style="color:#fde047; font-weight:800;">👉 RECOMMANDATION COS : Agir uniquement en Réduction du Flux Thermique (RFT) sous le seuil de tempo pour préserver l'émulseur.</span>`;
+        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>Débit insuffisant pour l'attaque. Action RFT seule autorisée.`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     } 
     else {
@@ -543,6 +567,7 @@ function calculerTout() {
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
 
+    // SECTION RETENTION : REPREND LE CALCUL DE LA FUITE COMBINÉE
     if (configSinistre === 'cuvette') {
         const vMax = parseFloat(document.getElementById('deb-Vcuvette').value);
         const qFuite = parseFloat(document.getElementById('deb-Qfuite').value);
@@ -552,9 +577,12 @@ function calculerTout() {
             alertBox.innerText = `--`;
             alertBox.style.background = "#0f172a"; alertBox.style.color = "var(--text-muted)";
         } else {
-            let tempsRemplissage = vMax / (qFuite + qsmExt);
+            // Si la fuite n'est pas recouverte, elle remplit en continu en plus du débit d'attaque théorique
+            const debitCumuleRemplissage = fuiteRecouverte ? (qFuite + qsmExt) : (qFuite + Math.max(qsmTemp, maximumAtteint));
+            let tempsRemplissage = vMax / debitCumuleRemplissage;
+            
             if (tempsRemplissage < 60) {
-                alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes.`;
+                alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes (${fuiteRecouverte ? 'Fuite stabilisée' : 'Fuite libre + Tempo Mousse'}).`;
                 alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
             } else {
                 alertBox.innerText = `✅ Volume de rétention stable (durée théorique de sécurité : ${Math.round(tempsRemplissage)} min).`;
