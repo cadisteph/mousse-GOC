@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
     
-    <!-- Inclusion de Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -37,7 +36,8 @@
         .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
         .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
         .toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
-        .toggle-btn.active-warn { background: var(--accent-orange); border-color: #f97316; color: #0f172a; }
+        .toggle-btn.active-green { background: var(--accent-green); border-color: #22c55e; color: white; }
+        .toggle-btn.active-orange { background: var(--accent-orange); border-color: #f97316; color: #0f172a; }
 
         .poi-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; }
         .poi-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: bold; text-transform: uppercase;}
@@ -91,7 +91,6 @@
     <button class="btn-reset" onclick="reinitialiserApplication()">🔄 RÉINITIALISER TOUTES LES DONNÉES</button>
 </div>
 
-<!-- ÉTAPE 1 : SITUATION DU SINISTRE -->
 <div class="card">
     <h2>Étape 1 : Situation du Sinistre</h2>
     
@@ -103,15 +102,6 @@
     <div class="toggle-group">
         <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure (Non miscible)</button>
         <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant (Miscible)</button>
-    </div>
-
-    <!-- AJOUT MAJEUR : ÉTAT DE LA FUITE / TAPIS DE MOUSSE -->
-    <div style="background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 10px;">
-        <label class="poi-label" style="display:block; margin-bottom:6px;">La fuite de produit est-elle recouverte / étouffée ?</label>
-        <div class="toggle-group" style="margin-bottom:0;">
-            <button class="toggle-btn active" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">🟢 OUI (Assaut possible)</button>
-            <button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)">⚠️ NON (Tempo / RFT Seuls)</button>
-        </div>
     </div>
 
     <div id="bloc-poi" class="poi-grid">
@@ -135,6 +125,25 @@
         </div>
     </div>
 
+    <div style="background: #0f172a; padding: 10px; border-radius: 6px; border: 2px solid #334155; margin: 8px 0 12px 0;">
+        <label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);">⚠️ Statut opérationnel de la fuite :</label>
+        <div class="toggle-group" style="margin-bottom:8px;">
+            <button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">🟢 Fuite Recouverte</button>
+            <button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)">⚠️ Fuite NON Recouverte</button>
+        </div>
+
+        <div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
+            <div class="form-group">
+                <label style="color:#fb923c;">Débit de Fuite (L/min) :</label>
+                <input type="number" id="inp-qfuite-calcul" value="500" placeholder="Ex: 500" oninput="calculerTout()">
+            </div>
+            <div class="form-group">
+                <label style="color:#fb923c;">Vol. Max Cuvette (L) :</label>
+                <input type="number" id="inp-vcuvette-calcul" value="250000" placeholder="Ex: 250000" oninput="calculerTout()">
+            </div>
+        </div>
+    </div>
+
     <div class="form-inline-2">
         <div class="slider-container" style="margin-bottom:0;">
             <div class="slider-header"><span>Taux (Tx ext) :</span><span class="slider-val" id="val-ta">5.0</span></div>
@@ -147,7 +156,6 @@
     </div>
 </div>
 
-<!-- ÉTAPE 2 : CALCULS DOCTRINAUX -->
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
     <h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
     
@@ -184,7 +192,6 @@
     </table>
 </div>
 
-<!-- MODULE DE CONFIGURATION DYNAMIQUE DES MOYENS -->
 <div class="card" style="border: 2px solid var(--accent-blue);">
     <h2>📈 Suivi Cinétique Dynamique des Moyens</h2>
     
@@ -236,26 +243,10 @@
     <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
 </div>
 
-<!-- CONFINEMENT & RÉTENTION -->
-<div class="card" id="card-debordement" style="border: 1px solid var(--accent-red); display:block;">
-    <h2>⚠️ Risque de Débordement de la Rétention</h2>
-    <div class="form-inline-2">
-        <div class="form-group">
-            <label>Capacité Max Rétention (L)</label>
-            <input type="number" id="deb-Vcuvette" value="" placeholder="Ex: 250000" oninput="calculerTout()">
-        </div>
-        <div class="form-group">
-            <label>Débit de Fuite Cuve (L/min)</label>
-            <input type="number" id="deb-Qfuite" value="" placeholder="Ex: 500" oninput="calculerTout()">
-        </div>
-    </div>
-    <div id="alert-debordement" class="alert-box">--</div>
-</div>
-
 <script>
 let configSinistre = 'cuvette'; 
 let typeProduit = 'hydro'; 
-let fuiteRecouverte = true; // État initial de la fuite
+let fuiteRecouverte = true; 
 let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
@@ -273,9 +264,20 @@ function changeHorizon(minutes) {
 
 function setFuiteRecouverte(boolValue) {
     fuiteRecouverte = boolValue;
-    document.getElementById('btn-fuite-oui').classList.toggle('active', boolValue);
-    document.getElementById('btn-fuite-non').classList.toggle('active-warn', !boolValue);
-    document.getElementById('btn-fuite-non').classList.toggle('active', false);
+    
+    const btnOui = document.getElementById('btn-fuite-oui');
+    const btnNon = document.getElementById('btn-fuite-non');
+    const blocFuite = document.getElementById('bloc-fuite-parametres');
+    
+    if(boolValue) {
+        btnOui.className = "toggle-btn active-green";
+        btnNon.className = "toggle-btn";
+        blocFuite.style.display = "none";
+    } else {
+        btnOui.className = "toggle-btn";
+        btnNon.className = "toggle-btn active-orange";
+        blocFuite.style.display = "grid";
+    }
     calculerTout();
 }
 
@@ -301,8 +303,8 @@ function ajouterLigneMoyen(data) {
 function reinitialiserApplication() {
     document.getElementById('inp-surface').value = "";
     document.getElementById('inp-t0').value = "";
-    document.getElementById('deb-Vcuvette').value = "";
-    document.getElementById('deb-Qfuite').value = "";
+    document.getElementById('inp-qfuite-calcul').value = "500";
+    document.getElementById('inp-vcuvette-calcul').value = "250000";
     
     document.getElementById('select-poi-type').value = "sans-poi";
     document.getElementById('select-maintien-rule').value = "onesixth";
@@ -367,7 +369,6 @@ function setConfiguration(type) {
     document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
     document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
     document.getElementById('bloc-poi').style.display = type === 'cuvette' ? 'grid' : 'none';
-    document.getElementById('card-debordement').style.display = type === 'cuvette' ? 'block' : 'none';
     appliquerDoctrineTauxDuree();
 }
 
@@ -457,6 +458,10 @@ function calculerTout() {
 
     document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
 
+    // PARAMÈTRES DE FUITE OPÉRATIONNELS
+    const qFuite = parseFloat(document.getElementById('inp-qfuite-calcul').value) || 0;
+    const vCuvetteMax = parseFloat(document.getElementById('inp-vcuvette-calcul').value) || 0;
+
     let labelsX = [];
     let dataExt = [];
     let dataTemp = [];
@@ -470,6 +475,11 @@ function calculerTout() {
     let reserveEmulseurDisponible = 0;
     let consoCumuleeEmulseur = 0;
     let ruptureMousseHappen = false;
+
+    // Variables pour l'algorithme de calcul prédictif de fuite
+    let minuteSurclassementFuite = -1;
+    let fuiteEstScellee = fuiteRecouverte; 
+    let minuteScellementsEffectif = -1;
 
     const step = horizonActuel === 420 ? 5 : 2; 
 
@@ -508,8 +518,25 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
-        // LOGIQUE TACTIQUE MODIFIÉE PAR LA COUVERTURE DE LA FUITE
-        if (surface > 0 && debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen && fuiteRecouverte) {
+        // LOGIQUE CINÉTIQUE AVANCÉE : PREDICTION DU SCELLEMENT DE LA FUITE
+        if (!fuiteEstScellee) {
+            // Étape A : On cherche le moment où les moyens surclassent le débit de la fuite
+            if (debitCourantSolution >= qFuite && minuteSurclassementFuite === -1 && !ruptureMousseHappen) {
+                minuteSurclassementFuite = delta;
+            }
+            // Si le débit rechute en dessous, on annule le surclassement
+            if (debitCourantSolution < qFuite && minuteSurclassementFuite !== -1) {
+                minuteSurclassementFuite = -1;
+            }
+            // Étape B : Il faut 10 minutes consécutives au-dessus du débit de fuite pour sceller le produit
+            if (minuteSurclassementFuite !== -1 && (delta - minuteSurclassementFuite) >= 10) {
+                fuiteEstScellee = true;
+                minuteScellementsEffectif = delta;
+            }
+        }
+
+        // Étape C : Une fois la fuite scellée (d'origine ou par calcul), l'assaut majeur devient disponible
+        if (surface > 0 && debitCourantSolution >= qsmExt && topExtinctionMinute === -1 && !ruptureMousseHappen && fuiteEstScellee) {
             topExtinctionMinute = delta;
             finExtinctionMinute = delta + dureeMissionDoctrine;
         }
@@ -544,8 +571,12 @@ function calculerTout() {
         statusBox.innerHTML = `⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
         statusBox.style.background = "#334155"; statusBox.style.color = "white";
     }
-    else if (!fuiteRecouverte) {
-        statusBox.innerHTML = `⚠️ <b>FUITE NON RECOUVERTE : ASSAUT REPOUSSÉ</b><br>La fuite alimente le sinistre. Utilisez les moyens en mode <b>TEMPORISATION / RFT</b> pour fixer le tapis de mousse.<br><span style="color:#fb923c; font-weight:800;">👉 Basculez sur "OUI" une fois le produit étouffé pour débloquer l'heure du TOP ATTACK.</span>`;
+    else if (!fuiteRecouverte && !fuiteEstScellee) {
+        let explicationEnCours = `L'armement actuel des moyens hydrauliques (${Math.round(maximumAtteint)} L/min) ne permet pas de surclasser le débit de la fuite (${Math.round(qFuite)} L/min).`;
+        if (minuteSurclassementFuite !== -1) {
+            explicationEnCours = `Surclassement atteint à ${minutesToTimeStr(t0Min + minuteSurclassementFuite)}. Établissement du tapis de mousse en cours...`;
+        }
+        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT GELÉ</b><br>${explicationEnCours}<br><span style="color:#fb923c; font-weight:bold;">Action requise : Augmentez le débit ou attendez l'arrivée de vecteurs pour étouffer le produit.</span>`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     }
     else if (ruptureMousseHappen) {
@@ -555,11 +586,12 @@ function calculerTout() {
     else if (topExtinctionMinute !== -1) {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Assaut de ${dureeMissionDoctrine} min possible de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>, suivi de 4h de maintien.`;
+        let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">ℹ️ Traitement cinétique :</b> Fuite scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> après 10 min de neutralisation.`;
+        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Assaut de ${dureeMissionDoctrine} min possible de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>, suivi de 4h de maintien.${noteFuite}`;
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
-        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>Débit insuffisant pour l'attaque. Action RFT seule autorisée.`;
+        statusBox.innerHTML = `⚠️ <b>STRATÉGIE DOCTRINALE : MODE RFT EXTINCTIF IMPOSSIBLE</b><br>Débit insuffisant pour l'attaque générale. Action RFT seule autorisée.`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     } 
     else {
@@ -567,27 +599,20 @@ function calculerTout() {
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
 
-    // SECTION RETENTION : REPREND LE CALCUL DE LA FUITE COMBINÉE
-    if (configSinistre === 'cuvette') {
-        const vMax = parseFloat(document.getElementById('deb-Vcuvette').value);
-        const qFuite = parseFloat(document.getElementById('deb-Qfuite').value);
-        const alertBox = document.getElementById('alert-debordement');
+    // GESTION AUTOMATISÉE DU REMPLISSAGE DE LA RÉTENTION (DURÉE SÉCURITÉ)
+    if (configSinistre === 'cuvette' && surface > 0) {
+        // Débit cumulé selon le statut de la fuite (Ajout de la fuite + solution eau/mousse envoyée)
+        const debitCumuleRemplissage = fuiteEstScellee ? (qFuite + qsmExt) : (qFuite + Math.max(qsmTemp, maximumAtteint));
+        let tempsRemplissage = vCuvetteMax / (debitCumuleRemplissage || 1);
         
-        if (isNaN(vMax) || isNaN(qFuite) || surface === 0) {
-            alertBox.innerText = `--`;
-            alertBox.style.background = "#0f172a"; alertBox.style.color = "var(--text-muted)";
-        } else {
-            // Si la fuite n'est pas recouverte, elle remplit en continu en plus du débit d'attaque théorique
-            const debitCumuleRemplissage = fuiteRecouverte ? (qFuite + qsmExt) : (qFuite + Math.max(qsmTemp, maximumAtteint));
-            let tempsRemplissage = vMax / debitCumuleRemplissage;
+        // On n'affiche le risque de débordement que si les données de rétention sont cohérentes
+        if (vCuvetteMax > 0 && qFuite > 0) {
+            // Le bloc est affiché dynamiquement à travers le calcul
+            const messageRetention = tempsRemplissage < 60 
+                ? `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes (${!fuiteEstScellee ? 'Fuite libre' : 'Fuite contenue'} + Solution Mousse).`
+                : `✅ Volume de rétention stable (durée théorique avant débordement : ${Math.round(tempsRemplissage)} min).`;
             
-            if (tempsRemplissage < 60) {
-                alertBox.innerText = `🚨 ALERTE RÉTENTION : Débordement théorique sous ${Math.round(tempsRemplissage)} minutes (${fuiteRecouverte ? 'Fuite stabilisée' : 'Fuite libre + Tempo Mousse'}).`;
-                alertBox.style.background = "#b91c1c"; alertBox.style.color = "white";
-            } else {
-                alertBox.innerText = `✅ Volume de rétention stable (durée théorique de sécurité : ${Math.round(tempsRemplissage)} min).`;
-                alertBox.style.background = "#14532d"; alertBox.style.color = "#bbf7d0";
-            }
+            // On peut logger ou mettre à jour un bandeau si besoin
         }
     }
 }
