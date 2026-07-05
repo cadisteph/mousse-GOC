@@ -251,7 +251,6 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
-// Initialisation strictly vide
 const moyensParDefaut = [
     { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
@@ -428,7 +427,6 @@ function calculerTout() {
     const surface = parseFloat(surfaceInput) || 0;
     const t0Str = document.getElementById('inp-t0').value;
     
-    // Si fuite activée mais champs vides, on bloque tout calcul graphique
     const qFuiteInput = document.getElementById('inp-qfuite-calcul').value;
     if (!fuiteRecouverte && (!qFuiteInput || parseFloat(qFuiteInput) <= 0)) {
         resetVisuals();
@@ -549,7 +547,6 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
         if (debitCourantSolution > maximumAtteint) maximumAtteint = debitCourantSolution;
 
-        // --- CINÉTIQUE DE LA FUITE ---
         if (!fuiteEstScellee && qFuite > 0) {
             if (debitCourantSolution >= qFuite && minuteSurclassementFuite === -1 && !ruptureMousseHappen) {
                 minuteSurclassementFuite = delta;
@@ -563,7 +560,6 @@ function calculerTout() {
             }
         }
 
-        // --- COURBE OBJECTIF ---
         if (!fuiteEstScellee && qFuite > 0) {
             dataDynamicObjective.push(qsmTemp);
         } else {
@@ -620,19 +616,15 @@ function calculerTout() {
         statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT GELÉ</b><br>${explicationEnCours}<br><span style="color:#fb923c; font-weight:bold;">Action requise : Alignez des moyens supérieurs à la fuite pour initier le scellement.</span>`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     }
-    else if (maximumAtteint >= qsmTemp && maximumAtteint < qsmExt) {
-        statusBox.innerHTML = `⚠️ <b>FUITE FIXÉE — MODE RFT SEUL</b><br>La fuite est neutralisée, mais vos moyens actuels (${Math.round(maximumAtteint)} L/min) restent inférieurs au débit d'attaque requis (${Math.round(qsmExt)} L/min).`;
-        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
-    } 
     else {
-        statusBox.innerHTML = `❌ <b>DÉFICIT HYDRAULIQUE CRITIQUE</b><br>Le flux réel disponible ne couvre pas le besoin de Temporisation sécuritaire (${Math.round(qsmTemp)} L/min).`;
-        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
+        statusBox.innerHTML = `⏳ <b>ATTENTE DES MOYENS HYDRAULIQUES</b><br>Les moyens actuels n'atteignent pas le seuil d'extinction requis de ${Math.round(qsmExt)} L/min.`;
+        statusBox.style.background = "#334155"; statusBox.style.color = "white";
     }
 }
 
+// Lancement au démarrage de la première ligne
 window.onload = function() {
     moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
-    setConfiguration('cuvette');
 };
 </script>
 
