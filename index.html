@@ -251,11 +251,9 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
+// Liste par défaut vide au démarrage pour une saisie vierge
 const moyensParDefaut = [
-    { nom: "Tempo", debit: "5000", emulseur: "12000", arrivee: "15:00", arret: "15:44" },
-    { nom: "Attack", debit: "10000", emulseur: "12000", arrivee: "15:44", arret: "16:24" },
-    { nom: "Maintien1", debit: "1667", emulseur: "8000", arrivee: "16:24", arret: "18:01" },
-    { nom: "Maintien2", debit: "1667", emulseur: "8000", arrivee: "18:01", arret: "22:01" }
+    { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
 
 function changeHorizon(minutes) {
@@ -527,12 +525,10 @@ function calculerTout() {
     let minuteScellementsEffectif = -1;
     let volLiquideCuvette = 0; 
 
-    // --- FORCE LE PAS À 1 MINUTE POUR CONSERVER UNE SYNCHRONISATION ABSOLUE ---
     const step = 1; 
 
     for (let delta = 0; delta <= horizonActuel; delta += step) {
         
-        // Sous-échantillonnage de l'affichage de l'axe X pour éviter la surcharge visuelle
         if (horizonActuel === 420) {
             if (delta % 5 === 0) labelsX.push(minutesToTimeStr(t0Min + delta));
             else labelsX.push("");
