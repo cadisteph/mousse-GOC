@@ -95,7 +95,7 @@
     <h2>Étape 1 : Situation du Sinistre</h2>
     
     <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">🛢️ Cuvette / Réservoir</button>
+        <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">🛢️ Cuvette / Rétention</button>
         <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">🌊 Nappe / Épandage</button>
     </div>
 
@@ -128,7 +128,7 @@
     <div style="background: #0f172a; padding: 10px; border-radius: 6px; border: 2px solid #334155; margin: 8px 0 12px 0;">
         <label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);">⚠️ Statut opérationnel de la fuite :</label>
         <div class="toggle-group" style="margin-bottom:8px;">
-            <button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">🟢 Fuite Recouverte</button>
+            <button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">🟢 Fuite Recouverte d'emblée</button>
             <button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)">⚠️ Fuite NON Recouverte</button>
         </div>
 
@@ -138,8 +138,8 @@
                 <input type="number" id="inp-qfuite-calcul" value="" placeholder="ex: 300" oninput="calculerTout()">
             </div>
             <div class="form-group">
-                <label style="color:#fb923c;">Capacité de la Rétention (L) :</label>
-                <input type="number" id="inp-vcuvette-calcul" value="" placeholder="ex: 45000" oninput="calculerTout()">
+                <label style="color:#fb923c;">Hauteur de la Fuite (m) :</label>
+                <input type="number" id="inp-hfuite" value="" step="0.05" placeholder="ex: 0.15" oninput="calculerTout()">
             </div>
         </div>
     </div>
@@ -305,7 +305,7 @@ function reinitialiserApplication() {
     document.getElementById('inp-t0').value = "";
     
     document.getElementById('inp-qfuite-calcul').value = "";
-    document.getElementById('inp-vcuvette-calcul').value = "";
+    document.getElementById('inp-hfuite').value = "";
     
     document.getElementById('select-poi-type').value = "sans-poi";
     document.getElementById('select-maintien-rule').value = "onesixth";
@@ -428,11 +428,11 @@ function calculerTout() {
     const t0Str = document.getElementById('inp-t0').value;
     
     const qFuiteInput = document.getElementById('inp-qfuite-calcul').value;
-    const vCuvetteInput = document.getElementById('inp-vcuvette-calcul').value;
+    const hFuiteInput = document.getElementById('inp-hfuite').value;
 
-    if (!fuiteRecouverte && (!qFuiteInput || parseFloat(qFuiteInput) <= 0 || !vCuvetteInput || parseFloat(vCuvetteInput) <= 0)) {
+    if (!fuiteRecouverte && (!qFuiteInput || parseFloat(qFuiteInput) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
         resetVisuals();
-        document.getElementById('top-extinction-status').innerHTML = `⚠️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et le volume de rétention.`;
+        document.getElementById('top-extinction-status').innerHTML = `⚠️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
         document.getElementById('top-extinction-status').style.background = "#7c2d12"; document.getElementById('top-extinction-status').style.color = "#fed7aa";
         return;
     }
@@ -494,7 +494,9 @@ function calculerTout() {
     document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
     
     const qFuite = parseFloat(qFuiteInput) || 0;
-    const vCuvetteMax = parseFloat(vCuvetteInput) || 0;
+    const hFuite = parseFloat(hFuiteInput) || 0;
+    // Volume nécessaire à atteindre pour noyer la fuite (Surface en m² * Hauteur en m * 1000 pour passer en Litres)
+    const vCuvetteNecessaire = surface * hFuite * 1000;
 
     let labelsX = [];
     let dataDynamicObjective = []; 
@@ -511,13 +513,8 @@ function calculerTout() {
 
     let fuiteEstScellee = fuiteRecouverte; 
     let minuteScellementsEffectif = -1;
-    let debordementCuvetteHappen = false;
-    let minuteDebordement = -1;
 
     let volLiquideCuvette = 0; 
-    let minutesPasseesSousTempo = 0;
-    const DUREE_STABILISATION_TEMPO = 10; // Règle d'or : 10 minutes de tempo continue requises
-
     const step = horizonActuel === 420 ? 5 : 2; 
 
     for (let delta = 0; delta <= horizonActuel; delta += step) {
@@ -554,21 +551,11 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
 
         if (!fuiteEstScellee && qFuite > 0) {
-            volLiquideCuvette += qFuite * step; 
+            // RÈGLE TACTIQUE CODIS : La solution moussante subit 50% de dégradation thermique tant que le feu n'est pas scellé
+            const solutionEfficace = debitCourantSolution * 0.5;
+            volLiquideCuvette += (qFuite + solutionEfficace) * step; 
 
-            if (volLiquideCuvette >= vCuvetteMax && !debordementCuvetteHappen) {
-                debordementCuvetteHappen = true;
-                minuteDebordement = delta;
-            }
-
-            // Vérification de l'application de la tempo en continu
-            if (debitCourantSolution >= qsmTemp && !ruptureMousseHappen) {
-                minutesPasseesSousTempo += step;
-            } else {
-                minutesPasseesSousTempo = 0; // Rupture du tapis de mousse, le feu reprend le dessus
-            }
-
-            if (minutesPasseesSousTempo >= DUREE_STABILISATION_TEMPO) {
+            if (volLiquideCuvette >= vCuvetteNecessaire) {
                 fuiteEstScellee = true;
                 minuteScellementsEffectif = delta;
             }
@@ -615,23 +602,21 @@ function calculerTout() {
         statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT DE L'ÉMULSEUR !</b><br> Stock tombé à 0. Extinction interrompue.`;
         statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
     }
-    else if (debordementCuvetteHappen && (!fuiteEstScellee || minuteDebordement < minuteScellementsEffectif)) {
-        statusBox.innerHTML = `🚨 <b>DÉBORDEMENT DE LA CUVETTE À ${minutesToTimeStr(t0Min + minuteDebordement)} (T0 + ${minuteDebordement} min)</b><br>Le volume de produit pur a saturé la rétention (${vCuvetteMax} L) avant que le tapis de tempo n'ait pu stabiliser et sceller la fuite !`;
-        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
-    }
     else if (topExtinctionMinute !== -1) {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-        let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">ℹ️ Cinétique Fuite :</b> Scellée avec succès après 10 min de Tempo continue à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
-        statusBox.innerHTML = `🟢 <b>TOP ATTACK VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut réglementaire de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien de tapis (4h).${noteFuite}`;
+        let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">ℹ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> (T0 + ${minuteScellementsEffectif} min).`;
+        statusBox.innerHTML = `🟢 <b>TOP ATTACK VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (!fuiteRecouverte && !fuiteEstScellee) {
-        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le tapis de mousse n'est pas stabilisé.<br><span style="color:#fb923c; font-weight:bold;">Action GOC : Maintenez un débit réel ≥ au Seuil de TEMPO (${Math.round(qsmTemp)} L/min) pendant 10 min consécutives pour sceller la fuite.</span>`;
+        // Calcul du volume manquant pour donner une visibilité en temps réel au PCEx
+        const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
+        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP ATTACK.</span>`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     }
     else {
-        statusBox.innerHTML = `⏳ <b>FUITE SCELLÉE — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Fuite neutralisée à ${minutesToTimeStr(t0Min + minuteScellementsEffectif)}. Les moyens réels restent inférieurs au seuil requis pour lancer le Top Attack (${Math.round(qsmExt)} L/min).`;
+        statusBox.innerHTML = `⏳ <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée. Les moyens réels actuels restent inférieurs au seuil requis pour lancer l'assaut réglementaire (${Math.round(qsmExt)} L/min).`;
         statusBox.style.background = "#334155"; statusBox.style.color = "white";
     }
 }
