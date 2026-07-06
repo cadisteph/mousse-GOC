@@ -252,7 +252,10 @@ let dureeMissionDoctrine = 40;
 let horizonActuel = 180; 
 
 const moyensParDefaut = [
-    { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" }
+    { nom: "Tempo", debit: "5000", emulseur: "12000", arrivee: "15:00", arret: "15:44" },
+    { nom: "Attack", debit: "10000", emulseur: "12000", arrivee: "15:44", arret: "16:24" },
+    { nom: "Maintien1", debit: "1667", emulseur: "8000", arrivee: "16:24", arret: "18:01" },
+    { nom: "Maintien2", debit: "1667", emulseur: "8000", arrivee: "18:01", arret: "22:01" }
 ];
 
 function changeHorizon(minutes) {
@@ -397,7 +400,17 @@ function initChart() {
             animation: false,
             plugins: { legend: { display: false } },
             scales: {
-                x: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Heure réelle', color: '#94a3b8', font: { size: 10 } } },
+                x: { 
+                    grid: { color: '#334155' }, 
+                    ticks: { 
+                        color: '#94a3b8', 
+                        font: { size: 9 },
+                        autoSkip: false,
+                        maxRotation: 45,
+                        minRotation: 45
+                    }, 
+                    title: { display: true, text: 'Heure réelle', color: '#94a3b8', font: { size: 10 } } 
+                },
                 y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
             }
         }
@@ -495,7 +508,6 @@ function calculerTout() {
     
     const qFuite = parseFloat(qFuiteInput) || 0;
     const hFuite = parseFloat(hFuiteInput) || 0;
-    // Volume nécessaire à atteindre pour noyer la fuite (Surface en m² * Hauteur en m * 1000 pour passer en Litres)
     const vCuvetteNecessaire = surface * hFuite * 1000;
 
     let labelsX = [];
@@ -513,12 +525,21 @@ function calculerTout() {
 
     let fuiteEstScellee = fuiteRecouverte; 
     let minuteScellementsEffectif = -1;
-
     let volLiquideCuvette = 0; 
-    const step = horizonActuel === 420 ? 5 : 2; 
+
+    // --- FORCE LE PAS À 1 MINUTE POUR CONSERVER UNE SYNCHRONISATION ABSOLUE ---
+    const step = 1; 
 
     for (let delta = 0; delta <= horizonActuel; delta += step) {
-        labelsX.push(minutesToTimeStr(t0Min + delta));
+        
+        // Sous-échantillonnage de l'affichage de l'axe X pour éviter la surcharge visuelle
+        if (horizonActuel === 420) {
+            if (delta % 5 === 0) labelsX.push(minutesToTimeStr(t0Min + delta));
+            else labelsX.push("");
+        } else {
+            if (delta % 2 === 0) labelsX.push(minutesToTimeStr(t0Min + delta));
+            else labelsX.push("");
+        }
         
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && !m.dejaComptabilise) {
@@ -551,7 +572,6 @@ function calculerTout() {
         dataReel.push(debitCourantSolution);
 
         if (!fuiteEstScellee && qFuite > 0) {
-            // RÈGLE TACTIQUE CODIS : La solution moussante subit 50% de dégradation thermique tant que le feu n'est pas scellé
             const solutionEfficace = debitCourantSolution * 0.5;
             volLiquideCuvette += (qFuite + solutionEfficace) * step; 
 
@@ -610,7 +630,6 @@ function calculerTout() {
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (!fuiteRecouverte && !fuiteEstScellee) {
-        // Calcul du volume manquant pour donner une visibilité en temps réel au PCEx
         const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
         statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP ATTACK.</span>`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
