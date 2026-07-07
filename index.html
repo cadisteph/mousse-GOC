@@ -122,7 +122,7 @@
         </div>
         <div class="form-group">
             <label for="inp-t0">Heure de Référence (T0) :</label>
-            <input type="time" id="inp-t0" value="" oninput="calculerTout()">
+            <input type="time" id="inp-t0" value="" oninput="gererChangementParametresGlobaux()">
         </div>
     </div>
 
@@ -282,6 +282,41 @@ function setFuiteRecouverte(boolValue) {
     calculerTout();
 }
 
+function gererChangementParametresGlobaux() {
+    // Si T0 ou la concentration change, on recalcule toutes les suggestions capacitaires des lignes
+    const lignes = document.querySelectorAll('#moyens-liste .moyens-grid');
+    lignes.forEach(ligne => {
+        suggererHeureArretCapacitaire(ligne, false); // false = ne force pas si l'utilisateur a modifié manuellement
+    });
+    calculerTout();
+}
+
+function suggererHeureArretCapacitaire(row, forceRecalcul = false) {
+    const debit = parseFloat(row.querySelector('.m-debit').value) || 0;
+    const emulseur = parseFloat(row.querySelector('.m-emulseur').value) || 0;
+    const arrStr = row.querySelector('.m-arrivee').value;
+    const arretInp = row.querySelector('.m-arret');
+    const conc = parseFloat(document.getElementById('slip-conc').value) || 3.0;
+
+    // On ne calcule que si on a un débit, un stock d'émulseur et une heure d'arrivée
+    if (debit > 0 && emulseur > 0 && arrStr) {
+        // Si la case est vide OU si on force le rafraîchissement (changement de valeurs critiques)
+        if (arretInp.value.trim() === "" || forceRecalcul) {
+            const minArr = timeToMinutes(arrStr);
+            if (minArr !== null) {
+                // Débit émulseur pur consommé par minute
+                const debitEmuPur = debit * (conc / 100);
+                // Autonomie en minutes
+                const autonomieMinutes = Math.floor(emulseur / debitEmuPur);
+                
+                // Calcul de l'heure d'arrêt capacitaire théorique
+                const minArretAuto = (minArr + autonomieMinutes) % 1440;
+                arretInp.value = minutesToTimeStr(minArretAuto);
+            }
+        }
+    }
+}
+
 function ajouterLigneMoyen(data) {
     const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
     const finalData = data ? data : backup;
@@ -291,9 +326,9 @@ function ajouterLigneMoyen(data) {
     div.className = 'moyens-grid';
     div.innerHTML = `
         <input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="" oninput="calculerTout()">
-        <input type="number" class="m-debit" value="${finalData.debit}" placeholder="" oninput="calculerTout()">
-        <input type="number" class="m-emulseur" value="${finalData.emulseur}" placeholder="" oninput="calculerTout()">
-        <input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="calculerTout()">
+        <input type="number" class="m-debit" value="${finalData.debit}" placeholder="" oninput="suggererHeureArretCapacitaire(this.parentElement, true); calculerTout();">
+        <input type="number" class="m-emulseur" value="${finalData.emulseur}" placeholder="" oninput="suggererHeureArretCapacitaire(this.parentElement, true); calculerTout();">
+        <input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="suggererHeureArretCapacitaire(this.parentElement, true); calculerTout();">
         <input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
         <button class="btn-remove" onclick="this.parentElement.remove(); calculerTout();">❌</button>
     `;
@@ -363,7 +398,7 @@ function appliquerDoctrineTauxDuree() {
     document.getElementById('slip-ta').value = tauxAutomatique;
     document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
 
-    calculerTout();
+    gererChangementParametresGlobaux();
 }
 
 function setConfiguration(type) {
@@ -383,7 +418,11 @@ function setProduit(prod) {
 
 function updateSlider(param, value) {
     if (param === 'ta') document.getElementById('val-ta').innerText = parseFloat(value).toFixed(1);
-    if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
+    if (param === 'conc') {
+        document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
+        gererChangementParametresGlobaux();
+        return;
+    }
     calculerTout();
 }
 
@@ -501,7 +540,8 @@ function calculerTout() {
                 emulseurApporte: emulseur,
                 arrStr: arrStr,
                 arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-                arretDelta: arrMin !== null ? (arretMin - t0Min) : 99999,
+                // RÈGLE : Si pas d'arrêt spécifié, le moyen tourne indéfiniment jusqu'au bout de l'horizon
+                arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
                 dejaComptabilise: false
             });
         }
@@ -611,21 +651,17 @@ function calculerTout() {
     resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
     resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
 
-    // --- Génération des étiquettes (annotations) avec gestion anti-collision ---
     let annotationsMoyens = {};
-    let compteursParMinute = {}; // Enregistre le nombre d'étiquettes à une minute précise
+    let compteursParMinute = {};
 
     listeMoyensEngages.forEach((m, index) => {
         if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
-            
-            // Si la minute est déjà occupée, on incrémente le compteur pour cette minute, sinon on l'initialise à 0
             if (compteursParMinute[m.arrDelta] === undefined) {
                 compteursParMinute[m.arrDelta] = 0;
             } else {
                 compteursParMinute[m.arrDelta]++;
             }
 
-            // Calcul du décalage : 5 pixels de base + 22 pixels par étiquette supplémentaire
             let decalageY = 5 + (compteursParMinute[m.arrDelta] * 22);
 
             annotationsMoyens[`moyen_${index}`] = {
@@ -646,7 +682,7 @@ function calculerTout() {
                     borderRadius: 4,
                     borderWidth: 1,
                     borderColor: '#3b82f6',
-                    yAdjust: decalageY // Décalage dynamique vers le bas
+                    yAdjust: decalageY
                 }
             };
         }
