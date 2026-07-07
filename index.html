@@ -6,6 +6,7 @@
     <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
     
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
 
     <style>
         :root {
@@ -51,8 +52,8 @@
 
         .moyens-container { margin-bottom: 10px; }
         .moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 0.8fr 0.8fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a; padding: 6px; border-radius: 6px; }
-        .moyens-header-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 0.8fr 0.8fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
-        .moyens-header-grid span:first-child { text-align: left; }
+        .moyens-grid-header { display: grid; grid-template-columns: 2fr 1fr 1fr 0.8fr 0.8fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
+        .moyens-grid-header span:first-child { text-align: left; }
         .moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; }
         .moyens-grid input[type="text"] { text-align: left; }
         
@@ -68,7 +69,7 @@
         .doc-table th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 6px; font-weight: normal; border: 1px solid #334155; }
         .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
 
-        .chart-container { position: relative; width: 100%; height: 260px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
+        .chart-container { position: relative; width: 100%; height: 280px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
         .alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; }
         
         .legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
@@ -201,7 +202,7 @@
         <button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">🚨 7 Heures (Total Régl. + Maintien)</button>
     </div>
 
-    <div class="moyens-header-grid">
+    <div class="moyens-grid-header">
         <span>Nom du Vecteur / Renfort</span>
         <span>Débit (L/m)</span>
         <span>Émulseur (L)</span>
@@ -251,7 +252,6 @@ let myChart = null;
 let dureeMissionDoctrine = 40; 
 let horizonActuel = 180; 
 
-// Initialisation avec le premier vecteur nommé "Moyens Exploit."
 const moyensParDefaut = [
     { nom: "Moyens Exploit.", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
@@ -396,7 +396,10 @@ function initChart() {
             responsive: true,
             maintainAspectRatio: false,
             animation: false,
-            plugins: { legend: { display: false } },
+            plugins: { 
+                legend: { display: false },
+                annotation: { annotations: {} } // Initialisation vide pour le plugin
+            },
             scales: {
                 x: { 
                     grid: { color: '#334155' }, 
@@ -427,6 +430,7 @@ function resetVisuals() {
     if (myChart) {
         myChart.data.labels = [];
         myChart.data.datasets = [];
+        myChart.options.plugins.annotation.annotations = {};
         myChart.update();
     }
 }
@@ -480,7 +484,7 @@ function calculerTout() {
     let stockTotalAporte = 0;
     
     lignes.forEach(ligne => {
-        const nom = ligne.querySelector('.m-nom').value;
+        const nom = ligne.querySelector('.m-nom').value.trim();
         const debit = parseFloat(ligne.querySelector('.m-debit').value) || 0;
         const emulseur = parseFloat(ligne.querySelector('.m-emulseur').value) || 0;
         const arrStr = ligne.querySelector('.m-arrivee').value;
@@ -492,9 +496,10 @@ function calculerTout() {
         if (debit > 0 || emulseur > 0) {
             stockTotalAporte += emulseur;
             listeMoyensEngages.push({
-                nom: nom,
+                nom: nom || "Renfort",
                 debit: debit,
                 emulseurApporte: emulseur,
+                arrStr: arrStr,
                 arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
                 arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
                 dejaComptabilise: false
@@ -509,6 +514,7 @@ function calculerTout() {
     const vCuvetteNecessaire = surface * hFuite * 1000;
 
     let labelsX = [];
+    let labelsBrutsX = []; // Garde les heures exactes pour indexer les annotations
     let dataDynamicObjective = []; 
     let dataTemp = [];
     let dataMaintien = [];
@@ -528,12 +534,14 @@ function calculerTout() {
     const step = 1; 
 
     for (let delta = 0; delta <= horizonActuel; delta += step) {
+        const heureExacte = minutesToTimeStr(t0Min + delta);
+        labelsBrutsX.push(heureExacte);
         
         if (horizonActuel === 420) {
-            if (delta % 5 === 0) labelsX.push(minutesToTimeStr(t0Min + delta));
+            if (delta % 5 === 0) labelsX.push(heureExacte);
             else labelsX.push("");
         } else {
-            if (delta % 2 === 0) labelsX.push(minutesToTimeStr(t0Min + delta));
+            if (delta % 2 === 0) labelsX.push(heureExacte);
             else labelsX.push("");
         }
         
@@ -603,6 +611,38 @@ function calculerTout() {
     resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
     resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
 
+    // --- Génération des étiquettes (annotations) sur le graphique ---
+    let annotationsMoyens = {};
+    
+    listeMoyensEngages.forEach((m, index) => {
+        // On n'affiche l'étiquette que si le moyen arrive dans l'horizon temporel analysé
+        if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
+            const heureEtiquette = labelsBrutsX[m.arrDelta];
+            
+            annotationsMoyens[`moyen_${index}`] = {
+                type: 'line',
+                scaleID: 'x',
+                value: m.arrDelta, // Index numérique du pas de temps réel
+                borderColor: '#3b82f6',
+                borderWidth: 1.5,
+                borderDash: [4, 4],
+                label: {
+                    display: true,
+                    content: `${m.nom} (${m.arrStr})`,
+                    position: 'start', // Place l'étiquette en haut de la ligne
+                    backgroundColor: '#1e293b',
+                    color: '#3b82f6',
+                    font: { size: 9, weight: 'bold' },
+                    padding: 4,
+                    borderRadius: 4,
+                    borderWidth: 1,
+                    borderColor: '#3b82f6',
+                    yAdjust: 5 // Léger décalage pour ne pas mordre sur le bord haut
+                }
+            };
+        }
+    });
+
     myChart.data.labels = labelsX;
     myChart.data.datasets = [
         { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
@@ -610,6 +650,9 @@ function calculerTout() {
         { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#a855f7', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
         { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
     ];
+    
+    // Injecter les étiquettes dynamiques
+    myChart.options.plugins.annotation.annotations = annotationsMoyens;
     myChart.update();
 
     const statusBox = document.getElementById('top-extinction-status');
