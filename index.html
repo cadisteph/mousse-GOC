@@ -313,8 +313,8 @@ moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
 
 /* --- MOTEUR DE PHOTO-CAPTURE DIRECTE POUR SMARTPHONE/IPHONE --- */
-/* --- MOTEUR DE PHOTO-CAPTURE SPÉCIAL iOS / IPHONE --- */
 function genererCaptureImage() {
+  // Entrée en mode export (masquage boutons de suppression)
   document.body.classList.add('is-exporting');
   document.getElementById('btn-add-moyen').style.display = 'none';
   document.getElementById('horizon-selector-zone').style.display = 'none';
@@ -324,52 +324,23 @@ function genererCaptureImage() {
   setTimeout(() => {
     html2canvas(zone, {
       backgroundColor: '#0f172a',
-      scale: 2,
+      scale: 2, // Augmente la résolution pour la lecture sur écran
       logging: false,
       useCORS: true
     }).then(canvas => {
+      // Conversion en fichier image de téléchargement
       const imageURI = canvas.toDataURL("image/png");
+      const lienTemporaire = document.createElement('a');
+      
+      let horodatage = new Date().toISOString().slice(11,16).replace(':','h');
+      lienTemporaire.download = `Tactique_Mousse_${horodatage}.png`;
+      lienTemporaire.href = imageURI;
+      
+      document.body.appendChild(lienTemporaire);
+      lienTemporaire.click();
+      document.body.removeChild(lienTemporaire);
 
-      // CRÉATION D'UNE FENÊTRE SUPERPOSÉE POUR L'IPHONE
-      const overlay = document.createElement('div');
-      overlay.style.position = 'fixed';
-      overlay.style.top = '0';
-      overlay.style.left = '0';
-      overlay.style.width = '100%';
-      overlay.style.height = '100%';
-      overlay.style.backgroundColor = 'rgba(15, 23, 42, 0.95)';
-      overlay.style.zIndex = '9999';
-      overlay.style.display = 'flex';
-      overlay.style.flexDirection = 'column';
-      overlay.style.alignItems = 'center';
-      overlay.style.justifyContent = 'center';
-      overlay.style.padding = '20px';
-
-      const text = document.createElement('p');
-      text.innerHTML = "📸 <b>Appui long sur l'image</b> pour l'enregistrer ou la partager.<br><br><i>Touchez l'écran à côté pour fermer.</i>";
-      text.style.color = '#f8fafc';
-      text.style.textAlign = 'center';
-      text.style.marginBottom = '20px';
-      text.style.fontSize = '1.1rem';
-
-      const img = document.createElement('img');
-      img.src = imageURI;
-      img.style.maxWidth = '100%';
-      img.style.maxHeight = '70%';
-      img.style.borderRadius = '8px';
-      img.style.boxShadow = '0 10px 25px rgba(0,0,0,0.5)';
-
-      overlay.appendChild(text);
-      overlay.appendChild(img);
-
-      // Fermer la fenêtre quand on clique dessus
-      overlay.onclick = function() {
-        document.body.removeChild(overlay);
-      };
-
-      document.body.appendChild(overlay);
-
-      // Rétablissement de l'interface derrière
+      // Rétablissement de l'interface
       document.body.classList.remove('is-exporting');
       document.getElementById('btn-add-moyen').style.display = 'block';
       document.getElementById('horizon-selector-zone').style.display = 'flex';
