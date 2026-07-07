@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
     
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
 
     <style>
         :root {
@@ -16,7 +16,7 @@
             --accent-red: #dc2626;
             --accent-green: #16a34a;
             --accent-orange: #fb923c;
-            --accent-purple: #a855f7;
+            --accent-fuchsia: #d946ef;
             --text-main: #f8fafc;
             --text-muted: #94a3b8;
         }
@@ -27,9 +27,11 @@
         header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
         header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 
-        .container-reset { text-align: center; margin: 10px 0 15px 0; }
-        .btn-reset { background: var(--accent-orange); border: none; color: #0f172a; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; width: 100%; max-width: 350px; box-shadow: 0 4px 6px rgba(251, 146, 60, 0.2); transition: transform 0.1s; }
-        .btn-reset:active { transform: scale(0.98); }
+        .container-actions { display: flex; gap: 10px; justify-content: center; margin: 10px 0 15px 0; }
+        .btn-action-top { border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: center;}
+        .btn-reset { background: var(--accent-orange); color: #0f172a; }
+        .btn-extract { background: var(--accent-blue); color: white; }
+        .btn-action-top:active { transform: scale(0.98); }
 
         .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
         .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155; padding-bottom: 4px; }
@@ -90,8 +92,9 @@
     <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
 
-<div class="container-reset">
-    <button class="btn-reset" onclick="reinitialiserApplication()">🔄 RÉINITIALISER TOUTES LES DONNÉES</button>
+<div class="container-actions">
+    <button class="btn-action-top btn-reset" onclick="reinitialiserApplication()">🔄 REINITIALISER</button>
+    <button class="btn-action-top btn-extract" onclick="extraireDonnees()">📤 EXTRAIRE</button>
 </div>
 
 <div class="card">
@@ -137,8 +140,8 @@
 
         <div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
             <div class="form-group">
-                <label style="color:#fb923c;">Débit de Fuite Produit (L/min) :</label>
-                <input type="number" id="inp-qfuite-calcul" value="" placeholder="ex: 300" oninput="calculerTout()">
+                <label style="color:#fb923c;">Débit de Fuite Produit (m³/h) :</label>
+                <input type="number" id="inp-qfuite-calcul" value="" placeholder="ex: 18" oninput="calculerTout()">
             </div>
             <div class="form-group">
                 <label style="color:#fb923c;">Hauteur de la Fuite (m) :</label>
@@ -184,9 +187,9 @@
                 <td>🚀 EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
                 <td id="brut-qsm-ext">0 L/min</td>
                 <td id="brut-vol-ext">0 L</td>
-                <td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-purple); text-align: center;">0 L</td>
+                <td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-fuchsia); text-align: center;">0 L</td>
             </tr>
-            <tr style="color: #f97316;">
+            <tr style="color: #fb923c;">
                 <td>⏳ TEMPO (1/2 Taux)</td>
                 <td id="brut-qsm-temp">0 L/min</td>
                 <td id="brut-vol-temp">0 L</td>
@@ -209,7 +212,7 @@
         <span>Débit (L/m)</span>
         <span>Émulseur (L)</span>
         <span>H. Mise en Oeuvre</span>
-        <span>Arrêt Impératif</span>
+        <span>Arrêt</span>
         <span></span>
     </div>
 
@@ -239,7 +242,7 @@
     <div class="legend-mini">
         <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Courant</span></div>
         <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
-        <div class="legend-item"><div class="color-box" style="background:#a855f7;"></div><span style="color:#c084fc;">Maintien Tapis</span></div>
+        <div class="legend-item"><div class="color-box" style="background:#d946ef;"></div><span style="color:#d946ef;">Maintien Tapis</span></div>
         <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
     </div>
     
@@ -322,6 +325,43 @@ function reinitialiserApplication() {
 
     document.getElementById('moyens-liste').innerHTML = "";
     moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+}
+
+function extraireDonnees() {
+    const surface = document.getElementById('inp-surface').value || '0';
+    const t0 = document.getElementById('inp-t0').value || '--:--';
+    const conf = configSinistre === 'cuvette' ? 'Cuvette' : 'Nappe';
+    const prod = typeProduit === 'hydro' ? 'Hydrocarbure' : 'Solvant';
+    const fuiteStatus = fuiteRecouverte ? 'Recouverte' : 'Active';
+    const fuiteDebit = document.getElementById('inp-qfuite-calcul').value || '0';
+    
+    let texteMoyens = "";
+    const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
+    rows.forEach(row => {
+        const nom = row.querySelector('.m-nom').value || 'Vecteur';
+        const deb = row.querySelector('.m-debit').value || '0';
+        const emu = row.querySelector('.m-emulseur').value || '0';
+        const hmo = row.querySelector('.m-arrivee').value || '--:--';
+        const arr = row.querySelector('.m-arret').value || 'Continu';
+        if(deb > 0 || emu > 0) {
+            texteMoyens += `- ${nom} : ${deb} L/min | ${emu} L | MoO: ${hmo} | Arrêt: ${arr}\n`;
+        }
+    });
+
+    const corpsMessage = `--- BILAN MOUSSE TACTIQUE ---\n` +
+                         `Configuration : ${conf} / ${prod}\n` +
+                         `Surface : ${surface} m² | T0 : ${t0}\n` +
+                         `Statut Fuite : ${fuiteStatus} (${fuiteDebit} m³/h)\n\n` +
+                         `--- ENGAGEMENT CINÉTIQUE ---\n` +
+                         (texteMoyens || "Aucun moyen encodé.\n") + `\n` +
+                         `Généré via l'application d'aide à la décision.`;
+
+    const choix = confirm("Comment souhaitez-vous envoyer les données ?\n\n[OK] par Email\n[Annuler] par SMS");
+    if (choix) {
+        window.location.href = `mailto:?subject=Bilan Mousse Tactique - T0 ${t0}&body=${encodeURIComponent(corpsMessage)}`;
+    } else {
+        window.location.href = `sms:?&body=${encodeURIComponent(corpsMessage)}`;
+    }
 }
 
 function timeToMinutes(timeStr) {
@@ -447,10 +487,13 @@ function calculerTout() {
     const surface = parseFloat(surfaceInput) || 0;
     const t0Str = document.getElementById('inp-t0').value;
     
-    const qFuiteInput = document.getElementById('inp-qfuite-calcul').value;
+    const qFuiteM3H = document.getElementById('inp-qfuite-calcul').value;
     const hFuiteInput = document.getElementById('inp-hfuite').value;
 
-    if (!fuiteRecouverte && (!qFuiteInput || parseFloat(qFuiteInput) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
+    // Conversion de la fuite : m3/h -> L/min (Multiplication par 1000 puis division par 60 => approx * 16.6667)
+    const qFuite = qFuiteM3H ? (parseFloat(qFuiteM3H) * 1000 / 60) : 0;
+
+    if (!fuiteRecouverte && (!qFuiteM3H || parseFloat(qFuiteM3H) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
         resetVisuals();
         document.getElementById('top-extinction-status').innerHTML = `⚠️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
         document.getElementById('top-extinction-status').style.background = "#7c2d12"; document.getElementById('top-extinction-status').style.color = "#fed7aa";
@@ -502,8 +545,6 @@ function calculerTout() {
         if (debit > 0 || emulseur > 0) {
             stockTotalAporte += emulseur;
             
-            // L'arrêt du GRAPHIQUE est dicté uniquement par la case Arrêt de l'utilisateur.
-            // Si la case est vide, l'engin ne s'arrête pas de lui-même sur le graphique (il attend la panne sèche globale).
             let deltaArretGraphique = 99999;
             if (arretMin !== null) {
                 deltaArretGraphique = arretMin - t0Min;
@@ -526,7 +567,6 @@ function calculerTout() {
 
     document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
     
-    const qFuite = parseFloat(qFuiteInput) || 0;
     const hFuite = parseFloat(hFuiteInput) || 0;
     const vCuvetteNecessaire = surface * hFuite * 1000;
 
@@ -551,7 +591,6 @@ function calculerTout() {
 
     const step = 1; 
 
-    // --- BOUCLE CINÉTIQUE ---
     for (let delta = 0; delta <= horizonActuel; delta += step) {
         const heureExacte = minutesToTimeStr(t0Min + delta);
         labelsBrutsX.push(heureExacte);
@@ -564,7 +603,6 @@ function calculerTout() {
             else labelsX.push("");
         }
         
-        // Approvisionnement dynamique en émulseur
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && !m.dejaComptabilise) {
                 reserveEmulseurDisponible += m.emulseurApporte;
@@ -572,7 +610,6 @@ function calculerTout() {
             }
         });
 
-        // Somme des débits actifs selon les heures d'ARRÊT voulues par l'utilisateur
         let debitCourantSolution = 0;
         listeMoyensEngages.forEach(m => {
             if (delta >= m.arrDelta && delta < m.arretDelta) {
@@ -582,7 +619,6 @@ function calculerTout() {
         
         let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
         
-        // Gestion de la rupture de stock réelle sur le chantier
         if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
             debitCourantSolution = 0; 
             consoPasDeTemps = 0;
@@ -597,7 +633,6 @@ function calculerTout() {
         consoCumuleeEmulseur += consoPasDeTemps;
         dataReel.push(debitCourantSolution);
 
-        // Scellement de la fuite
         if (!fuiteEstScellee && qFuite > 0) {
             const solutionEfficace = debitCourantSolution * 0.5;
             volLiquideCuvette += (qFuite + solutionEfficace) * step; 
@@ -608,7 +643,6 @@ function calculerTout() {
             }
         }
 
-        // Objectif Tactique Courant
         if (!fuiteEstScellee && qFuite > 0) {
             dataDynamicObjective.push(qsmTemp);
         } else {
@@ -630,9 +664,7 @@ function calculerTout() {
         dataMaintien.push(qsmMaintien);
     }
 
-    // --- CALCULS DES HEURES CAPACITAIRES GRISÉES (Aide à la décision) ---
-    // On calcule l'autonomie théorique par rapport au moment où l'engin ou la réserve s'installe, 
-    // en tenant compte des débits globaux pour consommer cette ressource.
+    // --- CALCULS AUXILIAIRES GRISÉS ---
     listeMoyensEngages.forEach(m => {
         if (!m.arrStr) {
             m.helperElement.innerText = "";
@@ -641,16 +673,13 @@ function calculerTout() {
 
         const tMiseOeuvre = timeToMinutes(m.arrStr);
         
-        // 1. Si l'engin a son propre débit
         if (m.debit > 0) {
             const debitEmuEngin = m.debit * (conc / 100);
             const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
             const heureCapaPropre = (tMiseOeuvre + minutesAutonomiePropre) % 1440;
             m.helperElement.innerHTML = `⏳ Autonomie vecteur seule : <b style="color: #60a5fa;">${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
         } 
-        // 2. Si c'est une LOGISTIQUE PURE (Émulseur seul, débit = 0)
         else if (m.debit === 0 && m.emulseurApporte > 0) {
-            // On regarde quel est le débit total d'attaque mis en œuvre au moment où la réserve arrive
             let debitDAttaqueActuelAuPointDArrivee = 0;
             listeMoyensEngages.forEach(other => {
                 if (other.debit > 0 && other.arrStr && timeToMinutes(other.arrStr) <= tMiseOeuvre) {
@@ -674,7 +703,6 @@ function calculerTout() {
     resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
     resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
 
-    // Gestion des annotations graphiques (Mise en œuvre uniquement)
     let annotationsMoyens = {};
     let compteursParMinute = {};
 
@@ -716,7 +744,7 @@ function calculerTout() {
     myChart.data.datasets = [
         { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
         { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
-        { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#a855f7', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
+        { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#d946ef', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
         { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
     ];
     
