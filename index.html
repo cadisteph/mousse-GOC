@@ -1,785 +1,710 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
-    
-    <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
 
-    <style>
-        :root {
-            --bg-app: #0f172a;
-            --card-bg: #1e293b;
-            --accent-blue: #2563eb;
-            --accent-red: #dc2626;
-            --accent-green: #16a34a;
-            --accent-orange: #fb923c;
-            --accent-fuchsia: #d946ef;
-            --text-main: #f8fafc;
-            --text-muted: #94a3b8;
-        }
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
-        
-        header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-        header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
-        header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
+<script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
+<style>
+:root {
+--bg-app: #0f172a;
+--card-bg: #1e293b;
+--accent-blue: #2563eb;
+--accent-red: #dc2626;
+--accent-green: #16a34a;
+--accent-orange: #fb923c;
+--accent-fuchsia: #d946ef;
+--text-main: #f8fafc;
+--text-muted: #94a3b8;
+}
+* { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
 
-        .container-actions { display: flex; gap: 10px; justify-content: center; margin: 10px 0 15px 0; }
-        .btn-action-top { border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px; box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: center;}
-        .btn-reset { background: var(--accent-orange); color: #0f172a; }
-        .btn-extract { background: var(--accent-blue); color: white; }
-        .btn-action-top:active { transform: scale(0.98); }
+header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
+header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
+header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
+.container-actions { display: flex; gap: 10px; justify-content: center; margin: 10px 0 15px 0; }
+.btn-action-top { border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px;
+box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: center;}
+.btn-reset { background: var(--accent-orange); color: #0f172a; }
+.btn-extract { background: var(--accent-blue); color: white; }
+.btn-action-top:active { transform: scale(0.98); }
+.card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); page-break-inside: avoid; break-inside: avoid; }
+.card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155;
+padding-bottom: 4px; }
 
-        .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-        .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155; padding-bottom: 4px; }
-        
-        .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
-        .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
-        .toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
-        .toggle-btn.active-green { background: var(--accent-green); border-color: #22c55e; color: white; }
-        .toggle-btn.active-orange { background: var(--accent-orange); border-color: #f97316; color: #0f172a; }
+.toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
+.toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold;
+cursor: pointer; text-align: center; }
+.toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
+.toggle-btn.active-green { background: var(--accent-green); border-color: #22c55e; color: white; }
+.toggle-btn.active-orange { background: var(--accent-orange); border-color: #f97316; color: #0f172a; }
+.poi-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155;
+}
+.poi-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: bold; text-transform: uppercase;}
+.select-custom { background: #1e293b; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 0.9rem;
+}
+.form-group { margin-bottom: 8px; }
+.form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
+.form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem;
+font-weight: bold; }
 
-        .poi-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; }
-        .poi-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: bold; text-transform: uppercase;}
-        .select-custom { background: #1e293b; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 0.9rem; }
+.form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.moyens-container { margin-bottom: 10px; }
+.moyens-container-row { page-break-inside: avoid; break-inside: avoid; margin-bottom: 4px; }
+.moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; align-items: center; background: #0f172a;
+padding: 6px; border-radius: 6px; position: relative;}
+.moyens-grid-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
+font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
+.moyens-grid-header span:first-child { text-align: left; }
+.moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;
+font-weight: bold; text-align: center; }
+.moyens-grid input[type="text"] { text-align: left; }
 
-        .form-group { margin-bottom: 8px; }
-        .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
-        .form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; }
-        
-        .form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.capa-helper { font-size: 0.65rem; color: #f87171; text-align: center; margin-top: 2px; font-weight: 500; height: 12px;}
+.btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
+width: 100%; margin-top: 5px; }
+.btn-remove { background: var(--accent-red); border: none; color: white; padding: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
+.slider-container { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 8px; }
+.slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
+.slider-val { font-weight: bold; color: var(--accent-orange); }
+input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4px 0; }
+.doc-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.8rem; }
+.doc-table th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 6px; font-weight: normal; border: 1px solid #334155; }
+.doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
+.chart-container { position: relative; width: 100%; height: 320px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
+.alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; }
 
-        .moyens-container { margin-bottom: 10px; }
-        .moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a; padding: 6px; border-radius: 6px; position: relative;}
-        .moyens-grid-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
-        .moyens-grid-header span:first-child { text-align: left; }
-        .moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; }
-        .moyens-grid input[type="text"] { text-align: left; }
-        
-        .capa-helper { font-size: 0.65rem; color: #f87171; text-align: center; margin-top: 2px; font-weight: 500; height: 12px;}
+.legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
+.legend-item { display: flex; align-items: center; gap: 4px; }
+.color-box { width: 12px; height: 12px; border-radius: 3px; }
+.reserve-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 8px; background: #0f172a; padding: 8px; border-radius: 6px;
+border: 1px solid #475569;}
+.reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
+.reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
 
-        .btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
-        .btn-remove { background: var(--accent-red); border: none; color: white; padding: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
-
-        .slider-container { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 8px; }
-        .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
-        .slider-val { font-weight: bold; color: var(--accent-orange); }
-        input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4px 0; }
-
-        .doc-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.8rem; }
-        .doc-table th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 6px; font-weight: normal; border: 1px solid #334155; }
-        .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
-
-        .chart-container { position: relative; width: 100%; height: 320px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
-        .alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; }
-        
-        .legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
-        .legend-item { display: flex; align-items: center; gap: 4px; }
-        .color-box { width: 12px; height: 12px; border-radius: 3px; }
-
-        .reserve-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 8px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #475569;}
-        .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
-        .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
-    </style>
+/* --- STYLES SPECIFIQUES POUR L'IMPRESSION ET L'EXPORT PDF --- */
+@media print {
+  @page {
+    size: landscape;
+    margin: 10mm;
+  }
+  body {
+    background: #0f172a !important;
+    color: #f8fafc !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+  .container-actions, .btn-action, .btn-remove {
+    display: none !important; /* Masque les boutons d'interaction */
+  }
+  .card {
+    box-shadow: none !important;
+    border: 1px solid #334155 !important;
+  }
+  input, select {
+    background: #1e293b !important;
+    color: white !important;
+    border: 1px solid #475569 !important;
+  }
+}
+</style>
 </head>
 <body>
-
 <header>
-    <h1>MOUSSE TACTIQUE — SDIS</h1>
-    <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
+<h1>MOUSSE TACTIQUE — SDIS</h1>
+<p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
-
 <div class="container-actions">
-    <button class="btn-action-top btn-reset" onclick="reinitialiserApplication()">🔄 REINITIALISER</button>
-    <button class="btn-action-top btn-extract" onclick="extraireDonnees()">📤 EXTRAIRE</button>
+<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄  REINITIALISER</button>
+<button class="btn-action-top btn-extract" onclick="extraireDonnees()"> 📤  EXTRAIRE</button>
 </div>
-
 <div class="card">
-    <h2>Étape 1 : Situation du Sinistre</h2>
-    
-    <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">🛢️ Cuvette / Rétention</button>
-        <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">🌊 Nappe / Épandage</button>
-    </div>
+<h2>Étape 1 : Situation du Sinistre</h2>
 
-    <div class="toggle-group">
-        <button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">⛽ Hydrocarbure (Non miscible)</button>
-        <button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">🧪 Solvant (Miscible)</button>
-    </div>
-
-    <div id="bloc-poi" class="poi-grid">
-        <div class="poi-label">Réglementation & Doctrine Site :</div>
-        <select id="select-poi-type" class="select-custom" onchange="appliquerDoctrineTauxDuree()">
-            <option value="sans-poi">Site SANS POI (Régime Général)</option>
-            <option value="poi-non-autonome">Site avec POI NON Autonome (App. Indirecte unique)</option>
-            <option value="poi-autonome-directe">Site avec POI Autonome — Application Directe</option>
-            <option value="poi-autonome-indirecte">Site avec POI Autonome — Application Indirecte</option>
-        </select>
-    </div>
-
-    <div class="form-inline-2">
-        <div class="form-group">
-            <label for="inp-surface">Surface enflammée (m²) :</label>
-            <input type="number" id="inp-surface" value="" placeholder="ex: 500" oninput="appliquerDoctrineTauxDuree()">
-        </div>
-        <div class="form-group">
-            <label for="inp-t0">Heure de Référence (T0) :</label>
-            <input type="time" id="inp-t0" value="" oninput="calculerTout()">
-        </div>
-    </div>
-
-    <div style="background: #0f172a; padding: 10px; border-radius: 6px; border: 2px solid #334155; margin: 8px 0 12px 0;">
-        <label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);">⚠️ Statut opérationnel de la fuite :</label>
-        <div class="toggle-group" style="margin-bottom:8px;">
-            <button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">🟢 Fuite Recouverte d'emblée</button>
-            <button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)">⚠️ Fuite NON Recouverte</button>
-        </div>
-
-        <div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
-            <div class="form-group">
-                <label style="color:#fb923c;">Débit de Fuite Produit (m³/h) :</label>
-                <input type="number" id="inp-qfuite-calcul" value="" placeholder="ex: 18" oninput="calculerTout()">
-            </div>
-            <div class="form-group">
-                <label style="color:#fb923c;">Hauteur de la Fuite (m) :</label>
-                <input type="number" id="inp-hfuite" value="" step="0.05" placeholder="ex: 0.15" oninput="calculerTout()">
-            </div>
-        </div>
-    </div>
-
-    <div class="form-inline-2">
-        <div class="slider-container" style="margin-bottom:0;">
-            <div class="slider-header"><span>Taux (Tx ext) :</span><span class="slider-val" id="val-ta">5.0</span></div>
-            <input type="range" id="slip-ta" min="1" max="25" step="1" value="5" oninput="updateSlider('ta', this.value)">
-        </div>
-        <div class="slider-container" style="margin-bottom:0;">
-            <div class="slider-header"><span>Concentration :</span><span class="slider-val" id="val-conc">3.0 %</span></div>
-            <input type="range" id="slip-conc" min="1" max="6" step="1" value="3" oninput="updateSlider('conc', this.value)">
-        </div>
-    </div>
+<div class="toggle-group">
+<button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')"> 🛢 ️ Cuvette / Rétention</button>
+<button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')"> 🌊  Nappe / Épandage</button>
 </div>
-
+<div class="toggle-group">
+<button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')"> ⛽  Hydrocarbure (Non miscible)</button>
+<button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')"> 🧪  Solvant (Miscible)</button>
+</div>
+<div id="bloc-poi" class="poi-grid">
+<div class="poi-label">Réglementation & Doctrine Site :</div>
+<select id="select-poi-type" class="select-custom" onchange="appliquerDoctrineTauxDuree()">
+<option value="sans-poi">Site SANS POI (Régime Général)</option>
+<option value="poi-non-autonome">Site avec POI NON Autonome (App. Indirecte unique)</option>
+<option value="poi-autonome-directe">Site avec POI Autonome — Application Directe</option>
+<option value="poi-autonome-indirecte">Site avec POI Autonome — Application Indirecte</option>
+</select>
+</div>
+<div class="form-inline-2">
+<div class="form-group">
+<label for="inp-surface">Surface enflammée (m²) :</label>
+<input type="number" id="inp-surface" value="" placeholder="ex: 500" oninput="appliquerDoctrineTauxDuree()">
+</div>
+<div class="form-group">
+<label for="inp-t0">Heure de Référence (T0) :</label>
+<input type="time" id="inp-t0" value="" oninput="calculerTout()">
+</div>
+</div>
+<div style="background: #0f172a; padding: 10px; border-radius: 6px; border: 2px solid #334155; margin: 8px 0 12px 0;">
+<label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);"> ⚠ ️ Statut opérationnel de la fuite :</label>
+<div class="toggle-group" style="margin-bottom:8px;">
+<button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)"> 🟢  Fuite Recouverte d'emblée</button>
+<button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)"> ⚠ ️ Fuite NON Recouverte</button>
+</div>
+<div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
+<div class="form-group">
+<label style="color:#fb923c;">Débit de Fuite Produit (m³/h) :</label>
+<input type="number" id="inp-qfuite-calcul" value="" placeholder="ex: 18" oninput="calculerTout()">
+</div>
+<div class="form-group">
+<label style="color:#fb923c;">Hauteur de la Fuite (m) :</label>
+<input type="number" id="inp-hfuite" value="" step="0.05" placeholder="ex: 0.15" oninput="calculerTout()">
+</div>
+</div>
+</div>
+<div class="form-inline-2">
+<div class="slider-container" style="margin-bottom:0;">
+<div class="slider-header"><span>Taux (Tx ext) :</span><span class="slider-val" id="val-ta">5.0</span></div>
+<input type="range" id="slip-ta" min="1" max="25" step="1" value="5" oninput="updateSlider('ta', this.value)">
+</div>
+<div class="slider-container" style="margin-bottom:0;">
+<div class="slider-header"><span>Concentration :</span><span class="slider-val" id="val-conc">3.0 %</span></div>
+<input type="range" id="slip-conc" min="1" max="6" step="1" value="3" oninput="updateSlider('conc', this.value)">
+</div>
+</div>
+</div>
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
-    <h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
-    
-    <div style="margin-bottom: 10px; background: #0f172a; padding: 6px; border-radius: 6px; border: 1px solid #334155;">
-        <label for="select-maintien-rule" style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:2px; text-transform:uppercase; font-weight:bold;">Calcul du Maintien de Tapis (4h) :</label>
-        <select id="select-maintien-rule" class="select-custom" style="font-size:0.8rem; padding:5px;" onchange="calculerTout()">
-            <option value="onesixth">Règle Opérationnelle du 1/6ème du débit d'attaque (Recommandé CODIS)</option>
-            <option value="regime-general">Fixe Régime Général (0.2 L/min/m²)</option>
-        </select>
-    </div>
+<h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
 
-    <table class="doc-table">
-        <thead>
-            <tr>
-                <th>Seuil Tactique</th>
-                <th>Débit Solution</th>
-                <th>Vol. Émulseur Extinction</th>
-                <th>Vol. Émulseur Maintien (4h)</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr style="color: #ef4444;">
-                <td>🚀 EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
-                <td id="brut-qsm-ext">0 L/min</td>
-                <td id="brut-vol-ext">0 L</td>
-                <td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-fuchsia); text-align: center;">0 L</td>
-            </tr>
-            <tr style="color: #fb923c;">
-                <td>⏳ TEMPO (1/2 Taux)</td>
-                <td id="brut-qsm-temp">0 L/min</td>
-                <td id="brut-vol-temp">0 L</td>
-            </tr>
-        </tbody>
-    </table>
+<div style="margin-bottom: 10px; background: #0f172a; padding: 6px; border-radius: 6px; border: 1px solid #334155;">
+<label for="select-maintien-rule" style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:2px; text-transform:uppercase; font-weight:bold;">Calcul du Maintien de Tapis (4h) :</label>
+<select id="select-maintien-rule" class="select-custom" style="font-size:0.8rem; padding:5px;" onchange="calculerTout()">
+<option value="onesixth">Règle Opérationnelle du 1/6ème du débit d'attaque (Recommandé CODIS)</option>
+<option value="regime-general">Fixe Régime Général (0.2 L/min/m²)</option>
+</select>
 </div>
-
+<table class="doc-table">
+<thead>
+<tr>
+<th>Seuil Tactique</th>
+<th>Débit Solution</th>
+<th>Vol. Émulseur Extinction</th>
+<th>Vol. Émulseur Maintien (4h)</th>
+</tr>
+</thead>
+<tbody>
+<tr style="color: #ef4444;">
+<td> 🚀  EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
+<td id="brut-qsm-ext">0 L/min</td>
+<td id="brut-vol-ext">0 L</td>
+<td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-green); text-align: center;">0 L</td>
+</tr>
+<tr style="color: #fb923c;">
+<td> ⏳  TEMPO (1/2 Taux)</td>
+<td id="brut-qsm-temp">0 L/min</td>
+<td id="brut-vol-temp">0 L</td>
+</tr>
+</tbody>
+</table>
+</div>
 <div class="card" style="border: 2px solid var(--accent-blue);">
-    <h2>📈 Suivi Cinétique Dynamique des Moyens</h2>
-    
-    <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
-    <div class="toggle-group" style="margin-bottom: 12px;">
-        <button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)">⏳ 3 Heures (Extinction)</button>
-        <button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">🚨 7 Heures (Total Régl. + Maintien)</button>
-    </div>
+<h2> 📈  Suivi Cinétique Dynamique des Moyens</h2>
 
-    <div class="moyens-grid-header">
-        <span>Nom du Vecteur / Renfort</span>
-        <span>Débit (L/m)</span>
-        <span>Émulseur (L)</span>
-        <span>H. Mise en Oeuvre</span>
-        <span>Arrêt</span>
-        <span></span>
-    </div>
+<label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
+<div class="toggle-group" style="margin-bottom: 12px;">
+<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳  3 Heures (Extinction)</button>
+<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)"> 🚨  7 Heures (Total Régl. + Maintien)</button>
+</div>
+<div class="moyens-grid-header">
+<span>Nom du Vecteur / Renfort</span>
+<span>Débit (L/m)</span>
+<span>Émulseur (L)</span>
+<span>H. Mise en Oeuvre</span>
+<span>Arrêt</span>
+<span></span>
+</div>
+<div id="moyens-liste" class="moyens-container"></div>
 
-    <div id="moyens-liste" class="moyens-container"></div>
-    
-    <button class="btn-action" onclick="ajouterLigneMoyen(null)">➕ Ajouter un vecteur ou renfort émanant</button>
-
-    <div class="reserve-box">
-        <div>
-            <div class="reserve-title">Stock Amoncelé</div>
-            <div class="reserve-val" id="res-total" style="color:var(--accent-green);">0 L</div>
-        </div>
-        <div>
-            <div class="reserve-title">Conso. Cumulée</div>
-            <div class="reserve-val" id="res-conso" style="color:var(--accent-red);">0 L</div>
-        </div>
-        <div>
-            <div class="reserve-title">Stock Fin Horizon</div>
-            <div class="reserve-val" id="res-restant">0 L</div>
-        </div>
-    </div>
-
-    <div class="chart-container">
-        <canvas id="kineticChart"></canvas>
-    </div>
-
-    <div class="legend-mini">
-        <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Courant</span></div>
-        <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
-        <div class="legend-item"><div class="color-box" style="background:#d946ef;"></div><span style="color:#d946ef;">Maintien Tapis</span></div>
-        <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
-    </div>
-    
-    <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
+<button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕  Ajouter un vecteur ou renfort émanant</button>
+<div class="reserve-box">
+<div>
+<div class="reserve-title">Stock Amoncelé</div>
+<div class="reserve-val" id="res-total" style="color:var(--accent-green);">0 L</div>
+</div>
+<div>
+<div class="reserve-title">Conso. Cumulée</div>
+<div class="reserve-val" id="res-conso" style="color:var(--accent-red);">0 L</div>
+</div>
+<div>
+<div class="reserve-title">Stock Fin Horizon</div>
+<div class="reserve-val" id="res-restant">0 L</div>
+</div>
+</div>
+<div class="chart-container">
+<canvas id="kineticChart"></canvas>
+</div>
+<div class="legend-mini">
+<div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Courant</span></div>
+<div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
+<div class="legend-item"><div class="color-box" style="background:#16a34a;"></div><span style="color:#16a34a;">Maintien Tapis</span></div>
+<div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
 </div>
 
+<div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
+</div>
 <script>
-let configSinistre = 'cuvette'; 
-let typeProduit = 'hydro'; 
-let fuiteRecouverte = true; 
+let configSinistre = 'cuvette';
+let typeProduit = 'hydro';
+let fuiteRecouverte = true;
 let myChart = null;
-let dureeMissionDoctrine = 40; 
-let horizonActuel = 180; 
-
+let dureeMissionDoctrine = 40;
+let horizonActuel = 180;
 const moyensParDefaut = [
-    { nom: "Moyens Exploit.", debit: "", emulseur: "", arrivee: "", arret: "" }
+{ nom: "Moyens Exploit.", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
-
 function changeHorizon(minutes) {
-    horizonActuel = minutes;
-    document.getElementById('btn-h180').classList.toggle('active', minutes === 180);
-    document.getElementById('btn-h420').classList.toggle('active', minutes === 420);
-    calculerTout();
+horizonActuel = minutes;
+document.getElementById('btn-h180').classList.toggle('active', minutes === 180);
+document.getElementById('btn-h420').classList.toggle('active', minutes === 420);
+calculerTout();
 }
-
 function setFuiteRecouverte(boolValue) {
-    fuiteRecouverte = boolValue;
-    const btnOui = document.getElementById('btn-fuite-oui');
-    const btnNon = document.getElementById('btn-fuite-non');
-    const blocFuite = document.getElementById('bloc-fuite-parametres');
-    
-    if(boolValue) {
-        btnOui.className = "toggle-btn active-green";
-        btnNon.className = "toggle-btn";
-        blocFuite.style.display = "none";
-    } else {
-        btnOui.className = "toggle-btn";
-        btnNon.className = "toggle-btn active-orange";
-        blocFuite.style.display = "grid";
-    }
-    calculerTout();
-}
+fuiteRecouverte = boolValue;
+const btnOui = document.getElementById('btn-fuite-oui');
+const btnNon = document.getElementById('btn-fuite-non');
+const blocFuite = document.getElementById('bloc-fuite-parametres');
 
+if(boolValue) {
+btnOui.className = "toggle-btn active-green";
+btnNon.className = "toggle-btn";
+blocFuite.style.display = "none";
+} else {
+btnOui.className = "toggle-btn";
+btnNon.className = "toggle-btn active-orange";
+blocFuite.style.display = "grid";
+}
+}
 function ajouterLigneMoyen(data) {
-    const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
-    const finalData = data ? data : backup;
-
-    const container = document.getElementById('moyens-liste');
-    const div = document.createElement('div');
-    div.className = 'moyens-container-row'; 
-    div.innerHTML = `
-        <div class="moyens-grid">
-            <input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="ex: GIFF Mousse" oninput="calculerTout()">
-            <input type="number" class="m-debit" value="${finalData.debit}" placeholder="L/min" oninput="calculerTout()">
-            <input type="number" class="m-emulseur" value="${finalData.emulseur}" placeholder="Litres" oninput="calculerTout()">
-            <input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="calculerTout()">
-            <input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
-            <button class="btn-remove" onclick="this.parentElement.parentElement.remove(); calculerTout();">❌</button>
-        </div>
-        <div class="capa-helper" class="m-helper"></div>
-    `;
-    container.appendChild(div);
-    calculerTout();
+const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
+const finalData = data ? data : backup;
+const container = document.getElementById('moyens-liste');
+const div = document.createElement('div');
+div.className = 'moyens-container-row';
+div.innerHTML = `
+<div class="moyens-grid">
+<input type="text" class="m-nom" value="${finalData.nom || ''}" placeholder="ex: GIFF Mousse" oninput="calculerTout()">
+<input type="number" class="m-debit" value="${finalData.debit}" placeholder="L/min" oninput="calculerTout()">
+<input type="number" class="m-emulseur" value="${finalData.emulseur}" placeholder="Litres" oninput="calculerTout()">
+<input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="calculerTout()">
+<input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
+<button class="btn-remove" onclick="this.parentElement.parentElement.remove(); calculerTout();"> ❌ </button>
+</div>
+<div class="capa-helper" class="m-helper"></div>
+`;
+container.appendChild(div);
+calculerTout();
 }
-
 function reinitialiserApplication() {
-    document.getElementById('inp-surface').value = "";
-    document.getElementById('inp-t0').value = "";
-    document.getElementById('inp-qfuite-calcul').value = "";
-    document.getElementById('inp-hfuite').value = "";
-    document.getElementById('select-poi-type').value = "sans-poi";
-    document.getElementById('select-maintien-rule').value = "onesixth";
-    document.getElementById('slip-conc').value = "3";
-    document.getElementById('val-conc').innerText = "3.0 %";
-    
-    setConfiguration('cuvette');
-    setProduit('hydro');
-    setFuiteRecouverte(true);
-    changeHorizon(180);
+document.getElementById('inp-surface').value = "";
+document.getElementById('inp-t0').value = "";
+document.getElementById('inp-qfuite-calcul').value = "";
+document.getElementById('inp-hfuite').value = "";
+document.getElementById('select-poi-type').value = "sans-poi";
+document.getElementById('select-maintien-rule').value = "onesixth";
+document.getElementById('slip-conc').value = "3";
+document.getElementById('val-conc').innerText = "3.0 %";
 
-    document.getElementById('moyens-liste').innerHTML = "";
-    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+setConfiguration('cuvette');
+setProduit('hydro');
+setFuiteRecouverte(true);
+changeHorizon(180);
+document.getElementById('moyens-liste').innerHTML = "";
+moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
 
+/* --- NOUVELLE FONCTION D'EXTRACTION IMPRESSION/PDF --- */
 function extraireDonnees() {
-    const surface = document.getElementById('inp-surface').value || '0';
-    const t0 = document.getElementById('inp-t0').value || '--:--';
-    const conf = configSinistre === 'cuvette' ? 'Cuvette' : 'Nappe';
-    const prod = typeProduit === 'hydro' ? 'Hydrocarbure' : 'Solvant';
-    const fuiteStatus = fuiteRecouverte ? 'Recouverte' : 'Active';
-    const fuiteDebit = document.getElementById('inp-qfuite-calcul').value || '0';
-    
-    let texteMoyens = "";
-    const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
-    rows.forEach(row => {
-        const nom = row.querySelector('.m-nom').value || 'Vecteur';
-        const deb = row.querySelector('.m-debit').value || '0';
-        const emu = row.querySelector('.m-emulseur').value || '0';
-        const hmo = row.querySelector('.m-arrivee').value || '--:--';
-        const arr = row.querySelector('.m-arret').value || 'Continu';
-        if(deb > 0 || emu > 0) {
-            texteMoyens += `- ${nom} : ${deb} L/min | ${emu} L | MoO: ${hmo} | Arrêt: ${arr}\n`;
-        }
-    });
-
-    const corpsMessage = `--- BILAN MOUSSE TACTIQUE ---\n` +
-                         `Configuration : ${conf} / ${prod}\n` +
-                         `Surface : ${surface} m² | T0 : ${t0}\n` +
-                         `Statut Fuite : ${fuiteStatus} (${fuiteDebit} m³/h)\n\n` +
-                         `--- ENGAGEMENT CINÉTIQUE ---\n` +
-                         (texteMoyens || "Aucun moyen encodé.\n") + `\n` +
-                         `Généré via l'application d'aide à la décision.`;
-
-    const choix = confirm("Comment souhaitez-vous envoyer les données ?\n\n[OK] par Email\n[Annuler] par SMS");
-    if (choix) {
-        window.location.href = `mailto:?subject=Bilan Mousse Tactique - T0 ${t0}&body=${encodeURIComponent(corpsMessage)}`;
-    } else {
-        window.location.href = `sms:?&body=${encodeURIComponent(corpsMessage)}`;
-    }
+window.print();
 }
 
 function timeToMinutes(timeStr) {
-    if (!timeStr || timeStr.trim() === "") return null;
-    const parts = timeStr.split(':');
-    if (parts.length < 2) return null;
-    return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
+if (!timeStr || timeStr.trim() === "") return null;
+const parts = timeStr.split(':');
+if (parts.length < 2) return null;
+return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 }
-
 function minutesToTimeStr(totalMinutes) {
-    const mins = (totalMinutes < 0 ? (totalMinutes % 1440) + 1440 : totalMinutes) % 1440;
-    const h = Math.floor(mins / 60).toString().padStart(2, '0');
-    const m = (mins % 60).toString().padStart(2, '0');
-    return `${h}:${m}`;
+const mins = (totalMinutes < 0 ? (totalMinutes % 1440) + 1440 : totalMinutes) % 1440;
+const h = Math.floor(mins / 60).toString().padStart(2, '0');
+const m = (mins % 60).toString().padStart(2, '0');
+return `${h}:${m}`;
 }
-
 function appliquerDoctrineTauxDuree() {
-    const surfaceInput = document.getElementById('inp-surface').value;
-    const surface = parseFloat(surfaceInput) || 0;
-    let tauxAutomatique = 5;
-
-    if (configSinistre === 'nappe') {
-        dureeMissionDoctrine = surface <= 400 ? 20 : 40;
-        tauxAutomatique = typeProduit === 'hydro' ? 10 : 20;
-    } else {
-        dureeMissionDoctrine = 40;
-        const configurationPOI = document.getElementById('select-poi-type').value;
-
-        if (configurationPOI === 'sans-poi') {
-            tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
-        } else if (configurationPOI === 'poi-non-autonome') {
-            tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
-        } else if (configurationPOI === 'poi-autonome-directe') {
-            tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
-        } else if (configurationPOI === 'poi-autonome-indirecte') {
-            tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
-        }
-    }
-
-    document.getElementById('lbl-duree-stat').innerText = dureeMissionDoctrine;
-    document.getElementById('slip-ta').value = tauxAutomatique;
-    document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
-
-    calculerTout();
+const surfaceInput = document.getElementById('inp-surface').value;
+const surface = parseFloat(surfaceInput) || 0;
+let tauxAutomatique = 5;
+if (configSinistre === 'nappe') {
+dureeMissionDoctrine = surface <= 400 ? 20 : 40;
+tauxAutomatique = typeProduit === 'hydro' ? 10 : 20;
+} else {
+dureeMissionDoctrine = 40;
+const configurationPOI = document.getElementById('select-poi-type').value;
+if (configurationPOI === 'sans-poi') {
+tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
+} else if (configurationPOI === 'poi-non-autonome') {
+tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
+} else if (configurationPOI === 'poi-autonome-directe') {
+tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
+} else if (configurationPOI === 'poi-autonome-indirecte') {
+tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
 }
-
+}
+document.getElementById('lbl-duree-stat').innerText = dureeMissionDoctrine;
+document.getElementById('slip-ta').value = tauxAutomatique;
+document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
+calculerTout();
+}
 function setConfiguration(type) {
-    configSinistre = type;
-    document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
-    document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
-    document.getElementById('bloc-poi').style.display = type === 'cuvette' ? 'grid' : 'none';
-    appliquerDoctrineTauxDuree();
+configSinistre = type;
+document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
+document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe');
+document.getElementById('bloc-poi').style.display = type === 'cuvette' ? 'grid' : 'none';
+appliquerDoctrineTauxDuree();
 }
-
 function setProduit(prod) {
-    typeProduit = prod;
-    document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
-    document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
-    appliquerDoctrineTauxDuree();
+typeProduit = prod;
+document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
+document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
+appliquerDoctrineTauxDuree();
 }
-
 function updateSlider(param, value) {
-    if (param === 'ta') document.getElementById('val-ta').innerText = parseFloat(value).toFixed(1);
-    if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
-    calculerTout();
+if (param === 'ta') document.getElementById('val-ta').innerText = parseFloat(value).toFixed(1);
+if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
+calculerTout();
 }
-
 function initChart() {
-    const ctx = document.getElementById('kineticChart').getContext('2d');
-    myChart = new Chart(ctx, {
-        type: 'line',
-        data: { labels: [], datasets: [] },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            animation: false,
-            plugins: { 
-                legend: { display: false },
-                annotation: { annotations: {} }
-            },
-            scales: {
-                x: { 
-                    grid: { color: '#334155' }, 
-                    ticks: { 
-                        color: '#94a3b8', 
-                        font: { size: 9 },
-                        autoSkip: false,
-                        maxRotation: 45,
-                        minRotation: 45
-                    }, 
-                    title: { display: true, text: 'Heure réelle', color: '#94a3b8', font: { size: 10 } } 
-                },
-                y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
-            }
-        }
-    });
+const ctx = document.getElementById('kineticChart').getContext('2d');
+myChart = new Chart(ctx, {
+type: 'line',
+data: { labels: [], datasets: [] },
+options: {
+responsive: true,
+maintainAspectRatio: false,
+animation: false,
+plugins: {
+legend: { display: false },
+annotation: { annotations: {} }
+},
+scales: {
+x: {
+grid: { color: '#334155' },
+ticks: {
+color: '#94a3b8',
+font: { size: 9 },
+autoSkip: false,
+maxRotation: 45,
+minRotation: 45
+},
+title: { display: true, text: 'Heure réelle', color: '#94a3b8', font: { size: 10 } }
+},
+y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
 }
-
+}
+});
+}
 function resetVisuals() {
-    document.getElementById('brut-qsm-ext').innerText = "0 L/min";
-    document.getElementById('brut-vol-ext').innerText = "0 L";
-    document.getElementById('brut-qsm-temp').innerText = "0 L/min";
-    document.getElementById('brut-vol-temp').innerText = "0 L";
-    document.getElementById('brut-vol-maintien').innerText = "0 L";
-    document.getElementById('res-total').innerText = "0 L";
-    document.getElementById('res-conso').innerText = "0 L";
-    document.getElementById('res-restant').innerText = "0 L";
-    
-    document.querySelectorAll('.capa-helper').forEach(h => h.innerText = "");
-    
-    if (myChart) {
-        myChart.data.labels = [];
-        myChart.data.datasets = [];
-        myChart.options.plugins.annotation.annotations = {};
-        myChart.update();
-    }
-}
+document.getElementById('brut-qsm-ext').innerText = "0 L/min";
+document.getElementById('brut-vol-ext').innerText = "0 L";
+document.getElementById('brut-qsm-temp').innerText = "0 L/min";
+document.getElementById('brut-vol-temp').innerText = "0 L";
+document.getElementById('brut-vol-maintien').innerText = "0 L";
+document.getElementById('res-total').innerText = "0 L";
+document.getElementById('res-conso').innerText = "0 L";
+document.getElementById('res-restant').innerText = "0 L";
 
+document.querySelectorAll('.capa-helper').forEach(h => h.innerText = "");
+
+if (myChart) {
+myChart.data.labels = [];
+myChart.data.datasets = [];
+myChart.options.plugins.annotation.annotations = {};
+myChart.update();
+}
+}
 function calculerTout() {
-    if (!myChart) initChart();
+if (!myChart) initChart();
+const surfaceInput = document.getElementById('inp-surface').value;
+const surface = parseFloat(surfaceInput) || 0;
+const t0Str = document.getElementById('inp-t0').value;
 
-    const surfaceInput = document.getElementById('inp-surface').value;
-    const surface = parseFloat(surfaceInput) || 0;
-    const t0Str = document.getElementById('inp-t0').value;
-    
-    const qFuiteM3H = document.getElementById('inp-qfuite-calcul').value;
-    const hFuiteInput = document.getElementById('inp-hfuite').value;
+const qFuiteM3H = document.getElementById('inp-qfuite-calcul').value;
+const hFuiteInput = document.getElementById('inp-hfuite').value;
+const qFuite = qFuiteM3H ? (parseFloat(qFuiteM3H) * 1000 / 60) : 0;
+if (!fuiteRecouverte && (!qFuiteM3H || parseFloat(qFuiteM3H) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
+resetVisuals();
+document.getElementById('top-extinction-status').innerHTML = ` ⚠ ️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
+document.getElementById('top-extinction-status').style.background = "#7c2d12"; document.getElementById('top-extinction-status').style.color = "#fed7aa";
+return;
+}
+if (surface === 0 || !t0Str) {
+resetVisuals();
+document.getElementById('top-extinction-status').innerHTML = ` ⚙ ️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
+document.getElementById('top-extinction-status').style.background = "#334155"; document.getElementById('top-extinction-status').style.color = "white";
+return;
+}
+const ta = parseFloat(document.getElementById('slip-ta').value) || 0;
+const conc = parseFloat(document.getElementById('slip-conc').value) || 0;
+const t0Min = timeToMinutes(t0Str) || 480;
 
-    // Conversion de la fuite : m3/h -> L/min (Multiplication par 1000 puis division par 60 => approx * 16.6667)
-    const qFuite = qFuiteM3H ? (parseFloat(qFuiteM3H) * 1000 / 60) : 0;
+const qsmExt = surface * ta;
+const volEmuExt = qsmExt * (conc / 100) * dureeMissionDoctrine;
+const qsmTemp = qsmExt / 2;
+const volEmuTemp = qsmTemp * (conc / 100) * dureeMissionDoctrine;
 
-    if (!fuiteRecouverte && (!qFuiteM3H || parseFloat(qFuiteM3H) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
-        resetVisuals();
-        document.getElementById('top-extinction-status').innerHTML = `⚠️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
-        document.getElementById('top-extinction-status').style.background = "#7c2d12"; document.getElementById('top-extinction-status').style.color = "#fed7aa";
-        return;
-    }
+const regleMaintien = document.getElementById('select-maintien-rule').value;
+let qsmMaintien = surface * 0.2;
+if (regleMaintien === 'onesixth') qsmMaintien = Math.max(qsmMaintien, qsmExt / 6);
+const volEmuMaintien = qsmMaintien * (conc / 100) * 240;
+document.getElementById('brut-qsm-ext').innerText = Math.round(qsmExt) + " L/min";
+document.getElementById('brut-vol-ext').innerText = Math.round(volEmuExt) + " L";
+document.getElementById('brut-qsm-temp').innerText = Math.round(qsmTemp) + " L/min";
+document.getElementById('brut-vol-temp').innerText = Math.round(volEmuTemp) + " L";
+document.getElementById('brut-vol-maintien').innerText = Math.round(volEmuMaintien) + " L";
+const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
+let listeMoyensEngages = [];
+let stockTotalAporte = 0;
 
-    if (surface === 0 || !t0Str) {
-        resetVisuals();
-        document.getElementById('top-extinction-status').innerHTML = `⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
-        document.getElementById('top-extinction-status').style.background = "#334155"; document.getElementById('top-extinction-status').style.color = "white";
-        return;
-    }
+rows.forEach(row => {
+const nom = row.querySelector('.m-nom').value.trim();
+const debit = parseFloat(row.querySelector('.m-debit').value) || 0;
+const emulseur = parseFloat(row.querySelector('.m-emulseur').value) || 0;
+const arrStr = row.querySelector('.m-arrivee').value;
+const arrStrArret = row.querySelector('.m-arret').value;
+const helperBox = row.querySelector('.capa-helper');
 
-    const ta = parseFloat(document.getElementById('slip-ta').value) || 0;
-    const conc = parseFloat(document.getElementById('slip-conc').value) || 0;
-    const t0Min = timeToMinutes(t0Str) || 480; 
-    
-    const qsmExt = surface * ta;
-    const volEmuExt = qsmExt * (conc / 100) * dureeMissionDoctrine;
-    const qsmTemp = qsmExt / 2;
-    const volEmuTemp = qsmTemp * (conc / 100) * dureeMissionDoctrine;
-    
-    const regleMaintien = document.getElementById('select-maintien-rule').value;
-    let qsmMaintien = surface * 0.2; 
-    if (regleMaintien === 'onesixth') qsmMaintien = Math.max(qsmMaintien, qsmExt / 6);
-    const volEmuMaintien = qsmMaintien * (conc / 100) * 240; 
+let arrMin = timeToMinutes(arrStr);
+let arretMin = timeToMinutes(arrStrArret);
+if (debit > 0 || emulseur > 0) {
+stockTotalAporte += emulseur;
 
-    document.getElementById('brut-qsm-ext').innerText = Math.round(qsmExt) + " L/min";
-    document.getElementById('brut-vol-ext').innerText = Math.round(volEmuExt) + " L";
-    document.getElementById('brut-qsm-temp').innerText = Math.round(qsmTemp) + " L/min";
-    document.getElementById('brut-vol-temp').innerText = Math.round(volEmuTemp) + " L";
-    document.getElementById('brut-vol-maintien').innerText = Math.round(volEmuMaintien) + " L";
+let deltaArretGraphique = 99999;
+if (arretMin !== null) {
+deltaArretGraphique = arretMin - t0Min;
+}
+listeMoyensEngages.push({
+nom: nom || (debit > 0 ? "Vecteur" : "Logistique Ému"),
+debit: debit,
+emulseurApporte: emulseur,
+arrStr: arrStr,
+arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
+arretDelta: deltaArretGraphique,
+helperElement: helperBox,
+dejaComptabilise: false
+});
+} else {
+helperBox.innerText = "";
+}
+});
+document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
 
-    const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
-    let listeMoyensEngages = [];
-    let stockTotalAporte = 0;
-    
-    rows.forEach(row => {
-        const nom = row.querySelector('.m-nom').value.trim();
-        const debit = parseFloat(row.querySelector('.m-debit').value) || 0;
-        const emulseur = parseFloat(row.querySelector('.m-emulseur').value) || 0;
-        const arrStr = row.querySelector('.m-arrivee').value;
-        const arrStrArret = row.querySelector('.m-arret').value;
-        const helperBox = row.querySelector('.capa-helper');
-        
-        let arrMin = timeToMinutes(arrStr);
-        let arretMin = timeToMinutes(arrStrArret);
+const hFuite = parseFloat(hFuiteInput) || 0;
+const vCuvetteNecessaire = surface * hFuite * 1000;
+let labelsX = [];
+let labelsBrutsX = [];
+let dataDynamicObjective = [];
+let dataTemp = [];
+let dataMaintien = [];
+let dataReel = [];
 
-        if (debit > 0 || emulseur > 0) {
-            stockTotalAporte += emulseur;
-            
-            let deltaArretGraphique = 99999;
-            if (arretMin !== null) {
-                deltaArretGraphique = arretMin - t0Min;
-            }
+let topExtinctionMinute = -1;
+let finExtinctionMinute = -1;
 
-            listeMoyensEngages.push({
-                nom: nom || (debit > 0 ? "Vecteur" : "Logistique Ému"),
-                debit: debit,
-                emulseurApporte: emulseur,
-                arrStr: arrStr,
-                arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-                arretDelta: deltaArretGraphique,
-                helperElement: helperBox,
-                dejaComptabilise: false
-            });
-        } else {
-            helperBox.innerText = "";
-        }
-    });
+let reserveEmulseurDisponible = 0;
+let consoCumuleeEmulseur = 0;
+let ruptureMousseHappen = false;
+let minuteDeLaRupture = -1;
+let fuiteEstScellee = fuiteRecouverte;
+let minuteScellementsEffectif = -1;
+let volLiquideCuvette = 0;
+const step = 1;
+for (let delta = 0; delta <= horizonActuel; delta += step) {
+const heureExacte = minutesToTimeStr(t0Min + delta);
+labelsBrutsX.push(heureExacte);
 
-    document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
-    
-    const hFuite = parseFloat(hFuiteInput) || 0;
-    const vCuvetteNecessaire = surface * hFuite * 1000;
-
-    let labelsX = [];
-    let labelsBrutsX = []; 
-    let dataDynamicObjective = []; 
-    let dataTemp = [];
-    let dataMaintien = [];
-    let dataReel = [];
-    
-    let topExtinctionMinute = -1;
-    let finExtinctionMinute = -1;
-    
-    let reserveEmulseurDisponible = 0;
-    let consoCumuleeEmulseur = 0;
-    let ruptureMousseHappen = false;
-    let minuteDeLaRupture = -1;
-
-    let fuiteEstScellee = fuiteRecouverte; 
-    let minuteScellementsEffectif = -1;
-    let volLiquideCuvette = 0; 
-
-    const step = 1; 
-
-    for (let delta = 0; delta <= horizonActuel; delta += step) {
-        const heureExacte = minutesToTimeStr(t0Min + delta);
-        labelsBrutsX.push(heureExacte);
-        
-        if (horizonActuel === 420) {
-            if (delta % 5 === 0) labelsX.push(heureExacte);
-            else labelsX.push("");
-        } else {
-            if (delta % 2 === 0) labelsX.push(heureExacte);
-            else labelsX.push("");
-        }
-        
-        listeMoyensEngages.forEach(m => {
-            if (delta >= m.arrDelta && !m.dejaComptabilise) {
-                reserveEmulseurDisponible += m.emulseurApporte;
-                m.dejaComptabilise = true;
-            }
-        });
-
-        let debitCourantSolution = 0;
-        listeMoyensEngages.forEach(m => {
-            if (delta >= m.arrDelta && delta < m.arretDelta) {
-                debitCourantSolution += m.debit;
-            }
-        });
-        
-        let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
-        
-        if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
-            debitCourantSolution = 0; 
-            consoPasDeTemps = 0;
-            if (!ruptureMousseHappen) { ruptureMousseHappen = true; minuteDeLaRupture = delta; }
-        } else if (reserveEmulseurDisponible - consoPasDeTemps < 0) {
-            debitCourantSolution = (reserveEmulseurDisponible / (conc / 100)) / step;
-            consoPasDeTemps = reserveEmulseurDisponible;
-            if (!ruptureMousseHappen) { ruptureMousseHappen = true; minuteDeLaRupture = delta; }
-        }
-
-        reserveEmulseurDisponible -= consoPasDeTemps;
-        consoCumuleeEmulseur += consoPasDeTemps;
-        dataReel.push(debitCourantSolution);
-
-        if (!fuiteEstScellee && qFuite > 0) {
-            const solutionEfficace = debitCourantSolution * 0.5;
-            volLiquideCuvette += (qFuite + solutionEfficace) * step; 
-
-            if (volLiquideCuvette >= vCuvetteNecessaire) {
-                fuiteEstScellee = true;
-                minuteScellementsEffectif = delta;
-            }
-        }
-
-        if (!fuiteEstScellee && qFuite > 0) {
-            dataDynamicObjective.push(qsmTemp);
-        } else {
-            if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen && qsmExt > 0) {
-                topExtinctionMinute = delta;
-                finExtinctionMinute = delta + dureeMissionDoctrine;
-            }
-
-            if (topExtinctionMinute !== -1 && delta >= topExtinctionMinute && delta < finExtinctionMinute) {
-                dataDynamicObjective.push(qsmExt); 
-            } else if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
-                dataDynamicObjective.push(qsmMaintien); 
-            } else {
-                dataDynamicObjective.push(qsmExt); 
-            }
-        }
-
-        dataTemp.push(qsmTemp);
-        dataMaintien.push(qsmMaintien);
-    }
-
-    // --- CALCULS AUXILIAIRES GRISÉS ---
-    listeMoyensEngages.forEach(m => {
-        if (!m.arrStr) {
-            m.helperElement.innerText = "";
-            return;
-        }
-
-        const tMiseOeuvre = timeToMinutes(m.arrStr);
-        
-        if (m.debit > 0) {
-            const debitEmuEngin = m.debit * (conc / 100);
-            const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
-            const heureCapaPropre = (tMiseOeuvre + minutesAutonomiePropre) % 1440;
-            m.helperElement.innerHTML = `⏳ Autonomie vecteur seule : <b style="color: #60a5fa;">${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
-        } 
-        else if (m.debit === 0 && m.emulseurApporte > 0) {
-            let debitDAttaqueActuelAuPointDArrivee = 0;
-            listeMoyensEngages.forEach(other => {
-                if (other.debit > 0 && other.arrStr && timeToMinutes(other.arrStr) <= tMiseOeuvre) {
-                    debitDAttaqueActuelAuPointDArrivee += other.debit;
-                }
-            });
-
-            if (debitDAttaqueActuelAuPointDArrivee > 0) {
-                const consoEmuGlobaleParMinute = debitDAttaqueActuelAuPointDArrivee * (conc / 100);
-                const minutesAbsorptionReserve = Math.floor(m.emulseurApporte / consoEmuGlobaleParMinute);
-                const heureCapaReserve = (tMiseOeuvre + minutesAbsorptionReserve) % 1440;
-                m.helperElement.innerHTML = `📦 Réserve absorbée par débits en place vers : <b style="color: #c084fc;">${minutesToTimeStr(heureCapaReserve)}</b>`;
-            } else {
-                m.helperElement.innerHTML = `📦 Réserve en stock (En attente de lignes d'attaque)`;
-            }
-        }
-    });
-
-    document.getElementById('res-conso').innerText = Math.round(consoCumuleeEmulseur) + " L";
-    const resRestantBox = document.getElementById('res-restant');
-    resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
-    resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
-
-    let annotationsMoyens = {};
-    let compteursParMinute = {};
-
-    listeMoyensEngages.forEach((m, index) => {
-        if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
-            if (compteursParMinute[m.arrDelta] === undefined) {
-                compteursParMinute[m.arrDelta] = 0;
-            } else {
-                compteursParMinute[m.arrDelta]++;
-            }
-
-            let decalageY = 5 + (compteursParMinute[m.arrDelta] * 22);
-
-            annotationsMoyens[`moyen_${index}`] = {
-                type: 'line',
-                scaleID: 'x',
-                value: m.arrDelta,
-                borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
-                borderWidth: 1.5,
-                borderDash: [4, 4],
-                label: {
-                    display: true,
-                    content: `${m.nom} (${m.arrStr})`,
-                    position: 'start',
-                    backgroundColor: '#1e293b',
-                    color: m.debit > 0 ? '#3b82f6' : '#c084fc',
-                    font: { size: 9, weight: 'bold' },
-                    padding: 4,
-                    borderRadius: 4,
-                    borderWidth: 1,
-                    borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
-                    yAdjust: decalageY
-                }
-            };
-        }
-    });
-
-    myChart.data.labels = labelsX;
-    myChart.data.datasets = [
-        { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
-        { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
-        { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#d946ef', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
-        { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
-    ];
-    
-    myChart.options.plugins.annotation.annotations = annotationsMoyens;
-    myChart.update();
-
-    const statusBox = document.getElementById('top-extinction-status');
-    
-    if (ruptureMousseHappen) {
-        const heurePanneSeche = minutesToTimeStr(t0Min + minuteDeLaRupture);
-        statusBox.innerHTML = `🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
-        statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
-    }
-    else if (topExtinctionMinute !== -1) {
-        const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
-        const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-        let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">ℹ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> (T0 + ${minuteScellementsEffectif} min).`;
-        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
-        statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
-    } 
-    else if (!fuiteRecouverte && !fuiteEstScellee) {
-        const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
-        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP EXTINCTION.</span>`;
-        statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
-    }
-    else {
-        statusBox.innerHTML = `⏳ <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée. Les moyens réels actuels restent inférieurs au seuil requis pour lancer l'assaut réglementaire (${Math.round(qsmExt)} L/min).`;
-        statusBox.style.background = "#334155"; statusBox.style.color = "white";
-    }
+if (horizonActuel === 420) {
+if (delta % 5 === 0) labelsX.push(heureExacte);
+else labelsX.push("");
+} else {
+if (delta % 2 === 0) labelsX.push(heureExacte);
+else labelsX.push("");
 }
 
+listeMoyensEngages.forEach(m => {
+if (delta >= m.arrDelta && !m.dejaComptabilise) {
+reserveEmulseurDisponible += m.emulseurApporte;
+m.dejaComptabilise = true;
+}
+});
+let debitCourantSolution = 0;
+listeMoyensEngages.forEach(m => {
+if (delta >= m.arrDelta && delta < m.arretDelta) {
+debitCourantSolution += m.debit;
+}
+});
+
+let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
+
+if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
+debitCourantSolution = 0;
+consoPasDeTemps = 0;
+if (!ruptureMousseHappen) { ruptureMousseHappen = true; minuteDeLaRupture = delta; }
+} else if (reserveEmulseurDisponible - consoPasDeTemps < 0) {
+debitCourantSolution = (reserveEmulseurDisponible / (conc / 100)) / step;
+consoPasDeTemps = reserveEmulseurDisponible;
+if (!ruptureMousseHappen) { ruptureMousseHappen = true; minuteDeLaRupture = delta; }
+}
+reserveEmulseurDisponible -= consoPasDeTemps;
+consoCumuleeEmulseur += consoPasDeTemps;
+dataReel.push(debitCourantSolution);
+if (!fuiteEstScellee && qFuite > 0) {
+const solutionEfficace = debitCourantSolution * 0.5;
+volLiquideCuvette += (qFuite + solutionEfficace) * step;
+if (volLiquideCuvette >= vCuvetteNecessaire) {
+fuiteEstScellee = true;
+minuteScellementsEffectif = delta;
+}
+}
+if (!fuiteEstScellee && qFuite > 0) {
+dataDynamicObjective.push(qsmTemp);
+} else {
+if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen && qsmExt > 0) {
+topExtinctionMinute = delta;
+finExtinctionMinute = delta + dureeMissionDoctrine;
+}
+if (topExtinctionMinute !== -1 && delta >= topExtinctionMinute && delta < finExtinctionMinute) {
+dataDynamicObjective.push(qsmExt);
+} else if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
+dataDynamicObjective.push(qsmMaintien);
+} else {
+dataDynamicObjective.push(qsmExt);
+}
+}
+dataTemp.push(qsmTemp);
+dataMaintien.push(qsmMaintien);
+}
+listeMoyensEngages.forEach(m => {
+if (!m.arrStr) {
+m.helperElement.innerText = "";
+return;
+}
+const tMiseOeuvre = timeToMinutes(m.arrStr);
+
+if (m.debit > 0) {
+const debitEmuEngin = m.debit * (conc / 100);
+const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
+const heureCapaPropre = (tMiseOeuvre + minutesAutonomiePropre) % 1440;
+m.helperElement.innerHTML = ` ⏳  Autonomie vecteur seule : <b style="color: #60a5fa;">${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
+}
+else if (m.debit === 0 && m.emulseurApporte > 0) {
+let debitDAttaqueActuelAuPointDArrivee = 0;
+listeMoyensEngages.forEach(other => {
+if (other.debit > 0 && other.arrStr && timeToMinutes(other.arrStr) <= tMiseOeuvre) {
+debitDAttaqueActuelAuPointDArrivee += other.debit;
+}
+});
+if (debitDAttaqueActuelAuPointDArrivee > 0) {
+const consoEmuGlobaleParMinute = debitDAttaqueActuelAuPointDArrivee * (conc / 100);
+const minutesAbsorptionReserve = Math.floor(m.emulseurApporte / consoEmuGlobaleParMinute);
+const heureCapaReserve = (tMiseOeuvre + minutesAbsorptionReserve) % 1440;
+m.helperElement.innerHTML = ` 📦  Réserve absorbée par débits en place vers : <b style="color: #c084fc;">${minutesToTimeStr(heureCapaReserve)}</b>`;
+} else {
+m.helperElement.innerHTML = ` 📦  Réserve en stock (En attente de lignes d'attaque)`;
+}
+}
+});
+document.getElementById('res-conso').innerText = Math.round(consoCumuleeEmulseur) + " L";
+const resRestantBox = document.getElementById('res-restant');
+resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
+resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
+let annotationsMoyens = {};
+let compteursParMinute = {};
+listeMoyensEngages.forEach((m, index) => {
+if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
+if (compteursParMinute[m.arrDelta] === undefined) {
+compteursParMinute[m.arrDelta] = 0;
+} else {
+compteursParMinute[m.arrDelta]++;
+}
+let decalageY = 5 + (compteursParMinute[m.arrDelta] * 22);
+annotationsMoyens[`moyen_${index}`] = {
+type: 'line',
+scaleID: 'x',
+value: m.arrDelta,
+borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+borderWidth: 1.5,
+borderDash: [4, 4],
+label: {
+display: true,
+content: `${m.nom} (${m.arrStr})`,
+position: 'start',
+backgroundColor: '#1e293b',
+color: m.debit > 0 ? '#3b82f6' : '#c084fc',
+font: { size: 9, weight: 'bold' },
+padding: 4,
+borderRadius: 4,
+borderWidth: 1,
+borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+yAdjust: decalageY
+}
+};
+}
+});
+myChart.data.labels = labelsX;
+myChart.data.datasets = [
+{ label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
+{ label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
+/* MODIFICATION : Changement de la couleur de la ligne en vert (#16a34a) */
+{ label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#16a34a', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
+{ label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
+];
+
+myChart.options.plugins.annotation.annotations = annotationsMoyens;
+myChart.update();
+const statusBox = document.getElementById('top-extinction-status');
+
+if (ruptureMousseHappen) {
+const heurePanneSeche = minutesToTimeStr(t0Min + minuteDeLaRupture);
+statusBox.innerHTML = ` 🚨  <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
+statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
+}
+else if (topExtinctionMinute !== -1) {
+const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
+const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
+let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;"> ℹ ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m).
+Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> (T0 + ${minuteScellementsEffectif} min).`;
+statusBox.innerHTML = ` 🟢  <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
+statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
+}
+else if (!fuiteRecouverte && !fuiteEstScellee) {
+const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
+statusBox.innerHTML = ` ⚠ ️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP EXTINCTION.</span>`;
+statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
+}
+else {
+statusBox.innerHTML = ` ⏳  <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée.
+Les moyens réels actuels restent inférieurs au seuil requis pour lancer l'assaut réglementaire (${Math.round(qsmExt)} L/min).`;
+statusBox.style.background = "#334155"; statusBox.style.color = "white";
+}
+}
 window.onload = function() {
-    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 };
 </script>
-
 </body>
 </html>
