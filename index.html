@@ -35,6 +35,10 @@ box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: c
 .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155;
 padding-bottom: 4px; }
 
+/* Classe utilitaire pour masquer les éléments en mode extraction mobile */
+.hide-for-export { display: block; }
+.is-exporting .hide-for-export { display: none !important; }
+
 .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
 .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold;
 cursor: pointer; text-align: center; }
@@ -63,6 +67,12 @@ font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
 font-weight: bold; text-align: center; }
 .moyens-grid input[type="text"] { text-align: left; }
 
+/* Masquer la colonne de suppression lors de l'export */
+.is-exporting .moyens-grid { grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr; }
+.is-exporting .moyens-grid-header { grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr; }
+.is-exporting .btn-remove { display: none !important; }
+.is-exporting .moyens-grid-header span:last-child { display: none !important; }
+
 .capa-helper { font-size: 0.65rem; color: #f87171; text-align: center; margin-top: 2px; font-weight: 500; height: 12px;}
 .btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
 width: 100%; margin-top: 5px; }
@@ -85,30 +95,14 @@ border: 1px solid #475569;}
 .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
 .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
 
-/* --- STYLES SPECIFIQUES POUR L'IMPRESSION ET L'EXPORT PDF --- */
 @media print {
-  @page {
-    size: landscape;
-    margin: 10mm;
-  }
-  body {
-    background: #0f172a !important;
-    color: #f8fafc !important;
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-  .container-actions, .btn-action, .btn-remove {
-    display: none !important; /* Masque les boutons d'interaction */
-  }
-  .card {
-    box-shadow: none !important;
-    border: 1px solid #334155 !important;
-  }
-  input, select {
-    background: #1e293b !important;
-    color: white !important;
-    border: 1px solid #475569 !important;
-  }
+  @page { size: landscape; margin: 10mm; }
+  body { background: #0f172a !important; color: #f8fafc !important; print-color-adjust: exact; -webkit-print-color-adjust: exact; }
+  .container-actions, .btn-action, .btn-remove, .moyens-grid-header span:last-child { display: none !important; }
+  .card { box-shadow: none !important; border: 1px solid #334155 !important; }
+  .moyens-grid { grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr !important; }
+  .moyens-grid-header { grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr !important; }
+  input, select { background: #1e293b !important; color: white !important; border: 1px solid #475569 !important; }
 }
 </style>
 </head>
@@ -117,7 +111,7 @@ border: 1px solid #475569;}
 <h1>MOUSSE TACTIQUE — SDIS</h1>
 <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
-<div class="container-actions">
+<div class="container-actions hide-for-export">
 <button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄  REINITIALISER</button>
 <button class="btn-action-top btn-extract" onclick="extraireDonnees()"> 📤  EXTRAIRE</button>
 </div>
@@ -216,10 +210,10 @@ border: 1px solid #475569;}
 <div class="card" style="border: 2px solid var(--accent-blue);">
 <h2> 📈  Suivi Cinétique Dynamique des Moyens</h2>
 
-<label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
-<div class="toggle-group" style="margin-bottom: 12px;">
-<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳  3 Heures (Extinction)</button>
-<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)"> 🚨  7 Heures (Total Régl. + Maintien)</button>
+<label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;" class="hide-for-export">Horizon temporel d'analyse :</label>
+<div class="toggle-group style="margin-bottom: 12px;" class="hide-for-export">
+<button class="toggle-btn active hide-for-export" id="btn-h180" onclick="changeHorizon(180)"> ⏳  3 Heures (Extinction)</button>
+<button class="toggle-btn hide-for-export" id="btn-h420" onclick="changeHorizon(420)"> 🚨  7 Heures (Total Régl. + Maintien)</button>
 </div>
 <div class="moyens-grid-header">
 <span>Nom du Vecteur / Renfort</span>
@@ -231,7 +225,7 @@ border: 1px solid #475569;}
 </div>
 <div id="moyens-liste" class="moyens-container"></div>
 
-<button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕  Ajouter un vecteur ou renfort émanant</button>
+<button class="btn-action hide-for-export" onclick="ajouterLigneMoyen(null)"> ➕  Ajouter un vecteur ou renfort émanant</button>
 <div class="reserve-box">
 <div>
 <div class="reserve-title">Stock Amoncelé</div>
@@ -328,9 +322,20 @@ document.getElementById('moyens-liste').innerHTML = "";
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
 
-/* --- NOUVELLE FONCTION D'EXTRACTION IMPRESSION/PDF --- */
+/* --- LOGIQUE D'EXTRACTION SMARTPHONE HYBRIDE (IMAGE / PDF) --- */
 function extraireDonnees() {
-window.print();
+  const isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+  
+  if (isMobile) {
+    document.body.classList.add('is-exporting');
+    alert("MODE MOBILE ACTIVÉ :\nLes boutons d'action sont masqués pendant 5 secondes.\n\nFaites votre CAPTURE D'ÉCRAN (Pleine Page si disponible) dès maintenant pour l'envoyer au CODIS !");
+    
+    setTimeout(() => {
+      document.body.classList.remove('is-exporting');
+    }, 5000);
+  } else {
+    window.print();
+  }
 }
 
 function timeToMinutes(timeStr) {
@@ -669,7 +674,6 @@ myChart.data.labels = labelsX;
 myChart.data.datasets = [
 { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
 { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
-/* MODIFICATION : Changement de la couleur de la ligne en vert (#16a34a) */
 { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#16a34a', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
 { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
 ];
