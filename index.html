@@ -178,7 +178,7 @@
         </thead>
         <tbody>
             <tr style="color: #ef4444;">
-                <td>🚀 ATTACK (<span id="lbl-duree-stat">40</span> min)</td>
+                <td>🚀 EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
                 <td id="brut-qsm-ext">0 L/min</td>
                 <td id="brut-vol-ext">0 L</td>
                 <td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-purple); text-align: center;">0 L</td>
@@ -622,12 +622,12 @@ function calculerTout() {
         const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
         const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
         let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">ℹ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> (T0 + ${minuteScellementsEffectif} min).`;
-        statusBox.innerHTML = `🟢 <b>TOP ATTACK VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
+        statusBox.innerHTML = `🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
         statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
     } 
     else if (!fuiteRecouverte && !fuiteEstScellee) {
         const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
-        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP ATTACK.</span>`;
+        statusBox.innerHTML = `⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP EXTINCTION.</span>`;
         statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
     }
     else {
