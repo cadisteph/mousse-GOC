@@ -283,10 +283,9 @@ function setFuiteRecouverte(boolValue) {
 }
 
 function gererChangementParametresGlobaux() {
-    // Si T0 ou la concentration change, on recalcule toutes les suggestions capacitaires des lignes
     const lignes = document.querySelectorAll('#moyens-liste .moyens-grid');
     lignes.forEach(ligne => {
-        suggererHeureArretCapacitaire(ligne, false); // false = ne force pas si l'utilisateur a modifié manuellement
+        suggererHeureArretCapacitaire(ligne, false); 
     });
     calculerTout();
 }
@@ -298,18 +297,18 @@ function suggererHeureArretCapacitaire(row, forceRecalcul = false) {
     const arretInp = row.querySelector('.m-arret');
     const conc = parseFloat(document.getElementById('slip-conc').value) || 3.0;
 
-    // On ne calcule que si on a un débit, un stock d'émulseur et une heure d'arrivée
+    // Si c'est une logistique pure (émulseur seul sans débit), on s'assure de nettoyer la case d'arrêt
+    if (debit <= 0 && emulseur > 0) {
+        arretInp.value = "";
+        return;
+    }
+
     if (debit > 0 && emulseur > 0 && arrStr) {
-        // Si la case est vide OU si on force le rafraîchissement (changement de valeurs critiques)
         if (arretInp.value.trim() === "" || forceRecalcul) {
             const minArr = timeToMinutes(arrStr);
             if (minArr !== null) {
-                // Débit émulseur pur consommé par minute
                 const debitEmuPur = debit * (conc / 100);
-                // Autonomie en minutes
                 const autonomieMinutes = Math.floor(emulseur / debitEmuPur);
-                
-                // Calcul de l'heure d'arrêt capacitaire théorique
                 const minArretAuto = (minArr + autonomieMinutes) % 1440;
                 arretInp.value = minutesToTimeStr(minArretAuto);
             }
@@ -339,7 +338,6 @@ function ajouterLigneMoyen(data) {
 function reinitialiserApplication() {
     document.getElementById('inp-surface').value = "";
     document.getElementById('inp-t0').value = "";
-    
     document.getElementById('inp-qfuite-calcul').value = "";
     document.getElementById('inp-hfuite').value = "";
     
@@ -534,14 +532,21 @@ function calculerTout() {
 
         if (debit > 0 || emulseur > 0) {
             stockTotalAporte += emulseur;
+            
+            // CORRECTION GRAPHIC SENSITIVITY : On lit l'heure d'arrêt directement de la case si elle est calculée ou forcée.
+            // Si pas de débit et seulement de l'émulseur (Réserve pure), l'arrêt delta reste infini (99999) car la réserve ne s'éteint pas.
+            let deltaDArretFinal = 99999;
+            if (debit > 0 && arretMin !== null) {
+                deltaDArretFinal = arretMin - t0Min;
+            }
+
             listeMoyensEngages.push({
-                nom: nom || "Renfort",
+                nom: nom || (debit > 0 ? "Vecteur" : "Logistique Ému"),
                 debit: debit,
                 emulseurApporte: emulseur,
                 arrStr: arrStr,
                 arrDelta: arrMin !== null ? (arrMin - t0Min) : 0,
-                // RÈGLE : Si pas d'arrêt spécifié, le moyen tourne indéfiniment jusqu'au bout de l'horizon
-                arretDelta: arretMin !== null ? (arretMin - t0Min) : 99999,
+                arretDelta: deltaDArretFinal,
                 dejaComptabilise: false
             });
         }
@@ -668,7 +673,7 @@ function calculerTout() {
                 type: 'line',
                 scaleID: 'x',
                 value: m.arrDelta,
-                borderColor: '#3b82f6',
+                borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
                 borderWidth: 1.5,
                 borderDash: [4, 4],
                 label: {
@@ -676,12 +681,12 @@ function calculerTout() {
                     content: `${m.nom} (${m.arrStr})`,
                     position: 'start',
                     backgroundColor: '#1e293b',
-                    color: '#3b82f6',
+                    color: m.debit > 0 ? '#3b82f6' : '#c084fc',
                     font: { size: 9, weight: 'bold' },
                     padding: 4,
                     borderRadius: 4,
                     borderWidth: 1,
-                    borderColor: '#3b82f6',
+                    borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
                     yAdjust: decalageY
                 }
             };
