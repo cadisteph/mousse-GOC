@@ -5,11 +5,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
 
-<!-- Scripts requis : Graphiques + Capture Image Intégrée -->
+<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231e293b'><path d='M50 5 L85 15 V45 C85 70 50 95 50 95 C50 95 15 70 15 45 V15 L50 5 Z' fill='%231e293b' stroke='%23334155' stroke-width='3'/><path d='M50 25 C50 25 72 38 70 58 C68 74 54 82 50 82 Z' fill='%23f97316'/><path d='M50 40 C50 40 62 48 60 62 C59 72 53 77 50 77 Z' fill='%23ef4444'/><path d='M50 25 C50 25 28 35 30 58 C32 76 46 82 50 82 Z' fill='%2322c55e'/><path d='M50 35 C50 35 36 43 38 60 C39 71 45 77 50 77 Z' fill='%233b82f6'/><line x1='50' y1='5' x2='50' y2='95' stroke='%230f172a' stroke-width='2' stroke-dasharray='3 3'/><circle cx='50' cy='55' r='12' stroke='%23f8fafc' stroke-width='1.5' stroke-dasharray='2 2' fill='none'/><circle cx='50' cy='55' r='3' fill='%23f8fafc'/></svg>">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231e293b'><path d='M50 5 L85 15 V45 C85 70 50 95 50 95 C50 95 15 70 15 45 V15 L50 5 Z' fill='%231e293b' stroke='%23334155' stroke-width='3'/><path d='M50 25 C50 25 72 38 70 58 C68 74 54 82 50 82 Z' fill='%23f97316'/><path d='M50 40 C50 40 62 48 60 62 C59 72 53 77 50 77 Z' fill='%23ef4444'/><path d='M50 25 C50 25 28 35 30 58 C32 76 46 82 50 82 Z' fill='%2322c55e'/><path d='M50 35 C50 35 36 43 38 60 C39 71 45 77 50 77 Z' fill='%233b82f6'/><line x1='50' y1='5' x2='50' y2='95' stroke='%230f172a' stroke-width='2' stroke-dasharray='3 3'/><circle cx='50' cy='55' r='12' stroke='%23f8fafc' stroke-width='1.5' stroke-dasharray='2 2' fill='none'/><circle cx='50' cy='55' r='3' fill='%23f8fafc'/></svg>">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-
 <style>
 :root {
 --bg-app: #0f172a;
@@ -25,49 +26,49 @@
 * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
 
-/* Zone capturée pour l'image */
-#capture-zone { padding: 5px; background-color: var(--bg-app); }
-
 header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
 header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
 header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 .container-actions { display: flex; gap: 10px; justify-content: center; margin: 10px 0 15px 0; }
-.btn-action-top { border: none; padding: 10px 15px; border-radius: 6px; font-size: 0.85rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px;
+.btn-action-top { border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px;
 box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: center;}
 .btn-reset { background: var(--accent-orange); color: #0f172a; }
-.btn-extract { background: var(--accent-green); color: white; }
+.btn-extract { background: var(--accent-blue); color: white; }
 .btn-action-top:active { transform: scale(0.98); }
 .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
-.card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155; padding-bottom: 4px; }
+.card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155;
+padding-bottom: 4px; }
 
 .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
-.toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold; cursor: pointer; text-align: center; }
+.toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold;
+cursor: pointer; text-align: center; }
 .toggle-btn.active { background: var(--accent-blue); border-color: #3b82f6; }
 .toggle-btn.active-green { background: var(--accent-green); border-color: #22c55e; color: white; }
 .toggle-btn.active-orange { background: var(--accent-orange); border-color: #f97316; color: #0f172a; }
-.poi-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; }
+.poi-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin-bottom: 10px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155;
+}
 .poi-label { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 4px; font-weight: bold; text-transform: uppercase;}
-.select-custom { background: #1e293b; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 0.9rem; }
+.select-custom { background: #1e293b; color: white; border: 1px solid #475569; padding: 8px; border-radius: 6px; font-weight: bold; width: 100%; font-size: 0.9rem;
+}
 .form-group { margin-bottom: 8px; }
 .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
-.form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem; font-weight: bold; }
+.form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem;
+font-weight: bold; }
 
 .form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .moyens-container { margin-bottom: 10px; }
-.moyens-container-row { margin-bottom: 4px; }
-.moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; align-items: center; background: #0f172a; padding: 6px; border-radius: 6px; position: relative;}
-.moyens-grid-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
+.moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a;
+padding: 6px; border-radius: 6px; position: relative;}
+.moyens-grid-header { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase;
+font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
 .moyens-grid-header span:first-child { text-align: left; }
-.moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem; font-weight: bold; text-align: center; }
+.moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;
+font-weight: bold; text-align: center; }
 .moyens-grid input[type="text"] { text-align: left; }
 
-/* Classes pour l'export d'image propre */
-.is-exporting .btn-remove, .is-exporting .moyens-grid-header span:last-child { display: none !important; }
-.is-exporting .moyens-grid { grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr !important; }
-.is-exporting .moyens-grid-header { grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr !important; }
-
 .capa-helper { font-size: 0.65rem; color: #f87171; text-align: center; margin-top: 2px; font-weight: 500; height: 12px;}
-.btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer; width: 100%; margin-top: 5px; }
+.btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
+width: 100%; margin-top: 5px; }
 .btn-remove { background: var(--accent-red); border: none; color: white; padding: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
 .slider-container { background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #334155; margin-bottom: 8px; }
 .slider-header { display: flex; justify-content: space-between; font-size: 0.8rem; margin-bottom: 4px; }
@@ -76,33 +77,45 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 .doc-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.8rem; }
 .doc-table th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 6px; font-weight: normal; border: 1px solid #334155; }
 .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
-.chart-container { position: relative; width: 100%; height: 300px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
+.chart-container { position: relative; width: 100%; height: 320px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
 .alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; }
 
 .legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
 .legend-item { display: flex; align-items: center; gap: 4px; }
 .color-box { width: 12px; height: 12px; border-radius: 3px; }
-.reserve-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 8px; background: #0f172a; padding: 8px; border-radius: 6px; border: 1px solid #475569;}
+.reserve-box { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; text-align: center; margin-top: 8px; background: #0f172a; padding: 8px; border-radius: 6px;
+border: 1px solid #475569;}
 .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
 .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
 </style>
 </head>
 <body>
+<header style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
+  <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));">
+    <path d="M50 5 L85 15 V45 C85 70 50 95 50 95 C50 95 15 70 15 45 V15 L50 5 Z" fill="#1e293b" stroke="#334155" stroke-width="3"/>
+    
+    <path d="M50 25 C50 25 72 38 70 58 C68 74 54 82 50 82 Z" fill="#f97316"/>
+    <path d="M50 40 C50 40 62 48 60 62 C59 72 53 77 50 77 Z" fill="#ef4444"/>
+    
+    <path d="M50 25 C50 25 28 35 30 58 C32 76 46 82 50 82 Z" fill="#22c55e"/>
+    <path d="M50 35 C50 35 36 43 38 60 C39 71 45 77 50 77 Z" fill="#3b82f6"/>
+    
+    <line x1="50" y1="5" x2="50" y2="95" stroke="#0f172a" stroke-width="2" stroke-dasharray="3 3"/>
+    
+    <circle cx="50" cy="55" r="12" stroke="#f8fafc" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/>
+    <circle cx="50" cy="55" r="3" fill="#f8fafc"/>
+  </svg>
 
-<div class="container-actions">
-<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄  RÉINITIALISER</button>
-<button class="btn-action-top btn-extract" onclick="genererCaptureImage()"> 📸  EXTRAIRE EN IMAGE</button>
-</div>
-
-<!-- Tout le contenu utile est enveloppé ici pour être photographié d'un bloc -->
-<div id="capture-zone">
-<header>
-<h1>MOUSSE TACTIQUE — SDIS</h1>
-<p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
+  <h1>MOUSSE TACTIQUE — SDIS</h1>
+  <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
-
+<div class="container-actions">
+<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄  REINITIALISER</button>
+<button class="btn-action-top btn-extract" onclick="extraireDonnees()"> 📤  EXTRAIRE</button>
+</div>
 <div class="card">
 <h2>Étape 1 : Situation du Sinistre</h2>
+
 <div class="toggle-group">
 <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')"> 🛢 ️ Cuvette / Rétention</button>
 <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')"> 🌊  Nappe / Épandage</button>
@@ -158,9 +171,9 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 </div>
 </div>
 </div>
-
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
 <h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
+
 <div style="margin-bottom: 10px; background: #0f172a; padding: 6px; border-radius: 6px; border: 1px solid #334155;">
 <label for="select-maintien-rule" style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:2px; text-transform:uppercase; font-weight:bold;">Calcul du Maintien de Tapis (4h) :</label>
 <select id="select-maintien-rule" class="select-custom" style="font-size:0.8rem; padding:5px;" onchange="calculerTout()">
@@ -182,7 +195,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 <td> 🚀  EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
 <td id="brut-qsm-ext">0 L/min</td>
 <td id="brut-vol-ext">0 L</td>
-<td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-green); text-align: center;">0 L</td>
+<td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-fuchsia); text-align: center;">0 L</td>
 </tr>
 <tr style="color: #fb923c;">
 <td> ⏳  TEMPO (1/2 Taux)</td>
@@ -192,10 +205,11 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 </tbody>
 </table>
 </div>
-
 <div class="card" style="border: 2px solid var(--accent-blue);">
 <h2> 📈  Suivi Cinétique Dynamique des Moyens</h2>
-<div class="toggle-group" style="margin-bottom: 12px;" id="horizon-selector-zone">
+
+<label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
+<div class="toggle-group" style="margin-bottom: 12px;">
 <button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳  3 Heures (Extinction)</button>
 <button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)"> 🚨  7 Heures (Total Régl. + Maintien)</button>
 </div>
@@ -209,7 +223,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 </div>
 <div id="moyens-liste" class="moyens-container"></div>
 
-<button class="btn-action" id="btn-add-moyen" onclick="ajouterLigneMoyen(null)"> ➕  Ajouter un vecteur ou renfort émanant</button>
+<button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕  Ajouter un vecteur ou renfort émanant</button>
 <div class="reserve-box">
 <div>
 <div class="reserve-title">Stock Amoncelé</div>
@@ -230,14 +244,12 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 <div class="legend-mini">
 <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Courant</span></div>
 <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
-<div class="legend-item"><div class="color-box" style="background:#16a34a;"></div><span style="color:#16a34a;">Maintien Tapis</span></div>
+<div class="legend-item"><div class="color-box" style="background:#d946ef;"></div><span style="color:#d946ef;">Maintien Tapis</span></div>
 <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
 </div>
 
 <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
 </div>
-</div>
-
 <script>
 let configSinistre = 'cuvette';
 let typeProduit = 'hydro';
@@ -248,14 +260,12 @@ let horizonActuel = 180;
 const moyensParDefaut = [
 { nom: "Moyens Exploit.", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
-
 function changeHorizon(minutes) {
 horizonActuel = minutes;
 document.getElementById('btn-h180').classList.toggle('active', minutes === 180);
 document.getElementById('btn-h420').classList.toggle('active', minutes === 420);
 calculerTout();
 }
-
 function setFuiteRecouverte(boolValue) {
 fuiteRecouverte = boolValue;
 const btnOui = document.getElementById('btn-fuite-oui');
@@ -271,8 +281,8 @@ btnOui.className = "toggle-btn";
 btnNon.className = "toggle-btn active-orange";
 blocFuite.style.display = "grid";
 }
+calculerTout();
 }
-
 function ajouterLigneMoyen(data) {
 const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
 const finalData = data ? data : backup;
@@ -288,12 +298,11 @@ div.innerHTML = `
 <input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
 <button class="btn-remove" onclick="this.parentElement.parentElement.remove(); calculerTout();"> ❌ </button>
 </div>
-<div class="capa-helper"></div>
+<div class="capa-helper" class="m-helper"></div>
 `;
 container.appendChild(div);
 calculerTout();
 }
-
 function reinitialiserApplication() {
 document.getElementById('inp-surface').value = "";
 document.getElementById('inp-t0').value = "";
@@ -311,48 +320,40 @@ changeHorizon(180);
 document.getElementById('moyens-liste').innerHTML = "";
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
+function extraireDonnees() {
+const surface = document.getElementById('inp-surface').value || '0';
+const t0 = document.getElementById('inp-t0').value || '--:--';
+const conf = configSinistre === 'cuvette' ? 'Cuvette' : 'Nappe';
+const prod = typeProduit === 'hydro' ? 'Hydrocarbure' : 'Solvant';
+const fuiteStatus = fuiteRecouverte ? 'Recouverte' : 'Active';
+const fuiteDebit = document.getElementById('inp-qfuite-calcul').value || '0';
 
-/* --- MOTEUR DE PHOTO-CAPTURE DIRECTE POUR SMARTPHONE/IPHONE --- */
-function genererCaptureImage() {
-  // Entrée en mode export (masquage boutons de suppression)
-  document.body.classList.add('is-exporting');
-  document.getElementById('btn-add-moyen').style.display = 'none';
-  document.getElementById('horizon-selector-zone').style.display = 'none';
-
-  const zone = document.getElementById('capture-zone');
-
-  setTimeout(() => {
-    html2canvas(zone, {
-      backgroundColor: '#0f172a',
-      scale: 2, // Augmente la résolution pour la lecture sur écran
-      logging: false,
-      useCORS: true
-    }).then(canvas => {
-      // Conversion en fichier image de téléchargement
-      const imageURI = canvas.toDataURL("image/png");
-      const lienTemporaire = document.createElement('a');
-      
-      let horodatage = new Date().toISOString().slice(11,16).replace(':','h');
-      lienTemporaire.download = `Tactique_Mousse_${horodatage}.png`;
-      lienTemporaire.href = imageURI;
-      
-      document.body.appendChild(lienTemporaire);
-      lienTemporaire.click();
-      document.body.removeChild(lienTemporaire);
-
-      // Rétablissement de l'interface
-      document.body.classList.remove('is-exporting');
-      document.getElementById('btn-add-moyen').style.display = 'block';
-      document.getElementById('horizon-selector-zone').style.display = 'flex';
-    }).catch(err => {
-      alert("Erreur d'extraction : " + err);
-      document.body.classList.remove('is-exporting');
-      document.getElementById('btn-add-moyen').style.display = 'block';
-      document.getElementById('horizon-selector-zone').style.display = 'flex';
-    });
-  }, 300);
+let texteMoyens = "";
+const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
+rows.forEach(row => {
+const nom = row.querySelector('.m-nom').value || 'Vecteur';
+const deb = row.querySelector('.m-debit').value || '0';
+const emu = row.querySelector('.m-emulseur').value || '0';
+const hmo = row.querySelector('.m-arrivee').value || '--:--';
+const arr = row.querySelector('.m-arret').value || 'Continu';
+if(deb > 0 || emu > 0) {
+texteMoyens += `- ${nom} : ${deb} L/min | ${emu} L | MoO: ${hmo} | Arrêt: ${arr}\n`;
 }
-
+});
+const corpsMessage = `--- BILAN MOUSSE TACTIQUE ---\n` +
+`Configuration : ${conf} / ${prod}\n` +
+`Surface : ${surface} m² | T0 : ${t0}\n` +
+`Statut Fuite : ${fuiteStatus} (${fuiteDebit} m³/h)\n\n` +
+`--- ENGAGEMENT CINÉTIQUE ---\n` +
+(texteMoyens || "Aucun moyen encodé.\n") + `\n` +
+`Généré via l'application d'aide à la décision.`;
+const choix = confirm("Comment souhaitez-vous envoyer les données ?\n\n[OK] par Email\n[Annuler] par SMS");
+if (choix) {
+window.location.href = `mailto:?subject=Bilan Mousse Tactique - T0 ${t0}&body=${encodeURIComponent(corpsMessage)}`;
+} else {
+window.location.href = `sms:?&body=${encodeURIComponent(corpsMessage)}`;
+}
+}
 function timeToMinutes(timeStr) {
 if (!timeStr || timeStr.trim() === "") return null;
 const parts = timeStr.split(':');
@@ -424,7 +425,13 @@ annotation: { annotations: {} }
 scales: {
 x: {
 grid: { color: '#334155' },
-ticks: { color: '#94a3b8', font: { size: 9 }, autoSkip: false, maxRotation: 45, minRotation: 45 },
+ticks: {
+color: '#94a3b8',
+font: { size: 9 },
+autoSkip: false,
+maxRotation: 45,
+minRotation: 45
+},
 title: { display: true, text: 'Heure réelle', color: '#94a3b8', font: { size: 10 } }
 },
 y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
@@ -506,8 +513,11 @@ let arrMin = timeToMinutes(arrStr);
 let arretMin = timeToMinutes(arrStrArret);
 if (debit > 0 || emulseur > 0) {
 stockTotalAporte += emulseur;
+
 let deltaArretGraphique = 99999;
-if (arretMin !== null) deltaArretGraphique = arretMin - t0Min;
+if (arretMin !== null) {
+deltaArretGraphique = arretMin - t0Min;
+}
 listeMoyensEngages.push({
 nom: nom || (debit > 0 ? "Vecteur" : "Logistique Ému"),
 debit: debit,
@@ -535,6 +545,7 @@ let dataReel = [];
 
 let topExtinctionMinute = -1;
 let finExtinctionMinute = -1;
+
 let reserveEmulseurDisponible = 0;
 let consoCumuleeEmulseur = 0;
 let ruptureMousseHappen = false;
@@ -543,15 +554,16 @@ let fuiteEstScellee = fuiteRecouverte;
 let minuteScellementsEffectif = -1;
 let volLiquideCuvette = 0;
 const step = 1;
-
 for (let delta = 0; delta <= horizonActuel; delta += step) {
 const heureExacte = minutesToTimeStr(t0Min + delta);
 labelsBrutsX.push(heureExacte);
 
 if (horizonActuel === 420) {
-if (delta % 5 === 0) labelsX.push(heureExacte); else labelsX.push("");
+if (delta % 5 === 0) labelsX.push(heureExacte);
+else labelsX.push("");
 } else {
-if (delta % 2 === 0) labelsX.push(heureExacte); else labelsX.push("");
+if (delta % 2 === 0) labelsX.push(heureExacte);
+else labelsX.push("");
 }
 
 listeMoyensEngages.forEach(m => {
@@ -562,13 +574,16 @@ m.dejaComptabilise = true;
 });
 let debitCourantSolution = 0;
 listeMoyensEngages.forEach(m => {
-if (delta >= m.arrDelta && delta < m.arretDelta) debitCourantSolution += m.debit;
+if (delta >= m.arrDelta && delta < m.arretDelta) {
+debitCourantSolution += m.debit;
+}
 });
 
 let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
 
 if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
-debitCourantSolution = 0; consoPasDeTemps = 0;
+debitCourantSolution = 0;
+consoPasDeTemps = 0;
 if (!ruptureMousseHappen) { ruptureMousseHappen = true; minuteDeLaRupture = delta; }
 } else if (reserveEmulseurDisponible - consoPasDeTemps < 0) {
 debitCourantSolution = (reserveEmulseurDisponible / (conc / 100)) / step;
@@ -578,19 +593,20 @@ if (!ruptureMousseHappen) { ruptureMousseHappen = true; minuteDeLaRupture = delt
 reserveEmulseurDisponible -= consoPasDeTemps;
 consoCumuleeEmulseur += consoPasDeTemps;
 dataReel.push(debitCourantSolution);
-
 if (!fuiteEstScellee && qFuite > 0) {
 const solutionEfficace = debitCourantSolution * 0.5;
 volLiquideCuvette += (qFuite + solutionEfficace) * step;
 if (volLiquideCuvette >= vCuvetteNecessaire) {
-fuiteEstScellee = true; minuteScellementsEffectif = delta;
+fuiteEstScellee = true;
+minuteScellementsEffectif = delta;
 }
 }
 if (!fuiteEstScellee && qFuite > 0) {
 dataDynamicObjective.push(qsmTemp);
 } else {
 if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen && qsmExt > 0) {
-topExtinctionMinute = delta; finExtinctionMinute = delta + dureeMissionDoctrine;
+topExtinctionMinute = delta;
+finExtinctionMinute = delta + dureeMissionDoctrine;
 }
 if (topExtinctionMinute !== -1 && delta >= topExtinctionMinute && delta < finExtinctionMinute) {
 dataDynamicObjective.push(qsmExt);
@@ -603,71 +619,109 @@ dataDynamicObjective.push(qsmExt);
 dataTemp.push(qsmTemp);
 dataMaintien.push(qsmMaintien);
 }
-
 listeMoyensEngages.forEach(m => {
-if (!m.arrStr) return;
+if (!m.arrStr) {
+m.helperElement.innerText = "";
+return;
+}
 const tMiseOeuvre = timeToMinutes(m.arrStr);
+
 if (m.debit > 0) {
 const debitEmuEngin = m.debit * (conc / 100);
 const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
-m.helperElement.innerHTML = ` ⏳  Autonomie propre : <b style="color: #60a5fa;">${minutesToTimeStr(tMiseOeuvre + minutesAutonomiePropre)}</b> (${minutesAutonomiePropre} min)`;
-} else if (m.debit === 0 && m.emulseurApporte > 0) {
-let totalDeb = 0;
-listeMoyensEngages.forEach(o => { if (o.debit > 0 && o.arrStr && timeToMinutes(o.arrStr) <= tMiseOeuvre) totalDeb += o.debit; });
-if (totalDeb > 0) {
-const mAbs = Math.floor(m.emulseurApporte / (totalDeb * (conc / 100)));
-m.helperElement.innerHTML = ` 📦  Stock épuisé vers : <b style="color: #c084fc;">${minutesToTimeStr(tMiseOeuvre + mAbs)}</b>`;
+const heureCapaPropre = (tMiseOeuvre + minutesAutonomiePropre) % 1440;
+m.helperElement.innerHTML = ` ⏳  Autonomie vecteur seule : <b style="color: #60a5fa;">${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
+}
+else if (m.debit === 0 && m.emulseurApporte > 0) {
+let debitDAttaqueActuelAuPointDArrivee = 0;
+listeMoyensEngages.forEach(other => {
+if (other.debit > 0 && other.arrStr && timeToMinutes(other.arrStr) <= tMiseOeuvre) {
+debitDAttaqueActuelAuPointDArrivee += other.debit;
+}
+});
+if (debitDAttaqueActuelAuPointDArrivee > 0) {
+const consoEmuGlobaleParMinute = debitDAttaqueActuelAuPointDArrivee * (conc / 100);
+const minutesAbsorptionReserve = Math.floor(m.emulseurApporte / consoEmuGlobaleParMinute);
+const heureCapaReserve = (tMiseOeuvre + minutesAbsorptionReserve) % 1440;
+m.helperElement.innerHTML = ` 📦  Réserve absorbée par débits en place vers : <b style="color: #c084fc;">${minutesToTimeStr(heureCapaReserve)}</b>`;
 } else {
-m.helperElement.innerHTML = ` 📦  Réserve logistique pure (En attente de lignes)`;
+m.helperElement.innerHTML = ` 📦  Réserve en stock (En attente de lignes d'attaque)`;
 }
 }
 });
-
 document.getElementById('res-conso').innerText = Math.round(consoCumuleeEmulseur) + " L";
 const resRestantBox = document.getElementById('res-restant');
 resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
 resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
-
 let annotationsMoyens = {};
 let compteursParMinute = {};
 listeMoyensEngages.forEach((m, index) => {
 if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
-if (compteursParMinute[m.arrDelta] === undefined) compteursParMinute[m.arrDelta] = 0; else compteursParMinute[m.arrDelta]++;
+if (compteursParMinute[m.arrDelta] === undefined) {
+compteursParMinute[m.arrDelta] = 0;
+} else {
+compteursParMinute[m.arrDelta]++;
+}
 let decalageY = 5 + (compteursParMinute[m.arrDelta] * 22);
 annotationsMoyens[`moyen_${index}`] = {
-type: 'line', scaleID: 'x', value: m.arrDelta, borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7', borderWidth: 1.5, borderDash: [4, 4],
-label: { display: true, content: `${m.nom} (${m.arrStr})`, position: 'start', backgroundColor: '#1e293b', color: m.debit > 0 ? '#3b82f6' : '#c084fc', font: { size: 9, weight: 'bold' }, padding: 4, borderRadius: 4, borderWidth: 1, borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7', yAdjust: decalageY }
+type: 'line',
+scaleID: 'x',
+value: m.arrDelta,
+borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+borderWidth: 1.5,
+borderDash: [4, 4],
+label: {
+display: true,
+content: `${m.nom} (${m.arrStr})`,
+position: 'start',
+backgroundColor: '#1e293b',
+color: m.debit > 0 ? '#3b82f6' : '#c084fc',
+font: { size: 9, weight: 'bold' },
+padding: 4,
+borderRadius: 4,
+borderWidth: 1,
+borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+yAdjust: decalageY
+}
 };
 }
 });
-
 myChart.data.labels = labelsX;
 myChart.data.datasets = [
 { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
 { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
-{ label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#16a34a', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
+{ label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#d946ef', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
 { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
 ];
+
 myChart.options.plugins.annotation.annotations = annotationsMoyens;
 myChart.update();
-
 const statusBox = document.getElementById('top-extinction-status');
+
 if (ruptureMousseHappen) {
-statusBox.innerHTML = ` 🚨  <b>RUPTURE LOGISTIQUE À ${minutesToTimeStr(t0Min + minuteDeLaRupture)} !</b><br> Épuisement total de la réserve de mousse partagée. L'assaut s'est effondré.`;
+const heurePanneSeche = minutesToTimeStr(t0Min + minuteDeLaRupture);
+statusBox.innerHTML = ` 🚨  <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
 statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
-} else if (topExtinctionMinute !== -1) {
-let noteFuite = fuiteRecouverte ? "" : `<br> ℹ ️ <b>Fuite scellée :</b> Hauteur de brèche noyée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
-statusBox.innerHTML = ` 🟢  <b>TOP EXTINCTION VALIDE À ${minutesToTimeStr(t0Min + topExtinctionMinute)}</b><br>Assaut lancé pour ${dureeMissionDoctrine} min, suivi du maintien (4h).${noteFuite}`;
+}
+else if (topExtinctionMinute !== -1) {
+const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
+const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
+let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;"> ℹ ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m).
+Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> (T0 + ${minuteScellementsEffectif} min).`;
+statusBox.innerHTML = ` 🟢  <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
 statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
-} else if (!fuiteRecouverte && !fuiteEstScellee) {
-statusBox.innerHTML = ` ⚠ ️ <b>FUITE EN COURS D'ÉPANCHEMENT</b><br>Le niveau actuel n'a pas noyé la brèche de ${hFuite}m. Remplissage requis avant l'assaut.`;
+}
+else if (!fuiteRecouverte && !fuiteEstScellee) {
+const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
+statusBox.innerHTML = ` ⚠ ️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP EXTINCTION.</span>`;
 statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
-} else {
-statusBox.innerHTML = ` ⏳  <b>EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>La brèche est noyée mais le débit global est inférieur au seuil requis (${Math.round(qsmExt)} L/min).`;
+}
+else {
+statusBox.innerHTML = ` ⏳  <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée.
+Les moyens réels actuels restent inférieurs au seuil requis pour lancer l'assaut réglementaire (${Math.round(qsmExt)} L/min).`;
 statusBox.style.background = "#334155"; statusBox.style.color = "white";
 }
 }
-
 window.onload = function() {
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 };
