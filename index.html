@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>GESTION LIF — ANALYSE CINÉTIQUE LOGISTIQUE</title>
+<title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
@@ -15,6 +15,7 @@
 --accent-red: #dc2626;
 --accent-green: #16a34a;
 --accent-orange: #fb923c;
+--accent-fuchsia: #d946ef;
 --text-main: #f8fafc;
 --text-muted: #94a3b8;
 }
@@ -22,9 +23,8 @@
 body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
 
 header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-header h1 { margin: 0; font-size: 1.4rem; color: var(--accent-red); font-weight: 800; letter-spacing: 0.5px; }
-header p { margin: 4px 0 0 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
-header p span.author { font-size: 0.65rem; font-style: italic; text-transform: none; opacity: 0.8; margin-left: 2px; display: inline-block; }
+header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
+header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
 .container-actions { display: flex; gap: 10px; justify-content: center; margin: 10px 0 15px 0; }
 .btn-action-top { border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px;
 box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: center;}
@@ -62,7 +62,7 @@ font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
 font-weight: bold; text-align: center; }
 .moyens-grid input[type="text"] { text-align: left; }
 
-.capa-helper { font-size: 0.65rem; color: #60a5fa; text-align: center; margin-top: 2px; font-weight: 500; height: 12px;}
+.capa-helper { font-size: 0.65rem; color: #f87171; text-align: center; margin-top: 2px; font-weight: 500; height: 12px;}
 .btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
 width: 100%; margin-top: 5px; }
 .btn-remove { background: var(--accent-red); border: none; color: white; padding: 5px; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 0.8rem; }
@@ -73,7 +73,7 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 .doc-table { width: 100%; border-collapse: collapse; margin-top: 5px; font-size: 0.8rem; }
 .doc-table th { background: #0f172a; color: var(--text-muted); text-align: left; padding: 6px; font-weight: normal; border: 1px solid #334155; }
 .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
-.chart-container { position: relative; width: 100%; height: 320px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
+.chart-container { position: relative; width: 100%; height: 340px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
 .alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; }
 
 .legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
@@ -83,63 +83,27 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 border: 1px solid #475569;}
 .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
 .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
-
-/* Styles d'exportation PDF préservant le thème sombre complet */
-@media print {
-  html, body { 
-    background-color: #0f172a !important; 
-    color: #f8fafc !important; 
-    -webkit-print-color-adjust: exact !important; 
-    print-color-adjust: exact !important;
-  }
-  .container-actions, .btn-action, .btn-remove { display: none !important; }
-  .card { 
-    background-color: #1e293b !important; 
-    color: #f8fafc !important; 
-    border: 1px solid #334155 !important; 
-    box-shadow: none !important; 
-    page-break-inside: avoid;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  input, select, .poi-grid, .moyens-grid, .reserve-box, .chart-container { 
-    background-color: #0f172a !important; 
-    color: #ffffff !important; 
-    border: 1px solid #475569 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  .moyens-grid input {
-    background-color: #1e293b !important;
-    color: #ffffff !important;
-  }
-  .doc-table th { 
-    background-color: #0f172a !important; 
-    color: #94a3b8 !important; 
-  }
-  .capa-helper { color: #60a5fa !important; }
-}
 </style>
 </head>
 <body>
 <header>
-<h1>GESTION LIF</h1>
-<p>Analyse Cinétique Logistique <span class="author">(App IA by S. Cadinot)</span></p>
+<h1>MOUSSE TACTIQUE — SDIS</h1>
+<p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
 </header>
 <div class="container-actions">
-<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄 REINITIALISER</button>
-<button class="btn-action-top btn-extract" onclick="extraireDonnees()"> 📄 EXPORT PDF PC</button>
+<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄  REINITIALISER</button>
+<button class="btn-action-top btn-extract" onclick="extraireDonnees()"> 📤  EXTRAIRE</button>
 </div>
 <div class="card">
 <h2>Étape 1 : Situation du Sinistre</h2>
 
 <div class="toggle-group">
-<button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')"> 🛢️ Cuvette / Rétention</button>
-<button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')"> 🌊 Nappe / Épandage</button>
+<button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')"> 🛢 ️ Cuvette / Rétention</button>
+<button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')"> 🌊  Nappe / Épandage</button>
 </div>
 <div class="toggle-group">
-<button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')"> ⛽ Hydrocarbure (Non miscible)</button>
-<button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')"> 🧪 Solvant (Miscible)</button>
+<button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')"> ⛽  Hydrocarbure (Non miscible)</button>
+<button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')"> 🧪  Solvant (Miscible)</button>
 </div>
 <div id="bloc-poi" class="poi-grid">
 <div class="poi-label">Réglementation & Doctrine Site :</div>
@@ -161,10 +125,10 @@ border: 1px solid #475569;}
 </div>
 </div>
 <div style="background: #0f172a; padding: 10px; border-radius: 6px; border: 2px solid #334155; margin: 8px 0 12px 0;">
-<label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);"> ⚠️ Statut opérationnel de la fuite :</label>
+<label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);"> ⚠ ️ Statut opérationnel de la fuite :</label>
 <div class="toggle-group" style="margin-bottom:8px;">
-<button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)"> 🟢 Fuite Recouverte d'emblée</button>
-<button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)"> ⚠️ Fuite NON Recouverte</button>
+<button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)"> 🟢  Fuite Recouverte d'emblée</button>
+<button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)"> ⚠ ️ Fuite NON Recouverte</button>
 </div>
 <div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
 <div class="form-group">
@@ -209,13 +173,13 @@ border: 1px solid #475569;}
 </thead>
 <tbody>
 <tr style="color: #ef4444;">
-<td> 🚀 EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
+<td> 🚀  EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
 <td id="brut-qsm-ext">0 L/min</td>
 <td id="brut-vol-ext">0 L</td>
-<td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-green); text-align: center;">0 L</td>
+<td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-fuchsia); text-align: center;">0 L</td>
 </tr>
 <tr style="color: #fb923c;">
-<td> ⏳ TEMPO (1/2 Taux)</td>
+<td> ⏳  TEMPO (1/2 Taux)</td>
 <td id="brut-qsm-temp">0 L/min</td>
 <td id="brut-vol-temp">0 L</td>
 </tr>
@@ -223,12 +187,12 @@ border: 1px solid #475569;}
 </table>
 </div>
 <div class="card" style="border: 2px solid var(--accent-blue);">
-<h2> 📈 Suivi Cinétique Dynamique des Moyens</h2>
+<h2> 📈  Suivi Cinétique Dynamique des Moyens</h2>
 
 <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
-<div class="toggle-group" style="margin-bottom: 12px;" id="group-horizon">
-<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳ 3 Heures (Extinction)</button>
-<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)"> 🚨 7 Heures (Total Régl. + Maintien)</button>
+<div class="toggle-group" style="margin-bottom: 12px;">
+<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳  3 Heures (Extinction)</button>
+<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)"> 🚨  7 Heures (Total Régl. + Maintien)</button>
 </div>
 <div class="moyens-grid-header">
 <span>Nom du Vecteur / Renfort</span>
@@ -240,7 +204,7 @@ border: 1px solid #475569;}
 </div>
 <div id="moyens-liste" class="moyens-container"></div>
 
-<button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕ Ajouter un vecteur ou renfort émanant</button>
+<button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕  Ajouter un vecteur ou renfort émanant</button>
 <div class="reserve-box">
 <div>
 <div class="reserve-title">Stock Amoncelé</div>
@@ -251,7 +215,7 @@ border: 1px solid #475569;}
 <div class="reserve-val" id="res-conso" style="color:var(--accent-red);">0 L</div>
 </div>
 <div>
-<div class="reserve-title">Stock Fin Horizon</div>
+<div class="reserve-title">Stock Fin Intervention</div>
 <div class="reserve-val" id="res-restant">0 L</div>
 </div>
 </div>
@@ -261,8 +225,9 @@ border: 1px solid #475569;}
 <div class="legend-mini">
 <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Courant</span></div>
 <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
-<div class="legend-item"><div class="color-box" style="background:#16a34a;"></div><span style="color:#16a34a;">Maintien Tapis</span></div>
+<div class="legend-item"><div class="color-box" style="background:#d946ef;"></div><span style="color:#d946ef;">Maintien Tapis</span></div>
 <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
+<div class="legend-item"><div class="color-box" style="background:#10b981;"></div><span style="color:#10b981;">Fin Intervention</span></div>
 </div>
 
 <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
@@ -277,14 +242,12 @@ let horizonActuel = 180;
 const moyensParDefaut = [
 { nom: "Moyens Exploit.", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
-
 function changeHorizon(minutes) {
 horizonActuel = minutes;
 document.getElementById('btn-h180').classList.toggle('active', minutes === 180);
 document.getElementById('btn-h420').classList.toggle('active', minutes === 420);
 calculerTout();
 }
-
 function setFuiteRecouverte(boolValue) {
 fuiteRecouverte = boolValue;
 const btnOui = document.getElementById('btn-fuite-oui');
@@ -302,7 +265,6 @@ blocFuite.style.display = "grid";
 }
 calculerTout();
 }
-
 function ajouterLigneMoyen(data) {
 const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
 const finalData = data ? data : backup;
@@ -323,7 +285,6 @@ div.innerHTML = `
 container.appendChild(div);
 calculerTout();
 }
-
 function reinitialiserApplication() {
 document.getElementById('inp-surface').value = "";
 document.getElementById('inp-t0').value = "";
@@ -341,25 +302,52 @@ changeHorizon(180);
 document.getElementById('moyens-liste').innerHTML = "";
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
-
 function extraireDonnees() {
-    window.print();
-}
+const surface = document.getElementById('inp-surface').value || '0';
+const t0 = document.getElementById('inp-t0').value || '--:--';
+const conf = configSinistre === 'cuvette' ? 'Cuvette' : 'Nappe';
+const prod = typeProduit === 'hydro' ? 'Hydrocarbure' : 'Solvant';
+const fuiteStatus = fuiteRecouverte ? 'Recouverte' : 'Active';
+const fuiteDebit = document.getElementById('inp-qfuite-calcul').value || '0';
 
+let texteMoyens = "";
+const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
+rows.forEach(row => {
+const nom = row.querySelector('.m-nom').value || 'Vecteur';
+const deb = row.querySelector('.m-debit').value || '0';
+const emu = row.querySelector('.m-emulseur').value || '0';
+const hmo = row.querySelector('.m-arrivee').value || '--:--';
+const arr = row.querySelector('.m-arret').value || 'Continu';
+if(deb > 0 || emu > 0) {
+texteMoyens += `- ${nom} : ${deb} L/min | ${emu} L | MoO: ${hmo} | Arrêt: ${arr}\n`;
+}
+});
+const corpsMessage = `--- BILAN MOUSSE TACTIQUE ---\n` +
+`Configuration : ${conf} / ${prod}\n` +
+`Surface : ${surface} m² | T0 : ${t0}\n` +
+`Statut Fuite : ${fuiteStatus} (${fuiteDebit} m³/h)\n\n` +
+`--- ENGAGEMENT CINÉTIQUE ---\n` +
+(texteMoyens || "Aucun moyen encodé.\n") + `\n` +
+`Généré via l'application d'aide à la décision.`;
+const choix = confirm("Comment souhaitez-vous envoyer les données ?\n\n[OK] par Email\n[Annuler] par SMS");
+if (choix) {
+window.location.href = `mailto:?subject=Bilan Mousse Tactique - T0 ${t0}&body=${encodeURIComponent(corpsMessage)}`;
+} else {
+window.location.href = `sms:?&body=${encodeURIComponent(corpsMessage)}`;
+}
+}
 function timeToMinutes(timeStr) {
 if (!timeStr || timeStr.trim() === "") return null;
 const parts = timeStr.split(':');
 if (parts.length < 2) return null;
 return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 }
-
 function minutesToTimeStr(totalMinutes) {
 const mins = (totalMinutes < 0 ? (totalMinutes % 1440) + 1440 : totalMinutes) % 1440;
 const h = Math.floor(mins / 60).toString().padStart(2, '0');
 const m = (mins % 60).toString().padStart(2, '0');
 return `${h}:${m}`;
 }
-
 function appliquerDoctrineTauxDuree() {
 const surfaceInput = document.getElementById('inp-surface').value;
 const surface = parseFloat(surfaceInput) || 0;
@@ -385,7 +373,6 @@ document.getElementById('slip-ta').value = tauxAutomatique;
 document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
 calculerTout();
 }
-
 function setConfiguration(type) {
 configSinistre = type;
 document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
@@ -393,20 +380,17 @@ document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe'
 document.getElementById('bloc-poi').style.display = type === 'cuvette' ? 'grid' : 'none';
 appliquerDoctrineTauxDuree();
 }
-
 function setProduit(prod) {
 typeProduit = prod;
 document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
 document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
 appliquerDoctrineTauxDuree();
 }
-
 function updateSlider(param, value) {
 if (param === 'ta') document.getElementById('val-ta').innerText = parseFloat(value).toFixed(1);
 if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
 calculerTout();
 }
-
 function initChart() {
 const ctx = document.getElementById('kineticChart').getContext('2d');
 myChart = new Chart(ctx, {
@@ -423,18 +407,20 @@ annotation: { annotations: {} }
 scales: {
 x: {
 grid: { color: '#334155' },
-ticks: { color: '#94a3b8', font: { size: 9 }, autoSkip: false, maxRotation: 45, minRotation: 45 },
+ticks: {
+color: '#94a3b8',
+font: { size: 9 },
+autoSkip: false,
+maxRotation: 45,
+minRotation: 45
+},
 title: { display: true, text: 'Heure réelle', color: '#94a3b8', font: { size: 10 } }
 },
-y: { 
-grid: { color: '#334155' }, 
-ticks: { color: '#94a3b8', font: { size: 9 } }, 
-title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
+y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } }, title: { display: true, text: 'Débit Solution (L/min)', color: '#94a3b8', font: { size: 10 } } }
 }
 }
 });
 }
-
 function resetVisuals() {
 document.getElementById('brut-qsm-ext').innerText = "0 L/min";
 document.getElementById('brut-vol-ext').innerText = "0 L";
@@ -454,10 +440,8 @@ myChart.options.plugins.annotation.annotations = {};
 myChart.update();
 }
 }
-
 function calculerTout() {
 if (!myChart) initChart();
-
 const surfaceInput = document.getElementById('inp-surface').value;
 const surface = parseFloat(surfaceInput) || 0;
 const t0Str = document.getElementById('inp-t0').value;
@@ -467,13 +451,13 @@ const hFuiteInput = document.getElementById('inp-hfuite').value;
 const qFuite = qFuiteM3H ? (parseFloat(qFuiteM3H) * 1000 / 60) : 0;
 if (!fuiteRecouverte && (!qFuiteM3H || parseFloat(qFuiteM3H) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
 resetVisuals();
-document.getElementById('top-extinction-status').innerHTML = ` ⚠️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
+document.getElementById('top-extinction-status').innerHTML = ` ⚠ ️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
 document.getElementById('top-extinction-status').style.background = "#7c2d12"; document.getElementById('top-extinction-status').style.color = "#fed7aa";
 return;
 }
 if (surface === 0 || !t0Str) {
 resetVisuals();
-document.getElementById('top-extinction-status').innerHTML = ` ⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
+document.getElementById('top-extinction-status').innerHTML = ` ⚙ ️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
 document.getElementById('top-extinction-status').style.background = "#334155"; document.getElementById('top-extinction-status').style.color = "white";
 return;
 }
@@ -552,6 +536,32 @@ let fuiteEstScellee = fuiteRecouverte;
 let minuteScellementsEffectif = -1;
 let volLiquideCuvette = 0;
 const step = 1;
+
+// Premier passage rapide pour identifier le Top Extinction et fixer la fin réelle prévisible
+for (let delta = 0; delta <= horizonActuel; delta += step) {
+let debitCourantSolutionSimule = 0;
+listeMoyensEngages.forEach(m => {
+if (delta >= m.arrDelta && delta < m.arretDelta) debitCourantSolutionSimule += m.debit;
+});
+if (!fuiteEstScellee && qFuite > 0) {
+const solutionEfficace = debitCourantSolutionSimule * 0.5;
+volLiquideCuvette += (qFuite + solutionEfficace) * step;
+if (volLiquideCuvette >= vCuvetteNecessaire) {
+fuiteEstScellee = true;
+minuteScellementsEffectif = delta;
+}
+}
+if ((fuiteEstScellee || qFuite === 0) && topExtinctionMinute === -1 && debitCourantSolutionSimule >= qsmExt && qsmExt > 0) {
+topExtinctionMinute = delta;
+finExtinctionMinute = delta + dureeMissionDoctrine;
+break;
+}
+}
+
+// Reset variables d'état pour calcul réel
+fuiteEstScellee = fuiteRecouverte;
+volLiquideCuvette = 0;
+
 for (let delta = 0; delta <= horizonActuel; delta += step) {
 const heureExacte = minutesToTimeStr(t0Min + delta);
 labelsBrutsX.push(heureExacte);
@@ -577,8 +587,14 @@ debitCourantSolution += m.debit;
 }
 });
 
-let consoPasDeTemps = debitCourantSolution * (conc / 100) * step;
+let interventionTerminee = false;
+if (finExtinctionMinute !== -1 && delta > (finExtinctionMinute + 240)) {
+interventionTerminee = true;
+}
 
+let consoPasDeTemps = interventionTerminee ? 0 : (debitCourantSolution * (conc / 100) * step);
+
+if (!interventionTerminee) {
 if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
 debitCourantSolution = 0;
 consoPasDeTemps = 0;
@@ -590,7 +606,12 @@ if (!ruptureMousseHappen) { ruptureMousseHappen = true; minuteDeLaRupture = delt
 }
 reserveEmulseurDisponible -= consoPasDeTemps;
 consoCumuleeEmulseur += consoPasDeTemps;
-dataReel.push(debitCourantSolution);
+} else {
+debitCourantSolution = 0; 
+}
+
+dataReel.push(interventionTerminee ? 0 : debitCourantSolution);
+
 if (!fuiteEstScellee && qFuite > 0) {
 const solutionEfficace = debitCourantSolution * 0.5;
 volLiquideCuvette += (qFuite + solutionEfficace) * step;
@@ -599,13 +620,11 @@ fuiteEstScellee = true;
 minuteScellementsEffectif = delta;
 }
 }
-if (!fuiteEstScellee && qFuite > 0) {
+if (interventionTerminee) {
+dataDynamicObjective.push(0);
+} else if (!fuiteEstScellee && qFuite > 0) {
 dataDynamicObjective.push(qsmTemp);
 } else {
-if (topExtinctionMinute === -1 && debitCourantSolution >= qsmExt && !ruptureMousseHappen && qsmExt > 0) {
-topExtinctionMinute = delta;
-finExtinctionMinute = delta + dureeMissionDoctrine;
-}
 if (topExtinctionMinute !== -1 && delta >= topExtinctionMinute && delta < finExtinctionMinute) {
 dataDynamicObjective.push(qsmExt);
 } else if (topExtinctionMinute !== -1 && delta >= finExtinctionMinute) {
@@ -614,9 +633,11 @@ dataDynamicObjective.push(qsmMaintien);
 dataDynamicObjective.push(qsmExt);
 }
 }
-dataTemp.push(qsmTemp);
-dataMaintien.push(qsmMaintien);
+dataTemp.push(interventionTerminee ? 0 : qsmTemp);
+dataMaintien.push(interventionTerminee ? 0 : qsmMaintien);
 }
+
+// --- CALCULS AUXILIAIRES GRISÉS ---
 listeMoyensEngages.forEach(m => {
 if (!m.arrStr) {
 m.helperElement.innerText = "";
@@ -628,7 +649,7 @@ if (m.debit > 0) {
 const debitEmuEngin = m.debit * (conc / 100);
 const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
 const heureCapaPropre = (tMiseOeuvre + minutesAutonomiePropre) % 1440;
-m.helperElement.innerHTML = ` ⏳ Autonomie vecteur seule : <b>${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
+m.helperElement.innerHTML = ` ⏳  Autonomie vecteur seule : <b style="color: #60a5fa;">${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
 }
 else if (m.debit === 0 && m.emulseurApporte > 0) {
 let debitDAttaqueActuelAuPointDArrivee = 0;
@@ -641,9 +662,9 @@ if (debitDAttaqueActuelAuPointDArrivee > 0) {
 const consoEmuGlobaleParMinute = debitDAttaqueActuelAuPointDArrivee * (conc / 100);
 const minutesAbsorptionReserve = Math.floor(m.emulseurApporte / consoEmuGlobaleParMinute);
 const heureCapaReserve = (tMiseOeuvre + minutesAbsorptionReserve) % 1440;
-m.helperElement.innerHTML = ` 📦 Réserve absorbée par débits en place vers : <b>${minutesToTimeStr(heureCapaReserve)}</b>`;
+m.helperElement.innerHTML = ` 📦  Réserve absorbée par débits en place vers : <b style="color: #c084fc;">${minutesToTimeStr(heureCapaReserve)}</b>`;
 } else {
-m.helperElement.innerHTML = ` 📦 Réserve en stock (En attente de lignes d'attaque)`;
+m.helperElement.innerHTML = ` 📦  Réserve en stock (En attente de lignes d'attaque)`;
 }
 }
 });
@@ -651,16 +672,27 @@ document.getElementById('res-conso').innerText = Math.round(consoCumuleeEmulseur
 const resRestantBox = document.getElementById('res-restant');
 resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
 resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
+
 let annotationsMoyens = {};
-let compteursParMinute = {};
+
+// ALGORITHME ANTICOLLISION HORIZONTALE DES ÉTIQUETTES VECTEURS
+listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
+let niveauxY = [10, 35, 60, 85, 110];
+let dernierDeltaParNiveau = [-999, -999, -999, -999, -999];
+
 listeMoyensEngages.forEach((m, index) => {
 if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
-if (compteursParMinute[m.arrDelta] === undefined) {
-compteursParMinute[m.arrDelta] = 0;
-} else {
-compteursParMinute[m.arrDelta]++;
+let niveauChoisi = 0;
+for (let n = 0; n < dernierDeltaParNiveau.length; n++) {
+if (m.arrDelta - dernierDeltaParNiveau[n] > 14) { 
+niveauChoisi = n;
+break;
 }
-let decalageY = 5 + (compteursParMinute[m.arrDelta] * 22);
+if (n === dernierDeltaParNiveau.length - 1) niveauChoisi = n;
+}
+dernierDeltaParNiveau[niveauChoisi] = m.arrDelta;
+let decalageY = niveauxY[niveauChoisi];
+
 annotationsMoyens[`moyen_${index}`] = {
 type: 'line',
 scaleID: 'x',
@@ -684,11 +716,36 @@ yAdjust: decalageY
 };
 }
 });
+
+// RAJOUT DYNAMIQUE DE LA LIGNE DE FIN REELLE D'INTERVENTION
+if (finExtinctionMinute !== -1) {
+const deltaFinIntervention = finExtinctionMinute + 240;
+if (deltaFinIntervention <= horizonActuel) {
+annotationsMoyens['fin_intervention'] = {
+type: 'line',
+scaleID: 'x',
+value: deltaFinIntervention,
+borderColor: '#10b981',
+borderWidth: 2.5,
+label: {
+display: true,
+content: `FIN INTERVENTION (${minutesToTimeStr(t0Min + deltaFinIntervention)})`,
+position: 'end',
+backgroundColor: '#10b981',
+color: '#ffffff',
+font: { size: 10, weight: 'bold' },
+padding: 5,
+borderRadius: 4
+}
+};
+}
+}
+
 myChart.data.labels = labelsX;
 myChart.data.datasets = [
 { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
 { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
-{ label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#16a34a', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
+{ label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#d946ef', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
 { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
 ];
 
@@ -698,27 +755,27 @@ const statusBox = document.getElementById('top-extinction-status');
 
 if (ruptureMousseHappen) {
 const heurePanneSeche = minutesToTimeStr(t0Min + minuteDeLaRupture);
-statusBox.innerHTML = ` 🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
-statusBox.style.background = '#7f1d1d'; statusBox.style.color = '#fca5a5';
+statusBox.innerHTML = ` 🚨  <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
+statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
 }
 else if (topExtinctionMinute !== -1) {
 const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
 const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-let noteFuite = fuiteRecouverte ? "" : `<br><b> ℹ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
-statusBox.innerHTML = ` 🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min, suivi du maintien (4h).${noteFuite}`;
-statusBox.style.background = '#14532d'; statusBox.style.color = '#bbf7d0';
+const heureFinInterventionStr = minutesToTimeStr(t0Min + finExtinctionMinute + 240);
+let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;"> ℹ ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
+statusBox.innerHTML = ` 🟢  <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi de 4h de maintien.<br>🏁 <b>Fin prévisible de l'intervention : ${heureFinInterventionStr}</b>.${noteFuite}`;
+statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
 }
 else if (!fuiteRecouverte && !fuiteEstScellee) {
 const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
-statusBox.innerHTML = ` ⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque env. ${Math.round(volRestant)} Litres).`;
-statusBox.style.background = '#7c2d12'; statusBox.style.color = '#fed7aa';
+statusBox.innerHTML = ` ⚠ ️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP EXTINCTION.</span>`;
+statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
 }
 else {
-statusBox.innerHTML = ` ⏳ <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée. Les moyens réels actuels restent inférieurs au seuil requis (${Math.round(qsmExt)} L/min).`;
-statusBox.style.background = '#334155'; statusBox.style.color = 'white';
+statusBox.innerHTML = ` ⏳  <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée. Les moyens réels actuels restent inférieurs au seuil requis pour lancer l'assaut réglementaire (${Math.round(qsmExt)} L/min).`;
+statusBox.style.background = "#334155"; statusBox.style.color = "white";
 }
 }
-
 window.onload = function() {
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 };
