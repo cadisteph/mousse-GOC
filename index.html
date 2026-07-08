@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
+<title>GESTION LIF — ANALYSE CINÉTIQUE LOGISTIQUE</title>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
@@ -22,8 +22,9 @@
 body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
 
 header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-red); font-weight: 800; letter-spacing: 0.5px; }
-header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+header h1 { margin: 0; font-size: 1.4rem; color: var(--accent-red); font-weight: 800; letter-spacing: 0.5px; }
+header p { margin: 4px 0 0 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
+header p span.author { font-size: 0.65rem; font-style: italic; text-transform: none; opacity: 0.8; margin-left: 2px; display: inline-block; }
 .container-actions { display: flex; gap: 10px; justify-content: center; margin: 10px 0 15px 0; }
 .btn-action-top { border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px;
 box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: center;}
@@ -122,8 +123,8 @@ border: 1px solid #475569;}
 </head>
 <body>
 <header>
-<h1>MOUSSE TACTIQUE — ORE</h1>
-<p>Poste de Commandement — Analyse Cinétique Logistique</p>
+<h1>GESTION LIF</h1>
+<p>Analyse Cinétique Logistique <span class="author">(App IA by S. Cadinot)</span></p>
 </header>
 <div class="container-actions">
 <button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄 REINITIALISER</button>
