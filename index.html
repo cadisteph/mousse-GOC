@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>DIMENSIONNEMENT MOUSSE & GESTION CINÉTIQUE</title>
 
-<link rel="apple-touch-icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231e293b'><path d='M50 5 L85 15 V45 C85 70 50 95 50 95 C50 95 15 70 15 45 V15 L50 5 Z' fill='%231e293b' stroke='%23334155' stroke-width='3'/><path d='M50 25 C50 25 72 38 70 58 C68 74 54 82 50 82 Z' fill='%23f97316'/><path d='M50 40 C50 40 62 48 60 62 C59 72 53 77 50 77 Z' fill='%23ef4444'/><path d='M50 25 C50 25 28 35 30 58 C32 76 46 82 50 82 Z' fill='%2322c55e'/><path d='M50 35 C50 35 36 43 38 60 C39 71 45 77 50 77 Z' fill='%233b82f6'/><line x1='50' y1='5' x2='50' y2='95' stroke='%230f172a' stroke-width='2' stroke-dasharray='3 3'/><circle cx='50' cy='55' r='12' stroke='%23f8fafc' stroke-width='1.5' stroke-dasharray='2 2' fill='none'/><circle cx='50' cy='55' r='3' fill='%23f8fafc'/></svg>">
-
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100' fill='%231e293b'><path d='M50 5 L85 15 V45 C85 70 50 95 50 95 C50 95 15 70 15 45 V15 L50 5 Z' fill='%231e293b' stroke='%23334155' stroke-width='3'/><path d='M50 25 C50 25 72 38 70 58 C68 74 54 82 50 82 Z' fill='%23f97316'/><path d='M50 40 C50 40 62 48 60 62 C59 72 53 77 50 77 Z' fill='%23ef4444'/><path d='M50 25 C50 25 28 35 30 58 C32 76 46 82 50 82 Z' fill='%2322c55e'/><path d='M50 35 C50 35 36 43 38 60 C39 71 45 77 50 77 Z' fill='%233b82f6'/><line x1='50' y1='5' x2='50' y2='95' stroke='%230f172a' stroke-width='2' stroke-dasharray='3 3'/><circle cx='50' cy='55' r='12' stroke='%23f8fafc' stroke-width='1.5' stroke-dasharray='2 2' fill='none'/><circle cx='50' cy='55' r='3' fill='%23f8fafc'/></svg>">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
 <style>
@@ -19,7 +15,6 @@
 --accent-red: #dc2626;
 --accent-green: #16a34a;
 --accent-orange: #fb923c;
---accent-fuchsia: #d946ef;
 --text-main: #f8fafc;
 --text-muted: #94a3b8;
 }
@@ -27,8 +22,8 @@
 body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
 
 header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
-header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-orange); font-weight: 800; letter-spacing: 0.5px; }
-header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); }
+header h1 { margin: 0; font-size: 1.2rem; color: var(--accent-red); font-weight: 800; letter-spacing: 0.5px; }
+header p { margin: 2px 0 0 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
 .container-actions { display: flex; gap: 10px; justify-content: center; margin: 10px 0 15px 0; }
 .btn-action-top { border: none; padding: 10px 20px; border-radius: 6px; font-size: 0.9rem; font-weight: 900; cursor: pointer; flex: 1; max-width: 200px;
 box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: center;}
@@ -87,42 +82,39 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 border: 1px solid #475569;}
 .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
 .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
+
+/* Styles d'exportation PDF / Impression pour le PC */
+@media print {
+  body { background: #ffffff !important; color: #000000 !important; padding: 0; }
+  .container-actions, .btn-action, .btn-remove, .capa-helper { display: none !important; }
+  .card { background: #ffffff !important; color: #000000 !important; border: 1px solid #cbd5e1 !important; box-shadow: none !important; page-break-inside: avoid; }
+  .card h2 { color: #000000 !important; border-bottom: 1px solid #000000 !important; }
+  input, select { background: #ffffff !important; color: #000000 !important; border: 1px solid #94a3b8 !important; }
+  .chart-container, .reserve-box, .poi-grid { background: #ffffff !important; border: 1px solid #cbd5e1 !important; }
+  .reserve-val { color: #000000 !important; }
+  .doc-table th { background: #f1f5f9 !important; color: #000000 !important; }
+}
 </style>
 </head>
 <body>
-<header style="display: flex; flex-direction: column; align-items: center; gap: 8px;">
-  <svg width="80" height="80" viewBox="0 0 100 100" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0px 4px 8px rgba(0,0,0,0.3));">
-    <path d="M50 5 L85 15 V45 C85 70 50 95 50 95 C50 95 15 70 15 45 V15 L50 5 Z" fill="#1e293b" stroke="#334155" stroke-width="3"/>
-    
-    <path d="M50 25 C50 25 72 38 70 58 C68 74 54 82 50 82 Z" fill="#f97316"/>
-    <path d="M50 40 C50 40 62 48 60 62 C59 72 53 77 50 77 Z" fill="#ef4444"/>
-    
-    <path d="M50 25 C50 25 28 35 30 58 C32 76 46 82 50 82 Z" fill="#22c55e"/>
-    <path d="M50 35 C50 35 36 43 38 60 C39 71 45 77 50 77 Z" fill="#3b82f6"/>
-    
-    <line x1="50" y1="5" x2="50" y2="95" stroke="#0f172a" stroke-width="2" stroke-dasharray="3 3"/>
-    
-    <circle cx="50" cy="55" r="12" stroke="#f8fafc" stroke-width="1.5" stroke-dasharray="2 2" fill="none"/>
-    <circle cx="50" cy="55" r="3" fill="#f8fafc"/>
-  </svg>
-
-  <h1>MOUSSE TACTIQUE — SDIS</h1>
-  <p>Gestion Cinétique des Moyens & Évolution Temporelle Réelle</p>
+<header>
+<h1>MOUSSE TACTIQUE — ORE</h1>
+<p>Poste de Commandement — Analyse Cinétique Logistique</p>
 </header>
 <div class="container-actions">
-<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄  REINITIALISER</button>
-<button class="btn-action-top btn-extract" onclick="extraireDonnees()"> 📤  EXTRAIRE</button>
+<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()"> 🔄 REINITIALISER</button>
+<button class="btn-action-top btn-extract" onclick="extraireDonnees()"> 📄 EXPORT PDF PC</button>
 </div>
 <div class="card">
 <h2>Étape 1 : Situation du Sinistre</h2>
 
 <div class="toggle-group">
-<button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')"> 🛢 ️ Cuvette / Rétention</button>
-<button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')"> 🌊  Nappe / Épandage</button>
+<button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')"> 🛢️ Cuvette / Rétention</button>
+<button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')"> 🌊 Nappe / Épandage</button>
 </div>
 <div class="toggle-group">
-<button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')"> ⛽  Hydrocarbure (Non miscible)</button>
-<button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')"> 🧪  Solvant (Miscible)</button>
+<button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')"> ⛽ Hydrocarbure (Non miscible)</button>
+<button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')"> 🧪 Solvant (Miscible)</button>
 </div>
 <div id="bloc-poi" class="poi-grid">
 <div class="poi-label">Réglementation & Doctrine Site :</div>
@@ -144,10 +136,10 @@ border: 1px solid #475569;}
 </div>
 </div>
 <div style="background: #0f172a; padding: 10px; border-radius: 6px; border: 2px solid #334155; margin: 8px 0 12px 0;">
-<label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);"> ⚠ ️ Statut opérationnel de la fuite :</label>
+<label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);"> ⚠️ Statut opérationnel de la fuite :</label>
 <div class="toggle-group" style="margin-bottom:8px;">
-<button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)"> 🟢  Fuite Recouverte d'emblée</button>
-<button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)"> ⚠ ️ Fuite NON Recouverte</button>
+<button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)"> 🟢 Fuite Recouverte d'emblée</button>
+<button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)"> ⚠️ Fuite NON Recouverte</button>
 </div>
 <div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
 <div class="form-group">
@@ -192,13 +184,13 @@ border: 1px solid #475569;}
 </thead>
 <tbody>
 <tr style="color: #ef4444;">
-<td> 🚀  EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
+<td> 🚀 EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
 <td id="brut-qsm-ext">0 L/min</td>
 <td id="brut-vol-ext">0 L</td>
-<td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-fuchsia); text-align: center;">0 L</td>
+<td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-green); text-align: center;">0 L</td>
 </tr>
 <tr style="color: #fb923c;">
-<td> ⏳  TEMPO (1/2 Taux)</td>
+<td> ⏳ TEMPO (1/2 Taux)</td>
 <td id="brut-qsm-temp">0 L/min</td>
 <td id="brut-vol-temp">0 L</td>
 </tr>
@@ -206,12 +198,12 @@ border: 1px solid #475569;}
 </table>
 </div>
 <div class="card" style="border: 2px solid var(--accent-blue);">
-<h2> 📈  Suivi Cinétique Dynamique des Moyens</h2>
+<h2> 📈 Suivi Cinétique Dynamique des Moyens</h2>
 
 <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
 <div class="toggle-group" style="margin-bottom: 12px;">
-<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳  3 Heures (Extinction)</button>
-<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)"> 🚨  7 Heures (Total Régl. + Maintien)</button>
+<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳ 3 Heures (Extinction)</button>
+<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)"> 🚨 7 Heures (Total Régl. + Maintien)</button>
 </div>
 <div class="moyens-grid-header">
 <span>Nom du Vecteur / Renfort</span>
@@ -223,7 +215,7 @@ border: 1px solid #475569;}
 </div>
 <div id="moyens-liste" class="moyens-container"></div>
 
-<button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕  Ajouter un vecteur ou renfort émanant</button>
+<button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕ Ajouter un vecteur ou renfort émanant</button>
 <div class="reserve-box">
 <div>
 <div class="reserve-title">Stock Amoncelé</div>
@@ -244,7 +236,7 @@ border: 1px solid #475569;}
 <div class="legend-mini">
 <div class="legend-item"><div class="color-box" style="background:#dc2626;"></div><span style="color:#ef4444;">Objectif Courant</span></div>
 <div class="legend-item"><div class="color-box" style="background:#fb923c;"></div><span style="color:#f97316;">Seuil Temporisation</span></div>
-<div class="legend-item"><div class="color-box" style="background:#d946ef;"></div><span style="color:#d946ef;">Maintien Tapis</span></div>
+<div class="legend-item"><div class="color-box" style="background:#16a34a;"></div><span style="color:#16a34a;">Maintien Tapis</span></div>
 <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
 </div>
 
@@ -321,38 +313,7 @@ document.getElementById('moyens-liste').innerHTML = "";
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
 function extraireDonnees() {
-const surface = document.getElementById('inp-surface').value || '0';
-const t0 = document.getElementById('inp-t0').value || '--:--';
-const conf = configSinistre === 'cuvette' ? 'Cuvette' : 'Nappe';
-const prod = typeProduit === 'hydro' ? 'Hydrocarbure' : 'Solvant';
-const fuiteStatus = fuiteRecouverte ? 'Recouverte' : 'Active';
-const fuiteDebit = document.getElementById('inp-qfuite-calcul').value || '0';
-
-let texteMoyens = "";
-const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
-rows.forEach(row => {
-const nom = row.querySelector('.m-nom').value || 'Vecteur';
-const deb = row.querySelector('.m-debit').value || '0';
-const emu = row.querySelector('.m-emulseur').value || '0';
-const hmo = row.querySelector('.m-arrivee').value || '--:--';
-const arr = row.querySelector('.m-arret').value || 'Continu';
-if(deb > 0 || emu > 0) {
-texteMoyens += `- ${nom} : ${deb} L/min | ${emu} L | MoO: ${hmo} | Arrêt: ${arr}\n`;
-}
-});
-const corpsMessage = `--- BILAN MOUSSE TACTIQUE ---\n` +
-`Configuration : ${conf} / ${prod}\n` +
-`Surface : ${surface} m² | T0 : ${t0}\n` +
-`Statut Fuite : ${fuiteStatus} (${fuiteDebit} m³/h)\n\n` +
-`--- ENGAGEMENT CINÉTIQUE ---\n` +
-(texteMoyens || "Aucun moyen encodé.\n") + `\n` +
-`Généré via l'application d'aide à la décision.`;
-const choix = confirm("Comment souhaitez-vous envoyer les données ?\n\n[OK] par Email\n[Annuler] par SMS");
-if (choix) {
-window.location.href = `mailto:?subject=Bilan Mousse Tactique - T0 ${t0}&body=${encodeURIComponent(corpsMessage)}`;
-} else {
-window.location.href = `sms:?&body=${encodeURIComponent(corpsMessage)}`;
-}
+window.print();
 }
 function timeToMinutes(timeStr) {
 if (!timeStr || timeStr.trim() === "") return null;
@@ -469,13 +430,13 @@ const hFuiteInput = document.getElementById('inp-hfuite').value;
 const qFuite = qFuiteM3H ? (parseFloat(qFuiteM3H) * 1000 / 60) : 0;
 if (!fuiteRecouverte && (!qFuiteM3H || parseFloat(qFuiteM3H) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
 resetVisuals();
-document.getElementById('top-extinction-status').innerHTML = ` ⚠ ️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
+document.getElementById('top-extinction-status').innerHTML = ` ⚠️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
 document.getElementById('top-extinction-status').style.background = "#7c2d12"; document.getElementById('top-extinction-status').style.color = "#fed7aa";
 return;
 }
 if (surface === 0 || !t0Str) {
 resetVisuals();
-document.getElementById('top-extinction-status').innerHTML = ` ⚙ ️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
+document.getElementById('top-extinction-status').innerHTML = ` ⚙️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
 document.getElementById('top-extinction-status').style.background = "#334155"; document.getElementById('top-extinction-status').style.color = "white";
 return;
 }
@@ -630,7 +591,7 @@ if (m.debit > 0) {
 const debitEmuEngin = m.debit * (conc / 100);
 const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
 const heureCapaPropre = (tMiseOeuvre + minutesAutonomiePropre) % 1440;
-m.helperElement.innerHTML = ` ⏳  Autonomie vecteur seule : <b style="color: #60a5fa;">${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
+m.helperElement.innerHTML = ` ⏳ Autonomie vecteur seule : <b style="color: #60a5fa;">${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
 }
 else if (m.debit === 0 && m.emulseurApporte > 0) {
 let debitDAttaqueActuelAuPointDArrivee = 0;
@@ -643,9 +604,9 @@ if (debitDAttaqueActuelAuPointDArrivee > 0) {
 const consoEmuGlobaleParMinute = debitDAttaqueActuelAuPointDArrivee * (conc / 100);
 const minutesAbsorptionReserve = Math.floor(m.emulseurApporte / consoEmuGlobaleParMinute);
 const heureCapaReserve = (tMiseOeuvre + minutesAbsorptionReserve) % 1440;
-m.helperElement.innerHTML = ` 📦  Réserve absorbée par débits en place vers : <b style="color: #c084fc;">${minutesToTimeStr(heureCapaReserve)}</b>`;
+m.helperElement.innerHTML = ` 📦 Réserve absorbée par débits en place vers : <b style="color: #c084fc;">${minutesToTimeStr(heureCapaReserve)}</b>`;
 } else {
-m.helperElement.innerHTML = ` 📦  Réserve en stock (En attente de lignes d'attaque)`;
+m.helperElement.innerHTML = ` 📦 Réserve en stock (En attente de lignes d'attaque)`;
 }
 }
 });
@@ -690,7 +651,7 @@ myChart.data.labels = labelsX;
 myChart.data.datasets = [
 { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
 { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
-{ label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#d946ef', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
+{ label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#16a34a', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
 { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
 ];
 
@@ -700,24 +661,24 @@ const statusBox = document.getElementById('top-extinction-status');
 
 if (ruptureMousseHappen) {
 const heurePanneSeche = minutesToTimeStr(t0Min + minuteDeLaRupture);
-statusBox.innerHTML = ` 🚨  <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
+statusBox.innerHTML = ` 🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
 statusBox.style.background = "#7f1d1d"; statusBox.style.color = "#fca5a5";
 }
 else if (topExtinctionMinute !== -1) {
 const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
 const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;"> ℹ ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m).
+let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;"> ℹ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m).
 Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b> (T0 + ${minuteScellementsEffectif} min).`;
-statusBox.innerHTML = ` 🟢  <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
+statusBox.innerHTML = ` 🟢 <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi du maintien (4h).${noteFuite}`;
 statusBox.style.background = "#14532d"; statusBox.style.color = "#bbf7d0";
 }
 else if (!fuiteRecouverte && !fuiteEstScellee) {
 const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
-statusBox.innerHTML = ` ⚠ ️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP EXTINCTION.</span>`;
+statusBox.innerHTML = ` ⚠️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque encore env. ${Math.round(volRestant)} Litres).<br><span style="color:#fb923c; font-weight:bold;">Engagez vos vecteurs rapidement pour accélérer le remplissage et avancer le TOP EXTINCTION.</span>`;
 statusBox.style.background = "#7c2d12"; statusBox.style.color = "#fed7aa";
 }
 else {
-statusBox.innerHTML = ` ⏳  <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée.
+statusBox.innerHTML = ` ⏳ <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)} — EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée.
 Les moyens réels actuels restent inférieurs au seuil requis pour lancer l'assaut réglementaire (${Math.round(qsmExt)} L/min).`;
 statusBox.style.background = "#334155"; statusBox.style.color = "white";
 }
