@@ -695,7 +695,10 @@ listeMoyensEngages.forEach((m, index) => {
 if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
 let niveauChoisi = 0;
 for (let n = 0; n < dernierDeltaParNiveau.length; n++) {
-if (m.arrDelta - dernierDeltaParNiveau[n] > 24) { 
+// Si on est sur la vue 7h (420 min), on élargit la tolérance à 55 minutes, sinon 25 minutes sur la vue 3h
+let toleranceCollision = (horizonActuel === 420) ? 55 : 25;
+
+if (m.arrDelta - dernierDeltaParNiveau[n] > toleranceCollision) { 
 niveauChoisi = n;
 break;
 }
