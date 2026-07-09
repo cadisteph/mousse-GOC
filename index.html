@@ -338,29 +338,47 @@ const m = (mins % 60).toString().padStart(2, '0');
 return `${h}:${m}`;
 }
 function appliquerDoctrineTauxDuree() {
-const surfaceInput = document.getElementById('inp-surface').value;
-const surface = parseFloat(surfaceInput) || 0;
-let tauxAutomatique = 5;
-if (configSinistre === 'nappe') {
-dureeMissionDoctrine = surface <= 400 ? 20 : 40;
-tauxAutomatique = typeProduit === 'hydro' ? 10 : 20;
-} else {
-dureeMissionDoctrine = 40;
-const configurationPOI = document.getElementById('select-poi-type').value;
-if (configurationPOI === 'sans-poi') {
-tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
-} else if (configurationPOI === 'poi-non-autonome') {
-tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
-} else if (configurationPOI === 'poi-autonome-directe') {
-tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
-} else if (configurationPOI === 'poi-autonome-indirecte') {
-tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
-}
-}
-document.getElementById('lbl-duree-stat').innerText = dureeMissionDoctrine;
-document.getElementById('slip-ta').value = tauxAutomatique;
-document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
-calculerTout();
+    const surfaceInput = document.getElementById('inp-surface').value;
+    const surface = parseFloat(surfaceInput) || 0;
+    let tauxAutomatique = 5;
+    
+    const configurationPOI = document.getElementById('select-poi-type').value;
+
+    if (configSinistre === 'nappe') {
+        dureeMissionDoctrine = surface <= 400 ? 20 : 40;
+        tauxAutomatique = typeProduit === 'hydro' ? 10 : 20;
+    } else {
+        dureeMissionDoctrine = 40;
+        if (configurationPOI === 'sans-poi') {
+            tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
+        } else if (configurationPOI === 'poi-non-autonome') {
+            tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
+        } else if (configurationPOI === 'poi-autonome-directe') {
+            tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
+        } else if (configurationPOI === 'poi-autonome-indirecte') {
+            tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
+        }
+    }
+    
+    document.getElementById('lbl-duree-stat').innerText = dureeMissionDoctrine;
+    document.getElementById('slip-ta').value = tauxAutomatique;
+    document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
+
+    // --- AJOUT POUR LE RENOMMAGE DYNAMIQUE DU PREMIER MOYEN ---
+    const premierMoyenInput = document.querySelector('#moyens-liste .m-nom');
+    if (premierMoyenInput) {
+        // On ne le renomme automatiquement que si le champ est vide ou possède encore une valeur par défaut
+        if (premierMoyenInput.value === "" || premierMoyenInput.value === "Moyens Exploit." || premierMoyenInput.value === "Moyens SP / SDIS") {
+            if (configurationPOI === 'sans-poi') {
+                premierMoyenInput.value = "Moyens SP / SDIS";
+            } else {
+                premierMoyenInput.value = "Moyens Exploit.";
+            }
+        }
+    }
+    // -----------------------------------------------------------
+
+    calculerTout();
 }
 function setConfiguration(type) {
 configSinistre = type;
