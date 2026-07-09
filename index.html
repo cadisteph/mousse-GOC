@@ -14,6 +14,7 @@
 --accent-red: #dc2626;
 --accent-green: #16a34a;
 --accent-orange: #fb923c;
+--accent-fuchsia: #d946ef;
 --text-main: #f8fafc;
 --text-muted: #94a3b8;
 }
@@ -620,8 +621,7 @@ let niveauxOccupation = [];
 const seuilSeparation = Math.max(8, horizonActuel * 0.05);
 listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
 listeMoyensEngages.forEach((m, index) => {
-// --- MODIFICATION MAJEURE : CONDITION index === 0 POUR ACTIVER LE 1er MOYEN UNIQUEMENT ---
-if (index === 0 && m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
+if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
 let niveau = 0;
 while (niveauxOccupation[niveau] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
 niveau++;
@@ -630,6 +630,9 @@ niveauxOccupation[niveau] = m.arrDelta;
 let positionLabel = (niveau % 2 === 0) ? 'start' : 'end';
 let niveauAjuste = Math.floor(niveau / 2);
 let decalageY = 6 + (niveauAjuste * 24);
+// --- CONDITION D'ORIENTATION DYNAMIQUE ---
+// Index 0 = Vertical (-90) | Tous les autres = Horizontal (0)
+let rotationLabel = (index === 0) ? -90 : 0;
 annotationsMoyens[`moyen_${index}`] = {
 type: 'line',
 scaleID: 'x',
@@ -641,7 +644,7 @@ label: {
 display: true,
 content: `${m.nom === "Moyens Exploit." ? "Moy. Int." : m.nom} (${m.arrStr})`,
 position: positionLabel,
-rotation: -90, // <--- Label tracé à la verticale
+rotation: rotationLabel,
 backgroundColor: '#1e293b',
 color: m.debit > 0 ? '#3b82f6' : '#c084fc',
 font: { size: 9, weight: 'bold' },
@@ -654,6 +657,32 @@ yAdjust: positionLabel === 'start' ? decalageY : -decalageY
 };
 }
 });
+// --- NOUVEAU BLOCK : AJOUT DU REPERE DE FIN D'INTERVENTION SUR LE GRAPHIQUE ---
+if (topExtinctionMinute !== -1) {
+const deltaFinIntervention = finExtinctionMinute + 240;
+if (deltaFinIntervention <= horizonActuel) {
+const heureFinInterventionStr = minutesToTimeStr(t0Min + deltaFinIntervention);
+annotationsMoyens['fin_intervention_repere'] = {
+type: 'line',
+scaleID: 'x',
+value: deltaFinIntervention,
+borderColor: '#d946ef',
+borderWidth: 2,
+borderDash: [2, 2],
+label: {
+display: true,
+content: `🏁 Fin Interv. (${heureFinInterventionStr})`,
+position: 'center',
+rotation: 0,
+backgroundColor: '#d946ef',
+color: '#0f172a',
+font: { size: 10, weight: 'bold' },
+padding: 5,
+borderRadius: 4
+}
+};
+}
+}
 myChart.data.labels = labelsX;
 myChart.data.datasets = [
 { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
@@ -672,7 +701,6 @@ statusBox.style.background = '#7f1d1d'; statusBox.style.color = '#fca5a5';
 else if (topExtinctionMinute !== -1) {
 const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
 const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-// --- CALCUL ET INTEGRATION SÛRE DE L'HEURE DE FIN PREVISIBLE (Fin Assaut + 240 minutes) ---
 const heureFinInterventionStr = minutesToTimeStr(t0Min + finExtinctionMinute + 240);
 let noteFuite = fuiteRecouverte ? "" : `<br><b>   ℹ  ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
 statusBox.innerHTML = `   🟢   <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (Fin à ${heureFinStr}), suivi du maintien obligatoire (4h).<br>🏁 <b>HEURE PRÉVISIBLE DE FIN D'INTERVENTION : ${heureFinInterventionStr}</b>${noteFuite}`;
