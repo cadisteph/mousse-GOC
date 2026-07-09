@@ -77,7 +77,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 border: 1px solid #475569;}
 .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
 .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
-/* Styles d'exportation PDF préservant le thème sombre complet */
 @media print {
 html, body {
 background-color: #0f172a !important;
@@ -263,7 +262,7 @@ let myChart = null;
 let dureeMissionDoctrine = 40;
 let horizonActuel = 180;
 const moyensParDefaut = [
-{ nom: "Moyens Exploit.", debit: "", emulseur: "", arrivee: "", arret: "" }
+{ nom: "Moy. Int.", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
 function changeHorizon(minutes) {
 horizonActuel = minutes;
@@ -607,27 +606,23 @@ const resRestantBox = document.getElementById('res-restant');
 resRestantBox.innerText = Math.round(reserveEmulseurDisponible) + " L";
 resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte > 0 ? "var(--accent-red)" : "var(--text-main)";
 
-// Algorithme anti-chevauchement des annotations
 let annotationsMoyens = {};
 let niveauxOccupation = []; 
-const seuilSeparation = Math.max(8, horizonActuel * 0.05); // Seuil d'évitement horizontal dynamique (5% de la largeur totale)
+const seuilSeparation = Math.max(8, horizonActuel * 0.05);
 
-// Tri préalable par ordre chronologique pour un calcul de collision parfait
 listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
 
 listeMoyensEngages.forEach((m, index) => {
 if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
 let niveau = 0;
-// Trouve le premier sous-niveau horizontal libre pour cette plage horaire
 while (niveauxOccupation[niveau] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
 niveau++;
 }
 niveauxOccupation[niveau] = m.arrDelta;
 
-// Double-flux : Alterne entre le haut (start) et le bas (end) pour utiliser tout l'espace vertical
 let positionLabel = (niveau % 2 === 0) ? 'start' : 'end';
 let niveauAjuste = Math.floor(niveau / 2);
-let decalageY = 6 + (niveauAjuste * 24); // Décalage de pixel ajusté pour éviter le collisioning vertical
+let decalageY = 6 + (niveauAjuste * 24);
 
 annotationsMoyens[`moyen_${index}`] = {
 type: 'line',
@@ -638,7 +633,7 @@ borderWidth: 1.5,
 borderDash: [4, 4],
 label: {
 display: true,
-content: `${m.nom} (${m.arrStr})`,
+content: `${m.nom === "Moyens Exploit." ? "Moy. Int." : m.nom} (${m.arrStr})`,
 position: positionLabel,
 backgroundColor: '#1e293b',
 color: m.debit > 0 ? '#3b82f6' : '#c084fc',
