@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>GESTION LIF — ANALYSE CINÉTIQUE LOGISTIQUE</title>
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
 <style>
@@ -21,7 +20,6 @@
 }
 * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
-
 header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
 header h1 { margin: 0; font-size: 1.4rem; color: var(--accent-red); font-weight: 800; letter-spacing: 0.5px; }
 header p { margin: 4px 0 0 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
@@ -35,7 +33,6 @@ box-shadow: 0 4px 6px rgba(0,0,0,0.2); transition: transform 0.1s; text-align: c
 .card { background-color: var(--card-bg); border-radius: 8px; padding: 12px; margin-bottom: 10px; box-shadow: 0 2px 4px rgba(0,0,0,0.2); }
 .card h2 { margin: 0 0 10px 0; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--accent-orange); border-bottom: 1px solid #334155;
 padding-bottom: 4px; }
-
 .toggle-group { display: flex; gap: 6px; margin-bottom: 10px; }
 .toggle-btn { flex: 1; background: #334155; border: 1px solid #475569; color: var(--text-main); padding: 8px; border-radius: 6px; font-size: 0.85rem; font-weight: bold;
 cursor: pointer; text-align: center; }
@@ -51,7 +48,6 @@ cursor: pointer; text-align: center; }
 .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
 .form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem;
 font-weight: bold; }
-
 .form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .moyens-container { margin-bottom: 10px; }
 .moyens-grid { display: grid; grid-template-columns: 2fr 1fr 1fr 1.2fr 1.2fr 40px; gap: 4px; align-items: center; margin-bottom: 4px; background: #0f172a;
@@ -62,7 +58,6 @@ font-weight: bold; padding: 0 4px; margin-bottom: 2px; text-align: center; }
 .moyens-grid input { width: 100%; background: #1e293b; border: 1px solid #475569; color: white; padding: 5px; border-radius: 4px; font-size: 0.8rem;
 font-weight: bold; text-align: center; }
 .moyens-grid input[type="text"] { text-align: left; }
-
 .capa-helper { font-size: 0.65rem; color: #60a5fa; text-align: center; margin-top: 2px; font-weight: 500; height: 12px;}
 .btn-action { background: var(--accent-green); border: none; color: white; padding: 6px 12px; border-radius: 6px; font-size: 0.8rem; font-weight: bold; cursor: pointer;
 width: 100%; margin-top: 5px; }
@@ -76,7 +71,6 @@ input[type="range"] { width: 100%; accent-color: var(--accent-orange); margin: 4
 .doc-table td { padding: 6px; border: 1px solid #334155; font-weight: bold; }
 .chart-container { position: relative; width: 100%; height: 350px; margin-top: 10px; background: #0f172a; padding: 8px; border-radius: 6px; }
 .alert-box { font-size: 0.8rem; font-weight: bold; padding: 10px; border-radius: 6px; text-align: center; margin-top: 8px; line-height: 1.4; }
-
 .legend-mini { display: flex; flex-wrap: wrap; gap: 8px; font-size: 0.7rem; margin-top: 6px; justify-content: center; }
 .legend-item { display: flex; align-items: center; gap: 4px; }
 .color-box { width: 12px; height: 12px; border-radius: 3px; }
@@ -85,7 +79,6 @@ border: 1px solid #475569;}
 .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
 .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
 
-/* Styles d'exportation PDF préservant le thème sombre complet */
 @media print {
   html, body { 
     background-color: #0f172a !important; 
@@ -133,7 +126,6 @@ border: 1px solid #475569;}
 </div>
 <div class="card">
 <h2>Étape 1 : Situation du Sinistre</h2>
-
 <div class="toggle-group">
 <button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')"> 🛢️ Cuvette / Rétention</button>
 <button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')"> 🌊 Nappe / Épandage</button>
@@ -191,7 +183,6 @@ border: 1px solid #475569;}
 </div>
 <div class="card" style="border-left: 4px solid var(--accent-blue);">
 <h2>Étape 2 : Seuils & Besoins Logistiques Cibles</h2>
-
 <div style="margin-bottom: 10px; background: #0f172a; padding: 6px; border-radius: 6px; border: 1px solid #334155;">
 <label for="select-maintien-rule" style="font-size:0.7rem; color:var(--text-muted); display:block; margin-bottom:2px; text-transform:uppercase; font-weight:bold;">Calcul du Maintien de Tapis (4h) :</label>
 <select id="select-maintien-rule" class="select-custom" style="font-size:0.8rem; padding:5px;" onchange="calculerTout()">
@@ -225,7 +216,6 @@ border: 1px solid #475569;}
 </div>
 <div class="card" style="border: 2px solid var(--accent-blue);">
 <h2> 📈 Suivi Cinétique Dynamique des Moyens</h2>
-
 <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
 <div class="toggle-group" style="margin-bottom: 12px;">
 <button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)"> ⏳ 3 Heures (Extinction)</button>
@@ -240,7 +230,6 @@ border: 1px solid #475569;}
 <span></span>
 </div>
 <div id="moyens-liste" class="moyens-container"></div>
-
 <button class="btn-action" onclick="ajouterLigneMoyen(null)"> ➕ Ajouter un vecteur ou renfort émanant</button>
 <div class="reserve-box">
 <div>
@@ -266,7 +255,6 @@ border: 1px solid #475569;}
 <div class="legend-item"><div class="color-box" style="background:#2563eb;"></div><span style="color:#3b82f6;">Moyens Réels dispo</span></div>
 <div class="legend-item"><div class="color-box" style="background:#d946ef;"></div><span style="color:#d946ef;">Fin Intervention</span></div>
 </div>
-
 <div id="top-extinction-status" class="alert-box" style="margin-top:10px;">--</div>
 </div>
 <script>
@@ -279,20 +267,17 @@ let horizonActuel = 180;
 const moyensParDefaut = [
 { nom: "Moyens Exploit.", debit: "", emulseur: "", arrivee: "", arret: "" }
 ];
-
 function changeHorizon(minutes) {
 horizonActuel = minutes;
 document.getElementById('btn-h180').classList.toggle('active', minutes === 180);
 document.getElementById('btn-h420').classList.toggle('active', minutes === 420);
 calculerTout();
 }
-
 function setFuiteRecouverte(boolValue) {
 fuiteRecouverte = boolValue;
 const btnOui = document.getElementById('btn-fuite-oui');
 const btnNon = document.getElementById('btn-fuite-non');
 const blocFuite = document.getElementById('bloc-fuite-parametres');
-
 if(boolValue) {
 btnOui.className = "toggle-btn active-green";
 btnNon.className = "toggle-btn";
@@ -304,7 +289,6 @@ blocFuite.style.display = "grid";
 }
 calculerTout();
 }
-
 function ajouterLigneMoyen(data) {
 const backup = { nom: "", debit: "", emulseur: "", arrivee: "", arret: "" };
 const finalData = data ? data : backup;
@@ -325,7 +309,6 @@ div.innerHTML = `
 container.appendChild(div);
 calculerTout();
 }
-
 function reinitialiserApplication() {
 document.getElementById('inp-surface').value = "";
 document.getElementById('inp-t0').value = "";
@@ -335,7 +318,6 @@ document.getElementById('select-poi-type').value = "sans-poi";
 document.getElementById('select-maintien-rule').value = "onesixth";
 document.getElementById('slip-conc').value = "3";
 document.getElementById('val-conc').innerText = "3.0 %";
-
 setConfiguration('cuvette');
 setProduit('hydro');
 setFuiteRecouverte(true);
@@ -343,25 +325,21 @@ changeHorizon(180);
 document.getElementById('moyens-liste').innerHTML = "";
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
-
 function extraireDonnees() {
     window.print();
 }
-
 function timeToMinutes(timeStr) {
 if (!timeStr || timeStr.trim() === "") return null;
 const parts = timeStr.split(':');
 if (parts.length < 2) return null;
 return parseInt(parts[0], 10) * 60 + parseInt(parts[1], 10);
 }
-
 function minutesToTimeStr(totalMinutes) {
 const mins = (totalMinutes < 0 ? (totalMinutes % 1440) + 1440 : totalMinutes) % 1440;
 const h = Math.floor(mins / 60).toString().padStart(2, '0');
 const m = (mins % 60).toString().padStart(2, '0');
 return `${h}:${m}`;
 }
-
 function appliquerDoctrineTauxDuree() {
 const surfaceInput = document.getElementById('inp-surface').value;
 const surface = parseFloat(surfaceInput) || 0;
@@ -387,7 +365,6 @@ document.getElementById('slip-ta').value = tauxAutomatique;
 document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
 calculerTout();
 }
-
 function setConfiguration(type) {
 configSinistre = type;
 document.getElementById('btn-cuvette').classList.toggle('active', type === 'cuvette');
@@ -395,20 +372,17 @@ document.getElementById('btn-nappe').classList.toggle('active', type === 'nappe'
 document.getElementById('bloc-poi').style.display = type === 'cuvette' ? 'grid' : 'none';
 appliquerDoctrineTauxDuree();
 }
-
 function setProduit(prod) {
 typeProduit = prod;
 document.getElementById('btn-hydro').classList.toggle('active', prod === 'hydro');
 document.getElementById('btn-solvant').classList.toggle('active', prod === 'solvant');
 appliquerDoctrineTauxDuree();
 }
-
 function updateSlider(param, value) {
 if (param === 'ta') document.getElementById('val-ta').innerText = parseFloat(value).toFixed(1);
 if (param === 'conc') document.getElementById('val-conc').innerText = parseFloat(value).toFixed(1) + " %";
 calculerTout();
 }
-
 function initChart() {
 const ctx = document.getElementById('kineticChart').getContext('2d');
 myChart = new Chart(ctx, {
@@ -433,7 +407,6 @@ y: { grid: { color: '#334155' }, ticks: { color: '#94a3b8', font: { size: 9 } },
 }
 });
 }
-
 function resetVisuals() {
 document.getElementById('brut-qsm-ext').innerText = "0 L/min";
 document.getElementById('brut-vol-ext').innerText = "0 L";
@@ -443,9 +416,7 @@ document.getElementById('brut-vol-maintien').innerText = "0 L";
 document.getElementById('res-total').innerText = "0 L";
 document.getElementById('res-conso').innerText = "0 L";
 document.getElementById('res-restant').innerText = "0 L";
-
 document.querySelectorAll('.capa-helper').forEach(h => h.innerText = "");
-
 if (myChart) {
 myChart.data.labels = [];
 myChart.data.datasets = [];
@@ -453,13 +424,11 @@ myChart.options.plugins.annotation.annotations = {};
 myChart.update();
 }
 }
-
 function calculerTout() {
 if (!myChart) initChart();
 const surfaceInput = document.getElementById('inp-surface').value;
 const surface = parseFloat(surfaceInput) || 0;
 const t0Str = document.getElementById('inp-t0').value;
-
 const qFuiteM3H = document.getElementById('inp-qfuite-calcul').value;
 const hFuiteInput = document.getElementById('inp-hfuite').value;
 const qFuite = qFuiteM3H ? (parseFloat(qFuiteM3H) * 1000 / 60) : 0;
@@ -478,12 +447,10 @@ return;
 const ta = parseFloat(document.getElementById('slip-ta').value) || 0;
 const conc = parseFloat(document.getElementById('slip-conc').value) || 0;
 const t0Min = timeToMinutes(t0Str) || 480;
-
 const qsmExt = surface * ta;
 const volEmuExt = qsmExt * (conc / 100) * dureeMissionDoctrine;
 const qsmTemp = qsmExt / 2;
 const volEmuTemp = qsmTemp * (conc / 100) * dureeMissionDoctrine;
-
 const regleMaintien = document.getElementById('select-maintien-rule').value;
 let qsmMaintien = surface * 0.2;
 if (regleMaintien === 'onesixth') qsmMaintien = Math.max(qsmMaintien, qsmExt / 6);
@@ -496,7 +463,6 @@ document.getElementById('brut-vol-maintien').innerText = Math.round(volEmuMainti
 const rows = document.querySelectorAll('#moyens-liste .moyens-container-row');
 let listeMoyensEngages = [];
 let stockTotalAporte = 0;
-
 rows.forEach(row => {
 const nom = row.querySelector('.m-nom').value.trim();
 const debit = parseFloat(row.querySelector('.m-debit').value) || 0;
@@ -504,12 +470,10 @@ const emulseur = parseFloat(row.querySelector('.m-emulseur').value) || 0;
 const arrStr = row.querySelector('.m-arrivee').value;
 const arrStrArret = row.querySelector('.m-arret').value;
 const helperBox = row.querySelector('.capa-helper');
-
 let arrMin = timeToMinutes(arrStr);
 let arretMin = timeToMinutes(arrStrArret);
 if (debit > 0 || emulseur > 0) {
 stockTotalAporte += emulseur;
-
 let deltaArretGraphique = 99999;
 if (arretMin !== null) {
 deltaArretGraphique = arretMin - t0Min;
@@ -529,7 +493,6 @@ helperBox.innerText = "";
 }
 });
 document.getElementById('res-total').innerText = Math.round(stockTotalAporte) + " L";
-
 const hFuite = parseFloat(hFuiteInput) || 0;
 const vCuvetteNecessaire = surface * hFuite * 1000;
 let labelsX = [];
@@ -538,10 +501,8 @@ let dataDynamicObjective = [];
 let dataTemp = [];
 let dataMaintien = [];
 let dataReel = [];
-
 let topExtinctionMinute = -1;
 let finExtinctionMinute = -1;
-
 let reserveEmulseurDisponible = 0;
 let consoCumuleeEmulseur = 0;
 let ruptureMousseHappen = false;
@@ -550,7 +511,6 @@ let fuiteEstScellee = fuiteRecouverte;
 let minuteScellementsEffectif = -1;
 let volLiquideCuvette = 0;
 const step = 1;
-
 for (let delta = 0; delta <= horizonActuel; delta += step) {
 let debitCourantSolutionSimule = 0;
 listeMoyensEngages.forEach(m => {
@@ -570,14 +530,11 @@ finExtinctionMinute = delta + dureeMissionDoctrine;
 break;
 }
 }
-
 fuiteEstScellee = fuiteRecouverte;
 volLiquideCuvette = 0;
-
 for (let delta = 0; delta <= horizonActuel; delta += step) {
 const heureExacte = minutesToTimeStr(t0Min + delta);
 labelsBrutsX.push(heureExacte);
-
 if (horizonActuel === 420) {
 if (delta % 5 === 0) labelsX.push(heureExacte);
 else labelsX.push("");
@@ -585,7 +542,6 @@ else labelsX.push("");
 if (delta % 2 === 0) labelsX.push(heureExacte);
 else labelsX.push("");
 }
-
 listeMoyensEngages.forEach(m => {
 if (delta >= m.arrDelta && !m.dejaComptabilise) {
 reserveEmulseurDisponible += m.emulseurApporte;
@@ -598,14 +554,11 @@ if (delta >= m.arrDelta && delta < m.arretDelta) {
 debitCourantSolution += m.debit;
 }
 });
-
 let interventionTerminee = false;
 if (finExtinctionMinute !== -1 && delta > (finExtinctionMinute + 240)) {
 interventionTerminee = true;
 }
-
 let consoPasDeTemps = interventionTerminee ? 0 : (debitCourantSolution * (conc / 100) * step);
-
 if (!interventionTerminee) {
 if (reserveEmulseurDisponible <= 0 && debitCourantSolution > 0) {
 debitCourantSolution = 0;
@@ -621,9 +574,7 @@ consoCumuleeEmulseur += consoPasDeTemps;
 } else {
 debitCourantSolution = 0; 
 }
-
 dataReel.push(interventionTerminee ? 0 : debitCourantSolution);
-
 if (!fuiteEstScellee && qFuite > 0) {
 const solutionEfficace = debitCourantSolution * 0.5;
 volLiquideCuvette += (qFuite + solutionEfficace) * step;
@@ -648,14 +599,12 @@ dataDynamicObjective.push(qsmExt);
 dataTemp.push(interventionTerminee ? 0 : qsmTemp);
 dataMaintien.push(interventionTerminee ? 0 : qsmMaintien);
 }
-
 listeMoyensEngages.forEach(m => {
 if (!m.arrStr) {
 m.helperElement.innerText = "";
 return;
 }
 const tMiseOeuvre = timeToMinutes(m.arrStr);
-
 if (m.debit > 0) {
 const debitEmuEngin = m.debit * (conc / 100);
 const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
@@ -686,110 +635,87 @@ resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte >
 
 let annotationsMoyens = {};
 
-// ==========================================
-// ALGORITHME ANTICOLLISION DYNAMIQUE ET RADICAL
-// ==========================================
-listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
+// =========================================================
+// CORRECTION DE L'ALGORITHME ANTICOLLISION DES ÉTIQUETTES
+// =========================================================
+// 1. Tri systématique par ordre chronologique d'arrivée
+const listeValide = listeMoyensEngages.filter(m => m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr);
+listeValide.sort((a, b) => a.arrDelta - b.arrDelta);
 
-// On élargit la zone d'exclusion (en minutes) selon l'horizon d'affichage
-let zoneSecuriteMin = (horizonActuel === 420) ? 60 : 25;
+// 2. Fenêtre d'exclusion stricte en minutes
+const deltaExclusion = (horizonActuel === 420) ? 55 : 24;
+let etagesOccupes = []; // Tableau stockant la dernière minute marquée par étage
 
-// On stocke le niveau (0, 1, 2, 3...) attribué à chaque moyen
-let attributionNiveaux = [];
-
-listeMoyensEngages.forEach((m, index) => {
-    if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
-        let niveauAttribue = 0;
-        
-        // On cherche un niveau où aucun vecteur n'est trop proche dans la même zone de temps
-        while (true) {
-            let collisionDetectee = false;
-            
-            // On compare avec tous les vecteurs déjà positionnés
-            for (let i = 0; i < index; i++) {
-                let autreMoyen = listeMoyensEngages[i];
-                if (autreMoyen.arrStr && attributionNiveaux[i] === niveauAttribue) {
-                    // Si l'écart de temps est inférieur à notre zone de sécurité, il y a collision
-                    if (Math.abs(m.arrDelta - autreMoyen.arrDelta) < zoneSecuriteMin) {
-                        collisionDetectee = true;
-                        break;
-                    }
-                }
-            }
-            
-            if (!collisionDetectee) {
-                // Aucun conflit sur ce niveau, on le valide
-                break;
-            } else {
-                // Collision ! On teste le niveau du dessous
-                niveauAttribue++;
-            }
-        }
-        
-        attributionNiveaux[index] = niveauAttribue;
-        
-        // Décalage vertical en pixels (15px par niveau pour serrer l'affichage sans se toucher)
-        let decalageY = 10 + (niveauAttribue * 28);
-
-        annotationsMoyens[`moyen_${index}`] = {
-            type: 'line',
-            scaleID: 'x',
-            value: m.arrDelta,
-            borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
-            borderWidth: 1.5,
-            borderDash: [4, 4],
-            label: {
-                display: true,
-                content: `${m.nom} (${m.arrStr})`,
-                position: 'start',
-                backgroundColor: '#1e293b',
-                color: m.debit > 0 ? '#3b82f6' : '#c084fc',
-                font: { size: 9, weight: 'bold' },
-                padding: 4,
-                borderRadius: 4,
-                borderWidth: 1,
-                borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
-                yAdjust: decalageY
-            }
-        };
+listeValide.forEach((m, index) => {
+    let etageAttribue = 0;
+    
+    // Trouver le premier niveau libre sans collision temporelle
+    while (etagesOccupes[etageAttribue] !== undefined && (m.arrDelta - etagesOccupes[etageAttribue]) < deltaExclusion) {
+        etageAttribue++;
     }
+    
+    // Enregistrement du passage du vecteur à ce niveau
+    etagesOccupes[etageAttribue] = m.arrDelta;
+    
+    // Calcul de la hauteur avec un pas de 35px pour éviter tout chevauchement textuel
+    let positionVerticale = 10 + (etageAttribue * 35);
+    
+    annotationsMoyens[`moyen_${index}`] = {
+        type: 'line',
+        scaleID: 'x',
+        value: m.arrDelta,
+        borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+        borderWidth: 1.5,
+        borderDash: [4, 4],
+        label: {
+            display: true,
+            content: `${m.nom} (${m.arrStr})`,
+            position: 'start',
+            backgroundColor: '#1e293b',
+            color: m.debit > 0 ? '#3b82f6' : '#c084fc',
+            font: { size: 9, weight: 'bold' },
+            padding: 4,
+            borderRadius: 4,
+            borderWidth: 1,
+            borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+            yAdjust: positionVerticale
+        }
+    };
 });
 
 if (finExtinctionMinute !== -1) {
-    const deltaFinIntervention = finExtinctionMinute + 240;
-    if (deltaFinIntervention <= horizonActuel) {
-        annotationsMoyens['fin_intervention'] = {
-            type: 'line',
-            scaleID: 'x',
-            value: deltaFinIntervention,
-            borderColor: '#d946ef',
-            borderWidth: 2.5,
-            label: {
-                display: true,
-                content: `FIN INTERVENTION (${minutesToTimeStr(t0Min + deltaFinIntervention)})`,
-                position: 'end',
-                backgroundColor: '#d946ef',
-                color: '#ffffff',
-                font: { size: 10, weight: 'bold' },
-                padding: 5,
-                borderRadius: 4,
-                yAdjust: 15 // Fixé légèrement plus bas pour ne pas croiser les vecteurs
-            }
-        };
-    }
+const deltaFinIntervention = finExtinctionMinute + 240;
+if (deltaFinIntervention <= horizonActuel) {
+annotationsMoyens['fin_intervention'] = {
+type: 'line',
+scaleID: 'x',
+value: deltaFinIntervention,
+borderColor: '#d946ef',
+borderWidth: 2.5,
+label: {
+display: true,
+content: `FIN INTERVENTION (${minutesToTimeStr(t0Min + deltaFinIntervention)})`,
+position: 'end',
+backgroundColor: '#d946ef',
+color: '#ffffff',
+font: { size: 10, weight: 'bold' },
+padding: 5,
+borderRadius: 4
 }
-// ==========================================
+};
+}
+}
+
+myChart.data.labels = labelsX;
 myChart.data.datasets = [
 { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
 { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
 { label: 'Seuil Maintien Tapis', data: dataMaintien, borderColor: '#16a34a', borderWidth: 1.5, borderDash: [2, 2], pointRadius: 0, fill: false },
 { label: 'Moyens Hydrauliques Réels', data: dataReel, borderColor: '#2563eb', backgroundColor: 'rgba(37, 99, 235, 0.08)', borderWidth: 3, pointRadius: 0, fill: true }
 ];
-
 myChart.options.plugins.annotation.annotations = annotationsMoyens;
 myChart.update();
 const statusBox = document.getElementById('top-extinction-status');
-
 if (ruptureMousseHappen) {
 const heurePanneSeche = minutesToTimeStr(t0Min + minuteDeLaRupture);
 statusBox.innerHTML = ` 🚨 <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
@@ -813,7 +739,6 @@ statusBox.innerHTML = ` ⏳ <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minu
 statusBox.style.background = "#334155"; statusBox.style.color = "white";
 }
 }
-
 window.onload = function() {
 moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 };
