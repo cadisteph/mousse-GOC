@@ -341,7 +341,6 @@ function appliquerDoctrineTauxDuree() {
 const surfaceInput = document.getElementById('inp-surface').value;
 const surface = parseFloat(surfaceInput) || 0;
 let tauxAutomatique = 5;
-
 const configurationPOI = document.getElementById('select-poi-type').value;
 if (configSinistre === 'nappe') {
 dureeMissionDoctrine = surface <= 400 ? 20 : 40;
@@ -358,7 +357,6 @@ tauxAutomatique = typeProduit === 'hydro' ? 7 : 15;
 tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
 }
 }
-
 document.getElementById('lbl-duree-stat').innerText = dureeMissionDoctrine;
 document.getElementById('slip-ta').value = tauxAutomatique;
 document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
@@ -622,7 +620,7 @@ let niveauxOccupation = [];
 const seuilSeparation = Math.max(8, horizonActuel * 0.05);
 listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
 listeMoyensEngages.forEach((m, index) => {
-// --- CORRECTION 2 : CONDITION index === 0 POUR TRACER LE 1er MOYEN UNIQUEMENT ---
+// --- MODIFICATION MAJEURE : CONDITION index === 0 POUR ACTIVER LE 1er MOYEN UNIQUEMENT ---
 if (index === 0 && m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
 let niveau = 0;
 while (niveauxOccupation[niveau] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
@@ -643,6 +641,7 @@ label: {
 display: true,
 content: `${m.nom === "Moyens Exploit." ? "Moy. Int." : m.nom} (${m.arrStr})`,
 position: positionLabel,
+rotation: -90, // <--- Label tracé à la verticale
 backgroundColor: '#1e293b',
 color: m.debit > 0 ? '#3b82f6' : '#c084fc',
 font: { size: 9, weight: 'bold' },
@@ -673,12 +672,10 @@ statusBox.style.background = '#7f1d1d'; statusBox.style.color = '#fca5a5';
 else if (topExtinctionMinute !== -1) {
 const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
 const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-// Maintien réglementaire de 4h (240 minutes) après la fin de l'assaut
+// --- CALCUL ET INTEGRATION SÛRE DE L'HEURE DE FIN PREVISIBLE (Fin Assaut + 240 minutes) ---
 const heureFinInterventionStr = minutesToTimeStr(t0Min + finExtinctionMinute + 240);
-let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">   ℹ  ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
-
-// --- CORRECTION 1 : AFFICHAGE CLAIR DU CHEMINEMENT TEMPOREL ET DE L'HEURE FIN PRÉVISIBLE ---
-statusBox.innerHTML = `   🟢   <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi de 4h de maintien.<br> 🏁   <b style="color:#f472b6;">Fin prévisible de l'intervention : ${heureFinInterventionStr}</b>.${noteFuite}`;
+let noteFuite = fuiteRecouverte ? "" : `<br><b>   ℹ  ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
+statusBox.innerHTML = `   🟢   <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (Fin à ${heureFinStr}), suivi du maintien obligatoire (4h).<br>🏁 <b>HEURE PRÉVISIBLE DE FIN D'INTERVENTION : ${heureFinInterventionStr}</b>${noteFuite}`;
 statusBox.style.background = '#14532d'; statusBox.style.color = '#bbf7d0';
 }
 else if (!fuiteRecouverte && !fuiteEstScellee) {
