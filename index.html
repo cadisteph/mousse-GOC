@@ -368,11 +368,11 @@ function appliquerDoctrineTauxDuree() {
     const premierMoyenInput = document.querySelector('#moyens-liste .m-nom');
     if (premierMoyenInput) {
         // On ne le renomme automatiquement que si le champ est vide ou possède encore une valeur par défaut
-        if (premierMoyenInput.value === "" || premierMoyenInput.value === "Moyens Exploit." || premierMoyenInput.value === "Moyens SP / SDIS") {
+        if (premierMoyenInput.value === "" || premierMoyenInput.value === "Moy. Int." || premierMoyenInput.value === "Moy. SP") {
             if (configurationPOI === 'sans-poi') {
-                premierMoyenInput.value = "Moyens SP / SDIS";
+                premierMoyenInput.value = "Moy. SP";
             } else {
-                premierMoyenInput.value = "Moyens Exploit.";
+                premierMoyenInput.value = "Moy. Int.";
             }
         }
     }
