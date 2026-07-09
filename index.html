@@ -686,75 +686,99 @@ resRestantBox.style.color = reserveEmulseurDisponible <= 0 && stockTotalAporte >
 
 let annotationsMoyens = {};
 
-// ALGORITHME ANTICOLLISION HORIZONTALE RENFORCÉ (TOLÉRANCE ÉLARGIE)
+// ==========================================
+// ALGORITHME ANTICOLLISION DYNAMIQUE ET RADICAL
+// ==========================================
 listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
-let niveauxY = [10, 40, 70, 100, 130, 160];
-let dernierDeltaParNiveau = [-999, -999, -999, -999, -999, -999];
+
+// On élargit la zone d'exclusion (en minutes) selon l'horizon d'affichage
+let zoneSecuriteMin = (horizonActuel === 420) ? 60 : 25;
+
+// On stocke le niveau (0, 1, 2, 3...) attribué à chaque moyen
+let attributionNiveaux = [];
 
 listeMoyensEngages.forEach((m, index) => {
-if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
-let niveauChoisi = 0;
-for (let n = 0; n < dernierDeltaParNiveau.length; n++) {
-// Si on est sur la vue 7h (420 min), on élargit la tolérance à 55 minutes, sinon 25 minutes sur la vue 3h
-let toleranceCollision = (horizonActuel === 420) ? 55 : 25;
+    if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
+        let niveauAttribue = 0;
+        
+        // On cherche un niveau où aucun vecteur n'est trop proche dans la même zone de temps
+        while (true) {
+            let collisionDetectee = false;
+            
+            // On compare avec tous les vecteurs déjà positionnés
+            for (let i = 0; i < index; i++) {
+                let autreMoyen = listeMoyensEngages[i];
+                if (autreMoyen.arrStr && attributionNiveaux[i] === niveauAttribue) {
+                    // Si l'écart de temps est inférieur à notre zone de sécurité, il y a collision
+                    if (Math.abs(m.arrDelta - autreMoyen.arrDelta) < zoneSecuriteMin) {
+                        collisionDetectee = true;
+                        break;
+                    }
+                }
+            }
+            
+            if (!collisionDetectee) {
+                // Aucun conflit sur ce niveau, on le valide
+                break;
+            } else {
+                // Collision ! On teste le niveau du dessous
+                niveauAttribue++;
+            }
+        }
+        
+        attributionNiveaux[index] = niveauAttribue;
+        
+        // Décalage vertical en pixels (15px par niveau pour serrer l'affichage sans se toucher)
+        let decalageY = 10 + (niveauAttribue * 28);
 
-if (m.arrDelta - dernierDeltaParNiveau[n] > toleranceCollision) { 
-niveauChoisi = n;
-break;
-}
-if (n === dernierDeltaParNiveau.length - 1) niveauChoisi = n;
-}
-dernierDeltaParNiveau[niveauChoisi] = m.arrDelta;
-let decalageY = niveauxY[niveauChoisi];
-
-annotationsMoyens[`moyen_${index}`] = {
-type: 'line',
-scaleID: 'x',
-value: m.arrDelta,
-borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
-borderWidth: 1.5,
-borderDash: [4, 4],
-label: {
-display: true,
-content: `${m.nom} (${m.arrStr})`,
-position: 'start',
-backgroundColor: '#1e293b',
-color: m.debit > 0 ? '#3b82f6' : '#c084fc',
-font: { size: 9, weight: 'bold' },
-padding: 4,
-borderRadius: 4,
-borderWidth: 1,
-borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
-yAdjust: decalageY
-}
-};
-}
+        annotationsMoyens[`moyen_${index}`] = {
+            type: 'line',
+            scaleID: 'x',
+            value: m.arrDelta,
+            borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+            borderWidth: 1.5,
+            borderDash: [4, 4],
+            label: {
+                display: true,
+                content: `${m.nom} (${m.arrStr})`,
+                position: 'start',
+                backgroundColor: '#1e293b',
+                color: m.debit > 0 ? '#3b82f6' : '#c084fc',
+                font: { size: 9, weight: 'bold' },
+                padding: 4,
+                borderRadius: 4,
+                borderWidth: 1,
+                borderColor: m.debit > 0 ? '#3b82f6' : '#a855f7',
+                yAdjust: decalageY
+            }
+        };
+    }
 });
 
 if (finExtinctionMinute !== -1) {
-const deltaFinIntervention = finExtinctionMinute + 240;
-if (deltaFinIntervention <= horizonActuel) {
-annotationsMoyens['fin_intervention'] = {
-type: 'line',
-scaleID: 'x',
-value: deltaFinIntervention,
-borderColor: '#d946ef',
-borderWidth: 2.5,
-label: {
-display: true,
-content: `FIN INTERVENTION (${minutesToTimeStr(t0Min + deltaFinIntervention)})`,
-position: 'end',
-backgroundColor: '#d946ef',
-color: '#ffffff',
-font: { size: 10, weight: 'bold' },
-padding: 5,
-borderRadius: 4
+    const deltaFinIntervention = finExtinctionMinute + 240;
+    if (deltaFinIntervention <= horizonActuel) {
+        annotationsMoyens['fin_intervention'] = {
+            type: 'line',
+            scaleID: 'x',
+            value: deltaFinIntervention,
+            borderColor: '#d946ef',
+            borderWidth: 2.5,
+            label: {
+                display: true,
+                content: `FIN INTERVENTION (${minutesToTimeStr(t0Min + deltaFinIntervention)})`,
+                position: 'end',
+                backgroundColor: '#d946ef',
+                color: '#ffffff',
+                font: { size: 10, weight: 'bold' },
+                padding: 5,
+                borderRadius: 4,
+                yAdjust: 15 // Fixé légèrement plus bas pour ne pas croiser les vecteurs
+            }
+        };
+    }
 }
-};
-}
-}
-
-myChart.data.labels = labelsX;
+// ==========================================
 myChart.data.datasets = [
 { label: 'Objectif Courant', data: dataDynamicObjective, borderColor: '#dc2626', borderWidth: 2.5, borderDash: [6, 4], pointRadius: 0, fill: false },
 { label: 'Seuil Temporisation', data: dataTemp, borderColor: '#fb923c', borderWidth: 1.5, borderDash: [4, 4], pointRadius: 0, fill: false },
