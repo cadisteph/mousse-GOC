@@ -307,11 +307,6 @@ container.appendChild(div);
 calculerTout();
 }
 function reinitialiserApplication() {
-// 1. On vide d'abord et on réinjecte le moyen par défaut
-document.getElementById('moyens-liste').innerHTML = "";
-moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
-
-// 2. Réinitialisation des formulaires
 document.getElementById('inp-surface').value = "";
 document.getElementById('inp-t0').value = "";
 document.getElementById('inp-qfuite-calcul').value = "";
@@ -320,12 +315,12 @@ document.getElementById('select-poi-type').value = "sans-poi";
 document.getElementById('select-maintien-rule').value = "onesixth";
 document.getElementById('slip-conc').value = "3";
 document.getElementById('val-conc').innerText = "3.0 %";
-
-// 3. Application des configurations doctrines globales en dernier (déclenche le renommage parfait)
 setConfiguration('cuvette');
 setProduit('hydro');
 setFuiteRecouverte(true);
 changeHorizon(180);
+document.getElementById('moyens-liste').innerHTML = "";
+moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 }
 function extraireDonnees() {
 window.print();
@@ -367,8 +362,6 @@ tauxAutomatique = typeProduit === 'hydro' ? 5 : 8;
 document.getElementById('lbl-duree-stat').innerText = dureeMissionDoctrine;
 document.getElementById('slip-ta').value = tauxAutomatique;
 document.getElementById('val-ta').innerText = tauxAutomatique.toFixed(1);
-
-// --- RENOMMAGE DYNAMIQUE DU PREMIER MOYEN CRÉÉ ---
 const premierMoyenInput = document.querySelector('#moyens-liste .m-nom');
 if (premierMoyenInput) {
 if (premierMoyenInput.value === "" || premierMoyenInput.value === "Moy. Int." || premierMoyenInput.value === "Moy. SP") {
@@ -379,7 +372,6 @@ premierMoyenInput.value = "Moy. Int.";
 }
 }
 }
-
 calculerTout();
 }
 function setConfiguration(type) {
@@ -630,7 +622,8 @@ let niveauxOccupation = [];
 const seuilSeparation = Math.max(8, horizonActuel * 0.05);
 listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
 listeMoyensEngages.forEach((m, index) => {
-if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
+// --- CORRECTION 2 : CONDITION index === 0 POUR TRACER LE 1er MOYEN UNIQUEMENT ---
+if (index === 0 && m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
 let niveau = 0;
 while (niveauxOccupation[niveau] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
 niveau++;
@@ -680,8 +673,12 @@ statusBox.style.background = '#7f1d1d'; statusBox.style.color = '#fca5a5';
 else if (topExtinctionMinute !== -1) {
 const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
 const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
-let noteFuite = fuiteRecouverte ? "" : `<br><b>   ℹ  ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m).<br>Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
-statusBox.innerHTML = `   🟢   <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min, suivi du maintien (4h).${noteFuite}`;
+// Maintien réglementaire de 4h (240 minutes) après la fin de l'assaut
+const heureFinInterventionStr = minutesToTimeStr(t0Min + finExtinctionMinute + 240);
+let noteFuite = fuiteRecouverte ? "" : `<br><b style="color:#22c55e;">   ℹ  ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
+
+// --- CORRECTION 1 : AFFICHAGE CLAIR DU CHEMINEMENT TEMPOREL ET DE L'HEURE FIN PRÉVISIBLE ---
+statusBox.innerHTML = `   🟢   <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Assaut de ${dureeMissionDoctrine} min (de <b>${heureTopStr}</b> à <b>${heureFinStr}</b>), suivi de 4h de maintien.<br> 🏁   <b style="color:#f472b6;">Fin prévisible de l'intervention : ${heureFinInterventionStr}</b>.${noteFuite}`;
 statusBox.style.background = '#14532d'; statusBox.style.color = '#bbf7d0';
 }
 else if (!fuiteRecouverte && !fuiteEstScellee) {
@@ -690,14 +687,12 @@ statusBox.innerHTML = `   ⚠  ️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MAS
 statusBox.style.background = '#7c2d12'; statusBox.style.color = '#fed7aa';
 }
 else {
-statusBox.innerHTML = `   ⏳   <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)}   —   EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée.<br>Les moyens réels actuels restent inférieurs au seuil requis (${Math.round(qsmExt)} L/min).`;
+statusBox.innerHTML = `   ⏳   <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)}   —   EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée. Les moyens réels actuels restent inférieurs au seuil requis (${Math.round(qsmExt)} L/min).`;
 statusBox.style.background = '#334155'; statusBox.style.color = 'white';
 }
 }
-
-// Lancement au tout premier chargement de la page
 window.onload = function() {
-reinitialiserApplication();
+moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
 };
 </script>
 </body>
