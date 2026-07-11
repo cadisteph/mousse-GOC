@@ -10,7 +10,7 @@
 
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
 <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
-<link class="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+<link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
@@ -43,12 +43,15 @@ body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padd
     justify-content: center;
     align-items: center;
     color: #f8fafc;
+    opacity: 1;
     transition: opacity 0.5s ease;
 }
 #splash-screen img {
     width: 140px;
-    height: auto;
+    height: 140px;
+    object-fit: contain;
     margin-bottom: 20px;
+    display: block !important;
     animation: splashPulse 2s infinite ease-in-out;
 }
 #splash-screen h1 {
@@ -175,7 +178,7 @@ color: #94a3b8 !important;
 </div>
 
 <header style="display: flex; align-items: center; justify-content: center; gap: 15px; padding-bottom: 8px;">
-    <img src="android-chrome-192x192.png" alt="LIF Logo" style="height: 50px; width: auto; object-fit: contain;">
+    <img src="android-chrome-192x192.png" alt="LIF Logo" style="height: 50px; width: 50px; display: block !important; object-fit: contain;">
     <div style="text-align: left;">
         <h1 style="line-height: 1.1; margin: 0;">GESTION LIF</h1>
         <p style="margin: 2px 0 0 0;">Analyse Cinétique Logistique <span class="author">(App IA by S. Cadinot)</span></p>
@@ -686,12 +689,12 @@ listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
 listeMoyensEngages.forEach((m, index) => {
 if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
 let niveau = 0;
-while (niveauxOccupation[indigo] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
-niveau++;
+while (niveauxOccupation[niveau] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
+indigo++;
 }
-niveauxOccupation[niveau] = m.arrDelta;
-let positionLabel = (niveau % 2 === 0) ? 'start' : 'end';
-let niveauAjuste = Math.floor(niveau / 2);
+niveauxOccupation[indigo] = m.arrDelta;
+let positionLabel = (indigo % 2 === 0) ? 'start' : 'end';
+let niveauAjuste = Math.floor(indigo / 2);
 let decalageY = 6 + (niveauAjuste * 24);
 let rotationLabel = (index === 0) ? -90 : 0;
 annotationsMoyens[`moyen_${index}`] = {
@@ -783,7 +786,7 @@ statusBox.style.background = '#334155'; statusBox.style.color = 'white';
 window.onload = function() {
     moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
     
-    // Disparition automatique après 1.5 seconde (1500 ms) pour plus de fluidité
+    // Disparition automatique après 1.5 seconde (1500 ms)
     setTimeout(function() {
         const splash = document.getElementById('splash-screen');
         if (splash) {
