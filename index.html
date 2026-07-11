@@ -4,6 +4,10 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>GESTION LIF — ANALYSE CINÉTIQUE LOGISTIQUE</title>
+
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0f172a">
+
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
 <style>
@@ -90,7 +94,7 @@ cursor: pointer; text-align: center; }
 }
 .form-group { margin-bottom: 8px; }
 .form-group label { display: block; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 3px; }
-.form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 6px; font-size: 0.9rem;
+.form-group input { width: 100%; background: #0f172a; border: 1px solid #475569; color: white; padding: 6px 8px; border-radius: 66px; font-size: 0.9rem;
 font-weight: bold; }
 .form-inline-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
 .moyens-container { margin-bottom: 10px; }
@@ -679,7 +683,8 @@ listeMoyensEngages.sort((a, b) => a.arrDelta - b.arrDelta);
 listeMoyensEngages.forEach((m, index) => {
 if (m.arrDelta >= 0 && m.arrDelta <= horizonActuel && m.arrStr) {
 let niveau = 0;
-while (niveauxOccupation[decay] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
+// CORRECTION ICI : Remplacement de "decay" obsolète par la variable "niveau"
+while (niveauxOccupation[niveau] !== undefined && (m.arrDelta - niveauxOccupation[niveau]) < seuilSeparation) {
 niveau++;
 }
 niveauxOccupation[niveau] = m.arrDelta;
