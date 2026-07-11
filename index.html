@@ -20,6 +20,50 @@
 }
 * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
 body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padding: 10px; padding-bottom: 40px; }
+
+/* --- STYLE DU SPLASH SCREEN --- */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #0f172a;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #f8fafc;
+    transition: opacity 0.5s ease;
+}
+#splash-screen img {
+    width: 180px;
+    height: auto;
+    margin-bottom: 20px;
+    animation: splashPulse 2s infinite ease-in-out;
+}
+#splash-screen h1 {
+    font-size: 1.6rem;
+    color: var(--accent-red);
+    margin: 0 0 6px 0;
+    font-weight: 800;
+    letter-spacing: 1px;
+}
+#splash-screen p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    font-weight: 600;
+    letter-spacing: 0.5px;
+    margin: 0;
+}
+@keyframes splashPulse {
+    0% { transform: scale(0.96); opacity: 0.85; }
+    50% { transform: scale(1.04); opacity: 1; }
+    100% { transform: scale(0.96); opacity: 0.85; }
+}
+
 header { text-align: center; margin-bottom: 12px; border-bottom: 1px solid #334155; padding-bottom: 8px; }
 header h1 { margin: 0; font-size: 1.4rem; color: var(--accent-red); font-weight: 800; letter-spacing: 0.5px; }
 header p { margin: 4px 0 0 0; font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; font-weight: 600; }
@@ -79,6 +123,7 @@ border: 1px solid #475569;}
 .reserve-title { font-size: 0.65rem; color: var(--text-muted); text-transform: uppercase; font-weight: bold; margin-bottom: 2px;}
 .reserve-val { font-size: 1.1rem; font-weight: 800; color: #f8fafc; }
 @media print {
+#splash-screen { display: none !important; }
 html, body {
 background-color: #0f172a !important;
 color: #f8fafc !important;
@@ -115,23 +160,33 @@ color: #94a3b8 !important;
 </style>
 </head>
 <body>
-<header>
-<h1>GESTION LIF</h1>
-<p>Analyse Cinétique Logistique <span class="author">(App IA by S. Cadinot)</span></p>
+
+<div id="splash-screen">
+    <img src="lif_icon_cutout 2.png" alt="LIF Logo">
+    <h1>GESTION LIF</h1>
+    <p>Analyse Cinétique Logistique</p>
+</div>
+
+<header style="display: flex; align-items: center; justify-content: center; gap: 15px; padding-bottom: 8px;">
+    <img src="lif_icon_cutout 2.png" alt="LIF Mini Logo" style="height: 45px; width: auto;">
+    <div style="text-align: left;">
+        <h1 style="line-height: 1.1;">GESTION LIF</h1>
+        <p style="margin: 2px 0 0 0;">Analyse Cinétique Logistique <span class="author">(App IA by S. Cadinot)</span></p>
+    </div>
 </header>
 <div class="container-actions">
-<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()">   🔄   REINITIALISER</button>
-<button class="btn-action-top btn-extract" onclick="extraireDonnees()">   📄   EXPORT PDF PC</button>
+<button class="btn-action-top btn-reset" onclick="reinitialiserApplication()">    🔄    REINITIALISER</button>
+<button class="btn-action-top btn-extract" onclick="extraireDonnees()">    📄    EXPORT PDF PC</button>
 </div>
 <div class="card">
 <h2>Étape 1 : Situation du Sinistre</h2>
 <div class="toggle-group">
-<button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">   🛢  ️ Cuvette / Rétention</button>
-<button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">   🌊   Nappe / Épandage</button>
+<button class="toggle-btn active" id="btn-cuvette" onclick="setConfiguration('cuvette')">    🛢   ️ Cuvette / Rétention</button>
+<button class="toggle-btn" id="btn-nappe" onclick="setConfiguration('nappe')">    🌊    Nappe / Épandage</button>
 </div>
 <div class="toggle-group">
-<button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">   ⛽   Hydrocarbure (Non miscible)</button>
-<button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">   🧪   Solvant (Miscible)</button>
+<button class="toggle-btn active" id="btn-hydro" onclick="setProduit('hydro')">    ⛽    Hydrocarbure (Non miscible)</button>
+<button class="toggle-btn" id="btn-solvant" onclick="setProduit('solvant')">    🧪    Solvant (Miscible)</button>
 </div>
 <div id="bloc-poi" class="poi-grid">
 <div class="poi-label">Réglementation & Doctrine Site :</div>
@@ -153,10 +208,10 @@ color: #94a3b8 !important;
 </div>
 </div>
 <div style="background: #0f172a; padding: 10px; border-radius: 6px; border: 2px solid #334155; margin: 8px 0 12px 0;">
-<label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);">   ⚠  ️ Statut opérationnel de la fuite :</label>
+<label class="poi-label" style="display:block; margin-bottom:6px; text-align: center; color: var(--accent-orange);">    ⚠   ️ Statut opérationnel de la fuite :</label>
 <div class="toggle-group" style="margin-bottom:8px;">
-<button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">   🟢   Fuite Recouverte d'emblée</button>
-<button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)">   ⚠  ️ Fuite NON Recouverte</button>
+<button class="toggle-btn active-green" id="btn-fuite-oui" onclick="setFuiteRecouverte(true)">    🟢    Fuite Recouverte d'emblée</button>
+<button class="toggle-btn" id="btn-fuite-non" onclick="setFuiteRecouverte(false)">    ⚠   ️ Fuite NON Recouverte</button>
 </div>
 <div id="bloc-fuite-parametres" style="display:none; border-top: 1px dashed #475569; padding-top: 8px; margin-top:8px;" class="form-inline-2">
 <div class="form-group">
@@ -200,13 +255,13 @@ color: #94a3b8 !important;
 </thead>
 <tbody>
 <tr style="color: #ef4444;">
-<td>   🚀   EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
+<td>    🚀    EXTINCTION (<span id="lbl-duree-stat">40</span> min)</td>
 <td id="brut-qsm-ext">0 L/min</td>
 <td id="brut-vol-ext">0 L</td>
 <td id="brut-vol-maintien" rowspan="2" style="vertical-align: middle; background: #0f172a; color: var(--accent-green); text-align: center;">0 L</td>
 </tr>
 <tr style="color: #fb923c;">
-<td>   ⏳   TEMPO (1/2 Taux)</td>
+<td>    ⏳    TEMPO (1/2 Taux)</td>
 <td id="brut-qsm-temp">0 L/min</td>
 <td id="brut-vol-temp">0 L</td>
 </tr>
@@ -214,11 +269,11 @@ color: #94a3b8 !important;
 </table>
 </div>
 <div class="card" style="border: 2px solid var(--accent-blue);">
-<h2>   📈   Suivi Cinétique Dynamique des Moyens</h2>
+<h2>    📈    Suivi Cinétique Dynamique des Moyens</h2>
 <label style="font-size:0.75rem; color:var(--text-muted); display:block; margin-bottom:4px;">Horizon temporel d'analyse :</label>
 <div class="toggle-group" style="margin-bottom: 12px;" id="group-horizon">
-<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)">   ⏳   3 Heures (Extinction)</button>
-<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">   🚨   7 Heures (Total Régl. + Maintien)</button>
+<button class="toggle-btn active" id="btn-h180" onclick="changeHorizon(180)">    ⏳    3 Heures (Extinction)</button>
+<button class="toggle-btn" id="btn-h420" onclick="changeHorizon(420)">    🚨    7 Heures (Total Régl. + Maintien)</button>
 </div>
 <div class="moyens-grid-header">
 <span>Nom du Vecteur / Renfort</span>
@@ -229,7 +284,7 @@ color: #94a3b8 !important;
 <span></span>
 </div>
 <div id="moyens-liste" class="moyens-container"></div>
-<button class="btn-action" onclick="ajouterLigneMoyen(null)">   ➕   Ajouter un vecteur ou renfort émanant</button>
+<button class="btn-action" onclick="ajouterLigneMoyen(null)">    ➕    Ajouter un vecteur ou renfort émanant</button>
 <div class="reserve-box">
 <div>
 <div class="reserve-title">Stock Amoncelé</div>
@@ -300,7 +355,7 @@ div.innerHTML = `
 <input type="number" class="m-emulseur" value="${finalData.emulseur}" placeholder="Litres" oninput="calculerTout()">
 <input type="time" class="m-arrivee" value="${finalData.arrivee || ''}" oninput="calculerTout()">
 <input type="time" class="m-arret" value="${finalData.arret || ''}" oninput="calculerTout()">
-<button class="btn-remove" onclick="this.parentElement.parentElement.remove(); calculerTout();">   ❌   </button>
+<button class="btn-remove" onclick="this.parentElement.parentElement.remove(); calculerTout();">    ❌    </button>
 </div>
 <div class="capa-helper" class="m-helper"></div>
 `;
@@ -445,13 +500,13 @@ const hFuiteInput = document.getElementById('inp-hfuite').value;
 const qFuite = qFuiteM3H ? (parseFloat(qFuiteM3H) * 1000 / 60) : 0;
 if (!fuiteRecouverte && (!qFuiteM3H || parseFloat(qFuiteM3H) <= 0 || !hFuiteInput || parseFloat(hFuiteInput) <= 0)) {
 resetVisuals();
-document.getElementById('top-extinction-status').innerHTML = `   ⚠  ️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
+document.getElementById('top-extinction-status').innerHTML = `    ⚠   ️ <b>FUITE ACTIVÉE : DONNÉES LOGISTIQUES MANQUANTES</b><br>Veuillez entrer le débit de fuite et la hauteur de la brèche.`;
 document.getElementById('top-extinction-status').style.background = "#7c2d12"; document.getElementById('top-extinction-status').style.color = "#fed7aa";
 return;
 }
 if (surface === 0 || !t0Str) {
 resetVisuals();
-document.getElementById('top-extinction-status').innerHTML = `   ⚙  ️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
+document.getElementById('top-extinction-status').innerHTML = `    ⚙   ️ <b>EN ATTENTE DE SAISIE OPÉRATIONNELLE</b><br>Veuillez renseigner la surface du sinistre et l'heure de référence (T0).`;
 document.getElementById('top-extinction-status').style.background = "#334155"; document.getElementById('top-extinction-status').style.color = "white";
 return;
 }
@@ -593,7 +648,7 @@ if (m.debit > 0) {
 const debitEmuEngin = m.debit * (conc / 100);
 const minutesAutonomiePropre = Math.floor(m.emulseurApporte / debitEmuEngin);
 const heureCapaPropre = (tMiseOeuvre + minutesAutonomiePropre) % 1440;
-m.helperElement.innerHTML = `   ⏳   Autonomie vecteur seule : <b>${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
+m.helperElement.innerHTML = `    ⏳    Autonomie vecteur seule : <b>${minutesToTimeStr(heureCapaPropre)}</b> (${minutesAutonomiePropre} min)`;
 }
 else if (m.debit === 0 && m.emulseurApporte > 0) {
 let debitDAttaqueActuelAuPointDArrivee = 0;
@@ -606,9 +661,9 @@ if (debitDAttaqueActuelAuPointDArrivee > 0) {
 const consoEmuGlobaleParMinute = debitDAttaqueActuelAuPointDArrivee * (conc / 100);
 const minutesAbsorptionReserve = Math.floor(m.emulseurApporte / consoEmuGlobaleParMinute);
 const heureCapaReserve = (tMiseOeuvre + minutesAbsorptionReserve) % 1440;
-m.helperElement.innerHTML = `   📦   Réserve absorbée par débits en place vers : <b>${minutesToTimeStr(heureCapaReserve)}</b>`;
+m.helperElement.innerHTML = `    📦    Réserve absorbée par débits en place vers : <b>${minutesToTimeStr(heureCapaReserve)}</b>`;
 } else {
-m.helperElement.innerHTML = `   📦   Réserve en stock (En attente de lignes d'attaque)`;
+m.helperElement.innerHTML = `    📦    Réserve en stock (En attente de lignes d'attaque)`;
 }
 }
 });
@@ -630,8 +685,6 @@ niveauxOccupation[niveau] = m.arrDelta;
 let positionLabel = (niveau % 2 === 0) ? 'start' : 'end';
 let niveauAjuste = Math.floor(niveau / 2);
 let decalageY = 6 + (niveauAjuste * 24);
-// --- CONDITION D'ORIENTATION DYNAMIQUE ---
-// Index 0 = Vertical (-90) | Tous les autres = Horizontal (0)
 let rotationLabel = (index === 0) ? -90 : 0;
 annotationsMoyens[`moyen_${index}`] = {
 type: 'line',
@@ -657,7 +710,6 @@ yAdjust: positionLabel === 'start' ? decalageY : -decalageY
 };
 }
 });
-// --- NOUVEAU BLOCK : AJOUT DU REPERE DE FIN D'INTERVENTION SUR LE GRAPHIQUE ---
 if (topExtinctionMinute !== -1) {
 const deltaFinIntervention = finExtinctionMinute + 240;
 if (deltaFinIntervention <= horizonActuel) {
@@ -671,7 +723,7 @@ borderWidth: 2,
 borderDash: [2, 2],
 label: {
 display: true,
-content: `🏁 Fin Interv. (${heureFinInterventionStr})`,
+content: ` 🏁  Fin Interv. (${heureFinInterventionStr})`,
 position: 'center',
 rotation: 0,
 backgroundColor: '#d946ef',
@@ -695,29 +747,43 @@ myChart.update();
 const statusBox = document.getElementById('top-extinction-status');
 if (ruptureMousseHappen) {
 const heurePanneSeche = minutesToTimeStr(t0Min + minuteDeLaRupture);
-statusBox.innerHTML = `   🚨   <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
+statusBox.innerHTML = `    🚨    <b>RUPTURE LOGISTIQUE : ÉPUISEMENT CHANTIER À ${heurePanneSeche} (T0 + ${minuteDeLaRupture} min) !</b><br> Le stock global partagé est tombé à 0. L'attaque s'est effondrée cinétiquement.`;
 statusBox.style.background = '#7f1d1d'; statusBox.style.color = '#fca5a5';
 }
 else if (topExtinctionMinute !== -1) {
 const heureTopStr = minutesToTimeStr(t0Min + topExtinctionMinute);
 const heureFinStr = minutesToTimeStr(t0Min + finExtinctionMinute);
 const heureFinInterventionStr = minutesToTimeStr(t0Min + finExtinctionMinute + 240);
-let noteFuite = fuiteRecouverte ? "" : `<br><b>   ℹ  ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m). Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
-statusBox.innerHTML = `   🟢   <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (Fin à ${heureFinStr}), suivi du maintien obligatoire (4h).<br>🏁 <b>HEURE PRÉVISIBLE DE FIN D'INTERVENTION : ${heureFinInterventionStr}</b>${noteFuite}`;
+let noteFuite = fuiteRecouverte ? "" : `<br><b>    ℹ   ️ Cinétique Fuite :</b> Hauteur de brèche atteinte (${hFuite}m).
+Recouverte et scellée à <b>${minutesToTimeStr(t0Min + minuteScellementsEffectif)}</b>.`;
+statusBox.innerHTML = `    🟢    <b>TOP EXTINCTION VALIDE À ${heureTopStr} (T0 + ${topExtinctionMinute} min)</b><br>Lancement de l'assaut de ${dureeMissionDoctrine} min (Fin à ${heureFinStr}), suivi du maintien obligatoire (4h).<br> 🏁  <b>HEURE PRÉVISIBLE DE FIN D'INTERVENTION : ${heureFinInterventionStr}</b>${noteFuite}`;
 statusBox.style.background = '#14532d'; statusBox.style.color = '#bbf7d0';
 }
 else if (!fuiteRecouverte && !fuiteEstScellee) {
 const volRestant = Math.max(0, vCuvetteNecessaire - volLiquideCuvette);
-statusBox.innerHTML = `   ⚠  ️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque env. ${Math.round(volRestant)} Litres).`;
+statusBox.innerHTML = `    ⚠   ️ <b>FUITE EN COURS D'ÉPANCHEMENT : ASSAUT MASSÉ GELÉ</b><br>Le niveau de liquide actuel n'a pas encore noyé la brèche de ${hFuite}m (Manque env. ${Math.round(volRestant)} Litres).`;
 statusBox.style.background = '#7c2d12'; statusBox.style.color = '#fed7aa';
 }
 else {
-statusBox.innerHTML = `   ⏳   <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)}   —   EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée. Les moyens réels actuels restent inférieurs au seuil requis (${Math.round(qsmExt)} L/min).`;
+statusBox.innerHTML = `    ⏳    <b>FUITE SCELLÉE À ${minutesToTimeStr(t0Min + minuteScellementsEffectif)}   —   EN ATTENTE DE LA PUISSANCE D'ATTAQUE</b><br>Brèche noyée.
+Les moyens réels actuels restent inférieurs au seuil requis (${Math.round(qsmExt)} L/min).`;
 statusBox.style.background = '#334155'; statusBox.style.color = 'white';
 }
 }
+
+// --- INITIALISATION & GESTION DU TIME OUT DU SPLASH SCREEN ---
 window.onload = function() {
-moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+    moyensParDefaut.forEach(m => ajouterLigneMoyen(m));
+    
+    // Fermeture automatique du Splash Screen après 3 secondes (3000 ms)
+    setTimeout(function() {
+        const splash = document.getElementById('splash-screen');
+        if (splash) {
+            splash.style.opacity = '0';
+            // Supprime l'élément du DOM une fois la transition d'opacité terminée (500ms)
+            setTimeout(() => splash.style.display = 'none', 500);
+        }
+    }, 3000);
 };
 </script>
 </body>
