@@ -16,7 +16,7 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
 
 <style>
-/* --- STYLE DE L'ÉCRAN D'ACCUEIL CINÉMATIQUE --- */
+/* --- STYLE DE L'ÉCRAN D'ACCUEIL CINÉMATIQUE AUTOMATIQUE --- */
 #splash-screen {
     position: fixed;
     top: 0;
@@ -24,7 +24,6 @@
     width: 100vw;
     height: 100vh;
     height: -webkit-fill-available;
-    /* CORRECTION DE L'EXTENSION EN .JPEG */
     background: url('futuristic_emergency_scene_1.jpeg') no-repeat center center;
     background-size: cover !important;
     z-index: 10000;
@@ -32,8 +31,9 @@
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    opacity: 1;
-    transition: opacity 0.8s ease-out;
+    
+    /* L'animation CSS gère le timing de 3 secondes et le fondu de 0.8s de manière autonome */
+    animation: fadeOutSplash 0.8s ease-out 3s forwards;
 }
 #splash-screen::before {
     content: "";
@@ -42,24 +42,14 @@
     background: rgba(15, 23, 42, 0.5);
     z-index: 1;
 }
-#splash-screen h1, #splash-screen p {
-    position: relative;
-    z-index: 2;
-    margin: 5px 0;
-    text-shadow: 0 4px 10px rgba(0,0,0,0.9);
+
+/* Animation CSS : reste visible (opacity: 1) puis disparait et s'autodétruit (visibility: hidden) */
+@keyframes fadeOutSplash {
+    0% { opacity: 1; visibility: visible; }
+    99% { opacity: 0; visibility: visible; }
+    100% { opacity: 0; visibility: hidden; }
 }
-#splash-screen h1 {
-    font-size: 2.5rem;
-    color: #ef4444;
-    font-weight: 900;
-    letter-spacing: 2px;
-}
-#splash-screen p {
-    font-size: 1rem;
-    color: #94a3b8;
-    text-transform: uppercase;
-    font-weight: bold;
-}
+
 :root {
 --bg-app: #0f172a;
 --card-bg: #1e293b;
@@ -177,17 +167,7 @@ color: #94a3b8 !important;
 </div>
 
 <script>
-// Chrono forcé ultra-compatible
-setTimeout(function() {
-    var splash = document.getElementById('splash-screen');
-    if (splash) {
-        splash.style.pointerEvents = 'none'; // Libère les clics immédiatement
-        splash.style.opacity = '0'; // Fondu
-        setTimeout(function() {
-            splash.remove(); // Destruction de l'élément
-        }, 800);
-    }
-}, 3000);
+/* Plus aucun script JavaScript ici pour gérer le temps, le CSS s'occupe de tout de manière native et ultra-sécurisée. */
 </script>
 
     
