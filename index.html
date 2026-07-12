@@ -175,9 +175,7 @@ color: #94a3b8 !important;
     
 <body>
     <div id="splash-screen"></div>
-
 <script>
-// 1. Gestion propre du Splash Screen (3 secondes)
 setTimeout(function() {
     var splash = document.getElementById('splash-screen');
     if (splash) {
@@ -187,37 +185,10 @@ setTimeout(function() {
         }, 800);
     }
 }, 3000);
-
-// 2. LE CORRECTIF ULTIME ROTATION MOTOROLA / ANDROID
-// On écoute le changement d'orientation de l'écran de manière matérielle
-const orientationMediaQuery = window.matchMedia("(orientation: landscape)");
-
-function handleOrientationChange(e) {
-    // Dès que le téléphone tourne, on force Chrome à rafraîchir la taille de la fenêtre
-    setTimeout(() => {
-        window.dispatchEvent(new Event('resize'));
-        
-        // Astuce matérielle : on décale d'un pixel pour forcer Android à recalculer les grilles CSS
-        if (document.documentElement) {
-            document.documentElement.style.height = '100.1vh';
-            setTimeout(() => {
-                document.documentElement.style.height = '100vh';
-            }, 50);
-        }
-    }, 150);
-}
-
-// On active la surveillance sur le Motorola
-try {
-    orientationMediaQuery.addEventListener("change", handleOrientationChange);
-} catch (e) {
-    // Secours pour les versions plus anciennes d'Android
-    window.addEventListener("orientationchange", handleOrientationChange);
-}
 </script>
 
 <header style="display: flex; align-items: center; justify-content: center; gap: 15px; padding-bottom: 8px;">
-    <img src="logo.png" alt="LIF Logo" style="height: 50px; width: auto; display: block !important;">
+    <img src="logo.png" alt="LIF Logo" style="height: 50px; width: auto; max-width: 100%; display: block !important;">
     <div style="text-align: left;">
         <h1 style="line-height: 1.1; margin: 0;">GESTION LIF</h1>
         <p style="margin: 2px 0 0 0;">Analyse Cinétique Logistique</p>
