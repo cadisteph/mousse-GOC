@@ -23,14 +23,16 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    background: url('futuristic_emergency_scene_1.jpeg') no-repeat center center;
-    background-size: cover !important;
+    height: -webkit-fill-available;
+    /* #0f172a est la couleur de votre app, ce qui rendra les bandes invisibles */
+    background: #0f172a url('futuristic_emergency_scene_1.jpeg') no-repeat center center;
+    /* contain garantit que 100% de l'image (titre haut + signature bas) est visible sur TOUS les écrans */
+    background-size: contain !important; 
     z-index: 10000;
     display: flex;
     flex-direction: column;
-    justify-content: flex-end; /* Aligne le contenu vers le bas */
+    justify-content: center;
     align-items: center;
-    padding-bottom: 60px; /* Aligne la signature à 60px du bas */
     opacity: 1;
     transition: opacity 0.8s ease-out;
 }
