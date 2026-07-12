@@ -1,0 +1,22 @@
+{
+  "short_name": "Gestion LIF",
+  "name": "Gestion LIF — Analyse Cinétique",
+  "icons": [
+    {
+      "src": "logo.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "logo.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "start_url": "./index.html",
+  "background_color": "#0f172a",
+  "theme-color": "#0f172a",
+  "display": "standalone",
+  "orientation": "portrait"
+}
