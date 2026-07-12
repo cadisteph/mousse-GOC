@@ -14,36 +14,36 @@
 <link rel="icon" type="image/png" href="logo.png">
 <script src="https://cdn.jsdelivr.net/npm/chart.js?v=1.2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
+
 <style>
-    /* --- STYLE DE L'ÉCRAN D'ACCUEIL CINÉMATIQUE --- */
+/* --- STYLE DE L'ÉCRAN D'ACCUEIL CINÉMATIQUE --- */
 #splash-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    /* On utilise votre nouvelle image en arrière-plan plein écran */
+    /* Vérifiez bien l'orthographe exacte et la casse du fichier ci-dessous */
     background: url('futuristic_emergency_scene_1.jpg') no-repeat center center;
-    background-size: cover;
-    z-index: 10000; /* Reste bien au-dessus de tout */
+    background-size: cover !important;
+    z-index: 10000;
     display: flex;
     flex-direction: column;
     justify-content: center;
     align-items: center;
     opacity: 1;
-    transition: opacity 0.8s ease-out; /* Effet de fondu progressif */
+    transition: opacity 0.8s ease-out;
 }
 #splash-screen::before {
-    /* Filtre sombre pour que le texte reste lisible par-dessus l'image */
     content: "";
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.7);
+    background: rgba(15, 23, 42, 0.6); /* Filtre sombre pour lire le titre */
     z-index: 1;
 }
 #splash-screen h1, #splash-screen p {
     position: relative;
-    z-index: 2; /* Passe au-dessus du filtre sombre */
+    z-index: 2;
     margin: 5px 0;
     text-shadow: 0 4px 10px rgba(0,0,0,0.9);
 }
