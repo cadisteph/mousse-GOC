@@ -168,21 +168,7 @@ setTimeout(function() {
         }, 800);
     }
 }, 3000);
-</script>
 
-    
-// Gestion de la fermeture automatique après 3 secondes (3000 millisecondes)
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-            splash.style.opacity = '0'; // Déclenche le fondu visuel
-            setTimeout(() => {
-                splash.remove(); // Supprime complètement l'élément pour libérer la page
-            }, 800); // Temps aligné sur la transition CSS
-        }
-    }, 3000); // 3000 ms = 3 secondes d'affichage fixe
-});
 </script>
 <header style="display: flex; align-items: center; justify-content: center; gap: 15px; padding-bottom: 8px;">
     <img src="logo.png" alt="LIF Logo" style="height: 50px; width: auto; display: block !important;">
