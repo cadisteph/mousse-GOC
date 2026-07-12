@@ -23,7 +23,8 @@
     left: 0;
     width: 100vw;
     height: 100vh;
-    /* Vérifiez bien l'orthographe exacte et la casse du fichier ci-dessous */
+    height: -webkit-fill-available;
+    /* CORRECTION DE L'EXTENSION EN .JPEG */
     background: url('futuristic_emergency_scene_1.jpeg') no-repeat center center;
     background-size: cover !important;
     z-index: 10000;
@@ -38,7 +39,7 @@
     content: "";
     position: absolute;
     top: 0; left: 0; width: 100%; height: 100%;
-    background: rgba(15, 23, 42, 0.6); /* Filtre sombre pour lire le titre */
+    background: rgba(15, 23, 42, 0.5);
     z-index: 1;
 }
 #splash-screen h1, #splash-screen p {
@@ -167,26 +168,26 @@ color: #94a3b8 !important;
 </style>
 </head>
 <body>
-    <!-- ÉCRAN D'ACCUEIL CINÉMATIQUE -->
-<div id="splash-screen">
-    <div style="position: absolute; bottom: 60px; width: 100%; text-align: center; z-index: 2;">
-        <p style="margin: 0; color: #94a3b8; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.9);">
+    <div id="splash-screen">
+    <div style="position: absolute; bottom: 80px; width: 100%; text-align: center; z-index: 2;">
+        <p style="margin: 0; color: #f8fafc; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(0,0,0,1);">
             App AI By S. Cadinot
         </p>
     </div>
 </div>
 
 <script>
-// Version ultra-compatible pour iPhone/Android : lancement direct du chrono
+// Chrono forcé ultra-compatible
 setTimeout(function() {
     var splash = document.getElementById('splash-screen');
     if (splash) {
-        splash.style.opacity = '0'; // Déclenche le fondu visuel
+        splash.style.pointerEvents = 'none'; // Libère les clics immédiatement
+        splash.style.opacity = '0'; // Fondu
         setTimeout(function() {
-            splash.remove(); // Supprime l'écran pour libérer les clics sur l'appli
+            splash.remove(); // Destruction de l'élément
         }, 800);
     }
-}, 3000); // 3000 ms = 3 secondes
+}, 3000);
 </script>
 
     
