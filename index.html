@@ -16,24 +16,23 @@
 <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation?v=1.2"></script>
 
 <style>
-/* --- STYLE DE L'ÉCRAN D'ACCUEIL CINÉMATIQUE AUTOMATIQUE --- */
+/* --- STYLE DE L'ÉCRAN D'ACCUEIL CINÉMATIQUE --- */
 #splash-screen {
     position: fixed;
     top: 0;
     left: 0;
     width: 100vw;
     height: 100vh;
-    height: -webkit-fill-available;
     background: url('futuristic_emergency_scene_1.jpeg') no-repeat center center;
     background-size: cover !important;
     z-index: 10000;
     display: flex;
     flex-direction: column;
-    justify-content: center;
+    justify-content: flex-end; /* Aligne le contenu vers le bas */
     align-items: center;
-    
-    /* L'animation CSS gère le timing de 3 secondes et le fondu de 0.8s de manière autonome */
-    animation: fadeOutSplash 0.8s ease-out 3s forwards;
+    padding-bottom: 60px; /* Aligne la signature à 60px du bas */
+    opacity: 1;
+    transition: opacity 0.8s ease-out;
 }
 #splash-screen::before {
     content: "";
@@ -42,14 +41,6 @@
     background: rgba(15, 23, 42, 0.5);
     z-index: 1;
 }
-
-/* Animation CSS : reste visible (opacity: 1) puis disparait et s'autodétruit (visibility: hidden) */
-@keyframes fadeOutSplash {
-    0% { opacity: 1; visibility: visible; }
-    99% { opacity: 0; visibility: visible; }
-    100% { opacity: 0; visibility: hidden; }
-}
-
 :root {
 --bg-app: #0f172a;
 --card-bg: #1e293b;
@@ -158,36 +149,28 @@ color: #94a3b8 !important;
 </style>
 </head>
 <body>
-    <div id="splash-screen">
-    <div style="position: absolute; bottom: 80px; width: 100%; text-align: center; z-index: 2;">
-        <p style="margin: 0; color: #f8fafc; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 10px rgba(0,0,0,1);">
-            App AI By S. Cadinot
-        </p>
-    </div>
+    <!-- ÉCRAN D'ACCUEIL CINÉMATIQUE -->
+<div id="splash-screen">
+    <!-- Signature en texte brut simple, z-index 2 pour passer devant le filtre -->
+    <p style="z-index: 2; margin: 0; color: #94a3b8; font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; text-shadow: 0 2px 8px rgba(0,0,0,0.9);">
+        App AI By S. Cadinot
+    </p>
 </div>
 
 <script>
-/* Plus aucun script JavaScript ici pour gérer le temps, le CSS s'occupe de tout de manière native et ultra-sécurisée. */
+// Le script d'origine simple qui fonctionnait parfaitement
+setTimeout(function() {
+    var splash = document.getElementById('splash-screen');
+    if (splash) {
+        splash.style.opacity = '0';
+        setTimeout(function() {
+            splash.remove();
+        }, 800);
+    }
+}, 3000);
 </script>
 
     
-window.addEventListener('DOMContentLoaded', () => {
-    setTimeout(() => {
-        const splash = document.getElementById('splash-screen');
-        if (splash) {
-            splash.style.opacity = '0';
-            setTimeout(() => {
-                splash.remove();
-            }, 800);
-        }
-    }, 3000);
-});
-</script>
-    <div id="splash-screen">
-
-</div>
-
-<script>
 // Gestion de la fermeture automatique après 3 secondes (3000 millisecondes)
 window.addEventListener('DOMContentLoaded', () => {
     setTimeout(() => {
