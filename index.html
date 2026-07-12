@@ -69,6 +69,34 @@ body { background-color: var(--bg-app); color: var(--text-main); margin: 0; padd
     letter-spacing: 0.5px;
     margin: 0;
 }
+
+
+/* --- STYLE DE L'ÉCRAN D'ACCUEIL (SPLASH SCREEN) --- */
+#splash-screen {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background-color: #0f172a;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    color: #f8fafc;
+    opacity: 1;
+    transition: opacity 0.5s ease;
+}
+#splash-screen img {
+    width: 140px; /* Taille fixe et fluide */
+    height: auto;
+    margin-bottom: 20px;
+    display: block !important;
+    animation: splashPulse 2s infinite ease-in-out;
+}
+
+    
 @keyframes splashPulse {
     0% { transform: scale(0.96); opacity: 0.85; }
     50% { transform: scale(1.04); opacity: 1; }
@@ -172,13 +200,13 @@ color: #94a3b8 !important;
 <body>
 
 <div id="splash-screen">
-    <img src="android-chrome-192x192.png" alt="LIF Logo">
+    <img src="android-icon-192x192.png" alt="LIF Logo">
     <h1>GESTION LIF</h1>
     <p>Analyse Cinétique Logistique</p>
 </div>
 
 <header style="display: flex; align-items: center; justify-content: center; gap: 15px; padding-bottom: 8px;">
-    <img src="android-chrome-192x192.png" alt="LIF Logo" style="height: 50px; width: 50px; display: block !important; object-fit: contain;">
+    <img src="android-icon-192x192.png" alt="LIF Logo" style="height: 50px; width: 50px; display: block !important; object-fit: contain;">
     <div style="text-align: left;">
         <h1 style="line-height: 1.1; margin: 0;">GESTION LIF</h1>
         <p style="margin: 2px 0 0 0;">Analyse Cinétique Logistique <span class="author">(App IA by S. Cadinot)</span></p>
